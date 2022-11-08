@@ -60,7 +60,7 @@ LSP_SERVER = server.LanguageServer(max_workers=MAX_WORKERS)
 
 TOOL_MODULE = "ruff"
 
-TOOL_DISPLAY = "ruff"
+TOOL_DISPLAY = "Ruff"
 
 TOOL_ARGS = ["--format", "json", "-"]
 
@@ -115,7 +115,7 @@ def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
     line_offset = 1 if line_at_1 else 0
     col_offset = 1 if column_at_1 else 0
 
-    # ruff's output looks like:
+    # Ruff's output looks like:
     # [
     #   {
     #     "kind": {
@@ -145,7 +145,7 @@ def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
             message=check.get("message"),
             severity=_get_severity(check["code"], check.get("type", "Error")),
             code=check["code"],
-            source=TOOL_MODULE,
+            source=TOOL_DISPLAY,
         )
         diagnostics.append(diagnostic)
 
