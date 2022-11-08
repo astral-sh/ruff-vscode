@@ -133,14 +133,18 @@ def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
     #   ...
     # ]
     for check in json.loads(content):
-        position = lsp.Position(
+        start = lsp.Position(
             line=max([int(check["location"]["row"]) - line_offset, 0]),
             character=int(check["location"]["column"]) - col_offset,
         )
+        end = lsp.Position(
+            line=max([int(check["end_location"]["row"]) - line_offset, 0]),
+            character=int(check["end_location"]["column"]) - col_offset,
+        )
         diagnostic = lsp.Diagnostic(
             range=lsp.Range(
-                start=position,
-                end=position,
+                start=start,
+                end=end,
             ),
             message=check.get("message"),
             severity=_get_severity(check["code"], check.get("type", "Error")),
