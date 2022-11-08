@@ -2,13 +2,12 @@
     "name": "ruff",
     "displayName": "Ruff",
     "description": "A Visual Studio Code extension with support for the Ruff linter.",
-    "version": "0.0.106-dev.0",
-    "preview": true,
+    "version": "2022.0.1",
     "serverInfo": {
         "name": "Ruff",
         "module": "ruff"
     },
-    "publisher": "Charlie Marsh",
+    "publisher": "charliermarsh",
     "license": "MIT",
     "homepage": "https://github.com/charliermarsh/ruff-vscode",
     "repository": {
@@ -18,12 +17,14 @@
     "bugs": {
         "url": "https://github.com/charliermarsh/ruff-vscode/issues"
     },
+    "icon": "icon.png",
     "galleryBanner": {
         "color": "#1e415e",
         "theme": "dark"
     },
     "keywords": [
         "python",
+        "linting",
         "ruff"
     ],
     "engines": {
@@ -31,8 +32,7 @@
     },
     "categories": [
         "Programming Languages",
-        "Linters",
-        "Formatters"
+        "Linters"
     ],
     "extensionDependencies": [
         "ms-python.python"
@@ -136,7 +136,7 @@
         "commands": [
             {
                 "title": "Restart Server",
-                "category": "ruff",
+                "category": "Ruff",
                 "command": "ruff.restart"
             }
         ]

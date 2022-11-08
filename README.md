@@ -24,18 +24,29 @@ per workspace in Visual Studio Code.
 
 ## Commands
 
-| Command              | Description                       |
-|----------------------| --------------------------------- |
-| Ruff: Restart Server | Force re-start the linter server. |
+| Command              | Description                      |
+|----------------------| -------------------------------- |
+| Ruff: Restart Server | Force restart the linter server. |
 
 ## Development
 
 This extension is based on the [Template for VS Code Python tools extensions](https://github.com/microsoft/vscode-python-tools-extension-template).
 
-### Getting started
+### Getting Started
 
 1. Create and activate a virtual environment.
 2. Install `nox` in the activated environment: `python -m pip install nox`.
 3. Run `nox --session setup`.
-4. To run linters: `nox --session lint`.
-5. To run tests: `nox --session tests`.
+
+### Linting
+
+To run linters: `nox --session lint`.
+
+### Testing
+
+To run tests: `nox --session tests`.
+
+### Packaging and Publishing
+
+To build the extension, run: `nox --session build_package`. Then upload the generated `.vsix` file
+to the [extension management page](https://marketplace.visualstudio.com/manage).
