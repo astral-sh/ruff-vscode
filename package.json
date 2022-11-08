@@ -6,7 +6,7 @@
     "preview": true,
     "serverInfo": {
         "name": "Ruff",
-        "module": "ruff"
+        "module": "Ruff"
     },
     "publisher": "Charlie Marsh",
     "license": "MIT",

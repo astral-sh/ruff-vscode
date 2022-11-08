@@ -107,9 +107,7 @@ def change_cwd(new_cwd):
     os.chdir(SERVER_CWD)
 
 
-def _run_module(
-    module: str, argv: Sequence[str], use_stdin: bool, source: str = None
-) -> RunResult:
+def _run_module(module: str, argv: Sequence[str], use_stdin: bool, source: str = None) -> RunResult:
     """Runs as a module."""
     str_output = CustomIO("<stdout>", encoding="utf-8")
     str_error = CustomIO("<stderr>", encoding="utf-8")
@@ -143,9 +141,7 @@ def run_module(
             return _run_module(module, argv, use_stdin, source)
 
 
-def run_path(
-    argv: Sequence[str], use_stdin: bool, cwd: str, source: str = None
-) -> RunResult:
+def run_path(argv: Sequence[str], use_stdin: bool, cwd: str, source: str = None) -> RunResult:
     """Runs as an executable."""
     if use_stdin:
         with subprocess.Popen(

@@ -1,4 +1,8 @@
 [tool.ruff]
 line-length = 100
 select = ["E", "F", "W", "U"]
+target-version = "py37"
 extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]
+
+[tool.black]
+line-length = 100

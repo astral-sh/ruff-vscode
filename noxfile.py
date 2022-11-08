@@ -72,13 +72,8 @@ def _update_npm_packages(session: nox.Session) -> None:
             package_json["devDependencies"][package] = latest
 
     # Ensure engine matches the package
-    if (
-        package_json["engines"]["vscode"]
-        != package_json["devDependencies"]["@types/vscode"]
-    ):
-        print(
-            "Please check VS Code engine version and @types/vscode version in package.json."
-        )
+    if package_json["engines"]["vscode"] != package_json["devDependencies"]["@types/vscode"]:
+        print("Please check VS Code engine version and @types/vscode version in package.json.")
 
     new_package_json = json.dumps(package_json, indent=4)
     # JSON dumps uses \n for line ending on all platforms by default

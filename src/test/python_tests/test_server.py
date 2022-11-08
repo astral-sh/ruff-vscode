@@ -47,92 +47,30 @@ def test_linting_example():
         # wait for some time to receive all notifications
         done.wait(TIMEOUT)
 
-        # TODO: Add your linter specific diagnostic result here
         expected = {
             "uri": TEST_FILE_URI,
             "diagnostics": [
                 {
-                    # "range": {
-                    #     "start": {"line": 0, "character": 0},
-                    #     "end": {"line": 0, "character": 0},
-                    # },
-                    # "message": "Missing module docstring",
-                    # "severity": 3,
-                    # "code": "C0114:missing-module-docstring",
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 0, "character": 0},
+                    },
+                    "message": "`sys` imported but unused",
+                    "severity": 2,
+                    "code": "F401",
                     "source": SERVER_INFO["name"],
                 },
                 {
-                    # "range": {
-                    #     "start": {"line": 2, "character": 6},
-                    #     "end": {
-                    #         "line": 2,
-                    #         "character": 7,
-                    #     },
-                    # },
-                    # "message": "Undefined variable 'x'",
-                    # "severity": 1,
-                    # "code": "E0602:undefined-variable",
-                    "source": SERVER_INFO["name"],
-                },
-                {
-                    # "range": {
-                    #     "start": {"line": 0, "character": 0},
-                    #     "end": {
-                    #         "line": 0,
-                    #         "character": 10,
-                    #     },
-                    # },
-                    # "message": "Unused import sys",
-                    # "severity": 2,
-                    # "code": "W0611:unused-import",
+                    "range": {
+                        "start": {"line": 2, "character": 6},
+                        "end": {"line": 2, "character": 6},
+                    },
+                    "message": "Undefined name `x`",
+                    "severity": 2,
+                    "code": "F821",
                     "source": SERVER_INFO["name"],
                 },
             ],
         }
-
-    assert_that(actual, is_(expected))
-
-
-def test_formatting_example():
-    """Test formatting a python file."""
-    FORMATTED_TEST_FILE_PATH = constants.TEST_DATA / "sample1" / "sample.py"
-    UNFORMATTED_TEST_FILE_PATH = constants.TEST_DATA / "sample1" / "sample.unformatted"
-
-    contents = UNFORMATTED_TEST_FILE_PATH.read_text()
-    lines = contents.splitlines(keepends=False)
-
-    actual = []
-    with utils.python_file(contents, UNFORMATTED_TEST_FILE_PATH.parent) as pf:
-        uri = utils.as_uri(str(pf))
-
-        with session.LspSession() as ls_session:
-            ls_session.initialize()
-            ls_session.notify_did_open(
-                {
-                    "textDocument": {
-                        "uri": uri,
-                        "languageId": "python",
-                        "version": 1,
-                        "text": contents,
-                    }
-                }
-            )
-            actual = ls_session.text_document_formatting(
-                {
-                    "textDocument": {"uri": uri},
-                    # `options` is not used by black
-                    "options": {"tabSize": 4, "insertSpaces": True},
-                }
-            )
-
-    expected = [
-        {
-            "range": {
-                "start": {"line": 0, "character": 0},
-                "end": {"line": len(lines), "character": 0},
-            },
-            "newText": FORMATTED_TEST_FILE_PATH.read_text(),
-        }
-    ]
 
     assert_that(actual, is_(expected))

@@ -38,9 +38,7 @@ class LspSession(MethodDispatcher):
         self._reader = None
         self._endpoint = None
         self._notification_callbacks = {}
-        self.script = (
-            script if script else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
-        )
+        self.script = script if script else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
 
     def __enter__(self):
         """Context manager entrypoint.
@@ -98,9 +96,7 @@ class LspSession(MethodDispatcher):
         self._send_request(
             "initialize",
             params=(
-                initialize_params
-                if initialize_params is not None
-                else VSCODE_DEFAULT_INITIALIZE
+                initialize_params if initialize_params is not None else VSCODE_DEFAULT_INITIALIZE
             ),
             handle_response=_after_initialize,
         )
@@ -159,9 +155,7 @@ class LspSession(MethodDispatcher):
 
     def _publish_diagnostics(self, publish_diagnostics_params):
         """Internal handler for text document publish diagnostics."""
-        return self._handle_notification(
-            PUBLISH_DIAGNOSTICS, publish_diagnostics_params
-        )
+        return self._handle_notification(PUBLISH_DIAGNOSTICS, publish_diagnostics_params)
 
     def _window_log_message(self, window_log_message_params):
         """Internal handler for window log message."""
@@ -169,9 +163,7 @@ class LspSession(MethodDispatcher):
 
     def _window_show_message(self, window_show_message_params):
         """Internal handler for window show message."""
-        return self._handle_notification(
-            WINDOW_SHOW_MESSAGE, window_show_message_params
-        )
+        return self._handle_notification(WINDOW_SHOW_MESSAGE, window_show_message_params)
 
     def _handle_notification(self, notification_name, params):
         """Internal handler for notifications."""

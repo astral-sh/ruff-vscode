@@ -176,9 +176,7 @@ def initialize(params: lsp.InitializeParams) -> None:
     if isinstance(LSP_SERVER.lsp, protocol.LanguageServerProtocol):
         if any(setting["logLevel"] == "debug" for setting in settings):
             LSP_SERVER.lsp.trace = lsp.Trace.Verbose
-        elif any(
-            setting["logLevel"] in ["error", "warn", "info"] for setting in settings
-        ):
+        elif any(setting["logLevel"] in ["error", "warn", "info"] for setting in settings):
             LSP_SERVER.lsp.trace = lsp.Trace.Messages
         else:
             LSP_SERVER.lsp.trace = lsp.Trace.Off
@@ -252,9 +250,7 @@ def _run_tool_on_document(
         # 'path' setting takes priority over everything.
         use_path = True
         argv = settings["path"]
-    elif settings["interpreter"] and not utils.is_current_interpreter(
-        settings["interpreter"][0]
-    ):
+    elif settings["interpreter"] and not utils.is_current_interpreter(settings["interpreter"][0]):
         # If there is a different interpreter set use JSON-RPC to the subprocess
         # running under that interpreter.
         argv = [TOOL_MODULE]
@@ -386,9 +382,7 @@ def _run_tool(extra_args: Sequence[str]) -> utils.RunResult:
         # sys.path and that might not work for this scenario next time around.
         with utils.substitute_attr(sys, "path", sys.path[:]):
             try:
-                result = utils.run_module(
-                    module=TOOL_MODULE, argv=argv, use_stdin=True, cwd=cwd
-                )
+                result = utils.run_module(module=TOOL_MODULE, argv=argv, use_stdin=True, cwd=cwd)
             except Exception:
                 log_error(traceback.format_exc(chain=True))
                 raise
@@ -402,9 +396,7 @@ def _run_tool(extra_args: Sequence[str]) -> utils.RunResult:
 # *****************************************************
 # Logging and notification.
 # *****************************************************
-def log_to_output(
-    message: str, msg_type: lsp.MessageType = lsp.MessageType.Log
-) -> None:
+def log_to_output(message: str, msg_type: lsp.MessageType = lsp.MessageType.Log) -> None:
     LSP_SERVER.show_message_log(message, msg_type)
 
 

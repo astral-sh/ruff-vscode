@@ -37,3 +37,5 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 1. Create and activate a virtual environment.
 2. Install `nox` in the activated environment: `python -m pip install nox`.
 3. Run `nox --session setup`.
+4. To run linters: `nox --session lint`.
+5. To run tests: `nox --session tests`.
