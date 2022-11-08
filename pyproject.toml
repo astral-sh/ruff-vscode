@@ -1,0 +1,4 @@
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "U"]
+extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]

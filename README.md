@@ -1,7 +1,7 @@
 # Ruff extension for Visual Studio Code
 
 A Visual Studio Code extension with support for the [Ruff](https://github.com/charliermarsh/ruff)
-linter. The extension ships with `ruff==0.0.107`.
+linter. The extension ships with `ruff==0.0.106`.
 
 ## Usage
 
@@ -31,3 +31,9 @@ per workspace in Visual Studio Code.
 ## Development
 
 This extension is based on the [Template for VS Code Python tools extensions](https://github.com/microsoft/vscode-python-tools-extension-template).
+
+### Getting started
+
+1. Create and activate a virtual environment.
+2. Install `nox` in the activated environment: `python -m pip install nox`.
+3. Run `nox --session setup`.

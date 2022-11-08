@@ -7,7 +7,6 @@ import copy
 import json
 import os
 import pathlib
-import re
 import shutil
 import sys
 import traceback
@@ -33,12 +32,11 @@ update_sys_path(
 )
 
 # **********************************************************
-# Imports needed for the language server goes below this.
+# Imports needed for the language server.
 # **********************************************************
-# pylint: disable=wrong-import-position,import-error
-import jsonrpc
-import utils
-from pygls import lsp, protocol, server, uris, workspace
+import jsonrpc  # noqa: E402
+import utils  # noqa: E402
+from pygls import lsp, protocol, server, uris, workspace  # noqa: E402
 
 WORKSPACE_SETTINGS = {}
 RUNNER = pathlib.Path(__file__).parent / "runner.py"
@@ -70,6 +68,7 @@ TOOL_ARGS = ["--format", "json", "-"]
 # Linting features start here
 # **********************************************************
 
+
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DID_OPEN)
 def did_open(params: lsp.DidOpenTextDocumentParams) -> None:
     """LSP handler for textDocument/didOpen request."""
@@ -83,7 +82,6 @@ def did_save(params: lsp.DidSaveTextDocumentParams) -> None:
     """LSP handler for textDocument/didSave request."""
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
     diagnostics: list[lsp.Diagnostic] = _linting_helper(document)
-    print("HElo!")
     LSP_SERVER.publish_diagnostics(document.uri, diagnostics)
 
 
@@ -109,7 +107,6 @@ def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
 
 
 def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
-    lines: list[str] = content.splitlines()
     diagnostics: list[lsp.Diagnostic] = []
 
     line_at_1 = True
