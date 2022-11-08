@@ -62,7 +62,7 @@ TOOL_MODULE = "ruff"
 
 TOOL_DISPLAY = "Ruff"
 
-TOOL_ARGS = ["--format", "json", "-"]
+TOOL_ARGS = ["--no-cache", "--format", "json", "-"]
 
 # **********************************************************
 # Linting features start here
