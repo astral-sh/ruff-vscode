@@ -1,15 +1,14 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 """Implementation of tool support over LSP."""
+
 from __future__ import annotations
 
 import copy
 import json
 import os
 import pathlib
-import shutil
 import sys
-import traceback
 from typing import Sequence
 
 
@@ -226,13 +225,13 @@ def _get_settings_by_document(document: workspace.Document | None):
 def _run_tool_on_document(
     document: workspace.Document,
     use_stdin: bool = False,
-    extra_args: Sequence[str] = [],
     formatting: bool = False,
+    extra_args: Sequence[str] = [],
 ) -> utils.RunResult | None:
     """Runs tool on the given document.
 
-    if use_stdin is true then contents of the document is passed to the
-    tool via stdin.
+    If `use_stdin` is `True` then contents of the document is passed to the tool via
+    stdin.
     """
     if str(document.uri).startswith("vscode-notebook-cell"):
         # Skip notebook cells
@@ -259,12 +258,17 @@ def _run_tool_on_document(
         # running under that interpreter.
         argv = [TOOL_MODULE]
         use_rpc = True
+    elif settings["importStrategy"] == "useBundled":
+        # If we're loading from the bundle, use the absolute path.
+        argv = [
+            os.fspath(pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE),
+        ]
     else:
-        # if the interpreter is same as the interpreter running this
-        # process then run as module.
+        # If the interpreter is same as the interpreter running this process then run
+        # as module.
         argv = [TOOL_MODULE]
 
-    argv += TOOL_ARGS + settings["args"] + extra_args
+    argv += TOOL_ARGS + settings["args"] + list(extra_args)
 
     if use_stdin:
         argv += ["--stdin-filename", document.path]
@@ -309,9 +313,6 @@ def _run_tool_on_document(
         # This mode is used when running executables.
         log_to_output(" ".join(argv))
         log_to_output(f"CWD Server: {cwd}")
-        log_to_output(f"ruff executable: {shutil.which(TOOL_MODULE)}")
-        res = utils.run_path([TOOL_MODULE, "--version"], use_stdin=False, cwd=cwd)
-        log_to_output(f"ruff version : {res.stdout.strip()}")
         result = utils.run_path(
             argv=argv,
             use_stdin=use_stdin,
@@ -322,78 +323,6 @@ def _run_tool_on_document(
             log_to_output(result.stderr)
 
     log_to_output(f"{document.uri} :\r\n{result.stdout}")
-    return result
-
-
-def _run_tool(extra_args: Sequence[str]) -> utils.RunResult:
-    """Runs tool."""
-    # deep copy here to prevent accidentally updating global settings.
-    settings = copy.deepcopy(_get_settings_by_document(None))
-
-    code_workspace = settings["workspaceFS"]
-    cwd = settings["workspaceFS"]
-
-    use_path = False
-    use_rpc = False
-    if len(settings["path"]) > 0:
-        # 'path' setting takes priority over everything.
-        use_path = True
-        argv = settings["path"]
-    elif len(settings["interpreter"]) > 0 and not utils.is_current_interpreter(
-        settings["interpreter"][0]
-    ):
-        # If there is a different interpreter set use JSON-RPC to the subprocess
-        # running under that interpreter.
-        argv = [TOOL_MODULE]
-        use_rpc = True
-    else:
-        # if the interpreter is same as the interpreter running this
-        # process then run as module.
-        argv = [TOOL_MODULE]
-
-    argv += extra_args
-
-    if use_path:
-        # This mode is used when running executables.
-        log_to_output(" ".join(argv))
-        log_to_output(f"CWD Server: {cwd}")
-        result = utils.run_path(argv=argv, use_stdin=True, cwd=cwd)
-        if result.stderr:
-            log_to_output(result.stderr)
-    elif use_rpc:
-        # This mode is used if the interpreter running this server is different from
-        # the interpreter used for running this server.
-        log_to_output(" ".join(settings["interpreter"] + ["-m"] + argv))
-        log_to_output(f"CWD Linter: {cwd}")
-        result = jsonrpc.run_over_json_rpc(
-            workspace=code_workspace,
-            interpreter=settings["interpreter"],
-            module=TOOL_MODULE,
-            argv=argv,
-            use_stdin=True,
-            cwd=cwd,
-        )
-        if result.exception:
-            log_error(result.exception)
-            result = utils.RunResult(result.stdout, result.stderr)
-        elif result.stderr:
-            log_to_output(result.stderr)
-    else:
-        # In this mode the tool is run as a module in the same process as the language server.
-        log_to_output(" ".join([sys.executable, "-m"] + argv))
-        log_to_output(f"CWD Linter: {cwd}")
-        # This is needed to preserve sys.path, in cases where the tool modifies
-        # sys.path and that might not work for this scenario next time around.
-        with utils.substitute_attr(sys, "path", sys.path[:]):
-            try:
-                result = utils.run_module(module=TOOL_MODULE, argv=argv, use_stdin=True, cwd=cwd)
-            except Exception:
-                log_error(traceback.format_exc(chain=True))
-                raise
-        if result.stderr:
-            log_to_output(result.stderr)
-
-    log_to_output(f"\r\n{result.stdout}\r\n")
     return result
 
 

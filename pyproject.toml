@@ -1,6 +1,11 @@
 [tool.ruff]
 line-length = 100
-select = ["E", "F", "W", "U"]
+select = [
+  "E",
+  "F",
+  "W",
+  "Q",
+]
 target-version = "py37"
 extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]
 

@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-"""
-Runner to use when running under a different interpreter.
-"""
+"""Runner to use when running under a different interpreter."""
 
 import os
 import pathlib
@@ -24,7 +22,7 @@ def update_sys_path(path_to_add: str, strategy: str) -> None:
 
 # Ensure that we can import LSP libraries, and other bundled libraries.
 update_sys_path(
-    os.fspath(pathlib.Path(__file__).parent.parent / "libs"),
+    os.fspath(pathlib.Path(__file__).parent.parent / "libs" / "bin"),
     os.getenv("LS_IMPORT_STRATEGY", "useBundled"),
 )
 

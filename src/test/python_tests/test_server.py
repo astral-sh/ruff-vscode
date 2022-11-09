@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-"""
-Test for linting over LSP.
-"""
+"""Test for linting over LSP."""
 
 from threading import Event
 
@@ -53,7 +51,7 @@ def test_linting_example():
                 {
                     "range": {
                         "start": {"line": 0, "character": 0},
-                        "end": {"line": 0, "character": 0},
+                        "end": {"line": 0, "character": 10},
                     },
                     "message": "`sys` imported but unused",
                     "severity": 2,
@@ -63,7 +61,7 @@ def test_linting_example():
                 {
                     "range": {
                         "start": {"line": 2, "character": 6},
-                        "end": {"line": 2, "character": 6},
+                        "end": {"line": 2, "character": 7},
                     },
                     "message": "Undefined name `x`",
                     "severity": 2,

@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-"""
-LSP session client for testing.
-"""
+"""LSP session client for testing."""
 
 import os
 import subprocess
