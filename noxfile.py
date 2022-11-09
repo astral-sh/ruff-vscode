@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-"""All the action we need during build"""
 
 import json
 import os
@@ -8,7 +7,7 @@ import pathlib
 import urllib.request as url_lib
 from typing import List
 
-import nox  # pylint: disable=import-error
+import nox
 
 
 def _install_bundle(session: nox.Session) -> None:
