@@ -31,6 +31,6 @@ if debugger_path:
     # This will ensure that execution is paused as soon as the debugger
     # connects to VS Code. If you don't want to pause here comment this
     # line and set breakpoints as appropriate.
-    debugpy.breakpoint()
+    # debugpy.breakpoint()
 SERVER_PATH = os.fspath(pathlib.Path(__file__).parent / "server.py")
 runpy.run_path(SERVER_PATH, run_name="__main__")
