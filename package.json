@@ -2,7 +2,7 @@
     "name": "ruff",
     "displayName": "Ruff",
     "description": "A Visual Studio Code extension with support for the Ruff linter.",
-    "version": "2022.0.5",
+    "version": "2022.0.6",
     "serverInfo": {
         "name": "Ruff",
         "module": "ruff"
@@ -91,7 +91,7 @@
                     "type": "array"
                 },
                 "ruff.importStrategy": {
-                    "default": "useBundled",
+                    "default": "fromEnvironment",
                     "description": "Defines where `ruff` is imported from. This setting may be ignored if `ruff.path` is set.",
                     "enum": [
                         "useBundled",
