@@ -1,7 +1,9 @@
 # Ruff extension for Visual Studio Code
 
 A Visual Studio Code extension with support for the [Ruff](https://github.com/charliermarsh/ruff)
-linter. The extension ships with `ruff==0.0.107`.
+linter. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
+
+The extension ships with `ruff==0.0.108`.
 
 ## Usage
 
