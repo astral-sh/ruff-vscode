@@ -122,4 +122,4 @@ jobs:
       # Publish to the Code Marketplace.
       - name: Publish Extension
         if: "startsWith(github.ref, 'refs/tags/')"
-        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix
+        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
