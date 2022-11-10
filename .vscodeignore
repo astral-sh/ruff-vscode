@@ -20,3 +20,5 @@ noxfile.py
 .pylintrc
 **/requirements.txt
 **/requirements.in
+.idea/**
+.ruff_cache/**
