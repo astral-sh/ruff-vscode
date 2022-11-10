@@ -15,7 +15,6 @@ vsc-extension-quickstart.md
 .github/
 **/__pycache__/**
 **/.pyc
-bundled/libs/bin/**
 noxfile.py
 .pytest_cache/**
 .pylintrc
