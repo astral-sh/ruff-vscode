@@ -18,7 +18,6 @@ RUNNER_SCRIPT = str(pathlib.Path(__file__).parent / "runner.py")
 
 def to_str(text) -> str:
     """Convert bytes to string as needed."""
-    x = 1
     return text.decode("utf-8") if isinstance(text, bytes) else text
 
 
