@@ -1,4 +1,4 @@
-name: release
+name: Release
 on:
   workflow_dispatch:
   create:
@@ -58,7 +58,7 @@ jobs:
           node-version: 16
 
       # Install Node dependencies.
-      - run: npm install
+      - run: npm ci
 
       # Build the extension.
       - name: Package Extension
@@ -116,6 +116,7 @@ jobs:
           path: dist
       - run: ls -al ./dist
 
+      # Install Node dependencies.
       - run: npm ci
 
       # Publish to the Code Marketplace.
