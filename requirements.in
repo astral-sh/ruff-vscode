@@ -10,4 +10,4 @@
 
 pygls
 packaging
-ruff==0.0.108
+ruff==0.0.109
