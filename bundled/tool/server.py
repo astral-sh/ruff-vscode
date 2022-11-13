@@ -9,6 +9,7 @@ import json
 import os
 import pathlib
 import sys
+import sysconfig
 from typing import Sequence
 
 
@@ -266,7 +267,7 @@ def _run_tool_on_document(
     else:
         # If the interpreter is same as the interpreter running this process then run
         # as module.
-        argv = [TOOL_MODULE]
+        argv = [os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)]
 
     argv += TOOL_ARGS + settings["args"] + list(extra_args)
 
