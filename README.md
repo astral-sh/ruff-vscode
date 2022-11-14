@@ -17,7 +17,7 @@ per workspace in Visual Studio Code.
 
 | Settings             | Default      | Description                                                                                                                                                  |
 |----------------------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ruff.args             | `[]`         | Custom arguments passed to `ruff`. E.g `"ruff.args" = ["--config=/path/to/pyproject.toml"]`.                                                                 |
+| ruff.args             | `[]`         | Custom arguments passed to `ruff`. E.g `"ruff.args": ["--config=/path/to/pyproject.toml"]`.                                                                 |
 | ruff.logLevel         | `error`      | Sets the tracing level for the extension.                                                                                                                    |
 | ruff.path             | `[]`         | Setting to provide custom `ruff` executable. E.g. `["~/global_env/ruff"]`.                                                                                   |
 | ruff.interpreter      | `[]`         | Path to a python interpreter to use to run the linter server.                                                                                                |
