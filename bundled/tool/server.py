@@ -62,7 +62,7 @@ TOOL_MODULE = "ruff"
 
 TOOL_DISPLAY = "Ruff"
 
-TOOL_ARGS = ["--no-cache", "--format", "json", "-"]
+TOOL_ARGS = ["--no-cache", "--no-fix", "--quiet", "--format", "json", "-"]
 
 # **********************************************************
 # Linting features start here
@@ -226,7 +226,6 @@ def _get_settings_by_document(document: workspace.Document | None):
 def _run_tool_on_document(
     document: workspace.Document,
     use_stdin: bool = False,
-    formatting: bool = False,
     extra_args: Sequence[str] = [],
 ) -> utils.RunResult | None:
     """Runs tool on the given document.
@@ -273,8 +272,6 @@ def _run_tool_on_document(
 
     if use_stdin:
         argv += ["--stdin-filename", document.path]
-        if formatting:
-            argv += ["--fix"]
     else:
         argv += [document.path]
 
