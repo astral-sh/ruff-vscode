@@ -2,6 +2,13 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2022.0.16 (25 November 2022)
+
+What's Changed
+
+* Publish to OpenVSX by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/30
+* Bump Ruff version to 0.0.138 by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/31
+
 ## 2022.0.15 (20 November 2022)
 
 What's Changed
