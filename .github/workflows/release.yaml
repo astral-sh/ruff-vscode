@@ -127,5 +127,5 @@ jobs:
       # Publish to OpenVSX.
       - name: Publish Extension (OpenVSX)
         if: "startsWith(github.ref, 'refs/tags/')"
-        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ../../dist/ruff-*.vsix
+        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix
         timeout-minutes: 2
