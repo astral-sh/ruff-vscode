@@ -8,6 +8,7 @@ import copy
 import json
 import os
 import pathlib
+import re
 import sys
 import sysconfig
 from typing import Sequence
@@ -83,6 +84,37 @@ def did_save(params: lsp.DidSaveTextDocumentParams) -> None:
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
     diagnostics: list[lsp.Diagnostic] = _linting_helper(document)
     LSP_SERVER.publish_diagnostics(document.uri, diagnostics)
+
+
+NOQA_REGEX = re.compile(r"(?i:# noqa)(?::\s?(?P<codes>([A-Z]+[0-9]+(?:[,\s]+)?)+))?")
+CODE_REGEX = re.compile(r"[A-Z]+[0-9]+")
+
+
+@LSP_SERVER.feature(lsp.HOVER)
+def hover(params: lsp.HoverParams) -> lsp.Hover | None:
+    """LSP handler for textDocument/hover request."""
+    document = LSP_SERVER.workspace.get_document(params.text_document.uri)
+    match = NOQA_REGEX.search(document.lines[params.position.line])
+    if not match:
+        return
+    codes = match.group("codes")
+    if not codes:
+        return
+
+    codes_start = match.start("codes")
+    for m in CODE_REGEX.finditer(codes):
+        start, end = m.span()
+        start += codes_start
+        end += codes_start
+        if start <= params.position.character < end:
+            code = m.group()
+            result = _run_tool_on_document(document, code, overwrite_args=["--explain", code, "."])
+            return lsp.Hover(
+                contents=lsp.MarkupContent(
+                    kind=lsp.MarkupKind.Markdown,
+                    value=(result.stdout or result.stderr).strip(),
+                )
+            )
 
 
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DID_CHANGE)
@@ -227,6 +259,7 @@ def _run_tool_on_document(
     document: workspace.Document,
     use_stdin: bool = False,
     extra_args: Sequence[str] = [],
+    overwrite_args: Sequence[str] = [],
 ) -> utils.RunResult | None:
     """Runs tool on the given document.
 
@@ -252,28 +285,30 @@ def _run_tool_on_document(
     if settings["path"]:
         # 'path' setting takes priority over everything.
         use_path = True
-        argv = settings["path"]
+        entrypoint = settings["path"]
     elif settings["interpreter"] and not utils.is_current_interpreter(settings["interpreter"][0]):
         # If there is a different interpreter set use JSON-RPC to the subprocess
         # running under that interpreter.
-        argv = [TOOL_MODULE]
+        entrypoint = [TOOL_MODULE]
         use_rpc = True
     elif settings["importStrategy"] == "useBundled":
         # If we're loading from the bundle, use the absolute path.
-        argv = [
+        entrypoint = [
             os.fspath(pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE),
         ]
     else:
         # If the interpreter is same as the interpreter running this process then run
         # as module.
-        argv = [os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)]
+        entrypoint = [os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)]
 
-    argv += TOOL_ARGS + settings["args"] + list(extra_args)
+    argv = entrypoint + TOOL_ARGS + settings["args"] + list(extra_args)
 
     if use_stdin:
         argv += ["--stdin-filename", document.path]
     else:
         argv += [document.path]
+
+    argv = entrypoint + overwrite_args if overwrite_args else argv
 
     if use_path:
         # This mode is used when running executables.
