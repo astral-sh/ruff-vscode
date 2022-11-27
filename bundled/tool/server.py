@@ -11,7 +11,7 @@ import pathlib
 import re
 import sys
 import sysconfig
-from typing import Sequence
+from typing import Sequence, Any
 
 
 # **********************************************************
@@ -108,7 +108,13 @@ def hover(params: lsp.HoverParams) -> lsp.Hover | None:
         end += codes_start
         if start <= params.position.character < end:
             code = m.group()
-            result = _run_tool_on_document(document, code, overwrite_args=["--explain", code, "."])
+            settings = copy.deepcopy(_get_settings_by_document(document))
+            result = _run_tool_on_document(
+                document,
+                settings,
+                ["--explain", code, document.path],
+                use_stdin=False,
+            )
             return lsp.Hover(
                 contents=lsp.MarkupContent(
                     kind=lsp.MarkupKind.Markdown,
@@ -134,7 +140,10 @@ def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
 
 
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
-    result = _run_tool_on_document(document, use_stdin=True)
+    # deep copy here to prevent accidentally updating global settings.
+    settings = copy.deepcopy(_get_settings_by_document(document))
+    args = TOOL_ARGS + settings.get("args", []) + ["--stdin-filename", document.path]
+    result = _run_tool_on_document(document, settings, args, use_stdin=True)
     return _parse_output_using_regex(result.stdout) if result.stdout else []
 
 
@@ -257,9 +266,9 @@ def _get_settings_by_document(document: workspace.Document | None):
 # *****************************************************
 def _run_tool_on_document(
     document: workspace.Document,
+    settings: dict[str, Any],
+    args: Sequence[str] = [],
     use_stdin: bool = False,
-    extra_args: Sequence[str] = [],
-    overwrite_args: Sequence[str] = [],
 ) -> utils.RunResult | None:
     """Runs tool on the given document.
 
@@ -274,7 +283,6 @@ def _run_tool_on_document(
         # Skip standard library python files.
         return None
 
-    # deep copy here to prevent accidentally updating global settings.
     settings = copy.deepcopy(_get_settings_by_document(document))
 
     code_workspace = settings["workspaceFS"]
@@ -285,30 +293,23 @@ def _run_tool_on_document(
     if settings["path"]:
         # 'path' setting takes priority over everything.
         use_path = True
-        entrypoint = settings["path"]
+        argv = settings["path"]
     elif settings["interpreter"] and not utils.is_current_interpreter(settings["interpreter"][0]):
         # If there is a different interpreter set use JSON-RPC to the subprocess
         # running under that interpreter.
-        entrypoint = [TOOL_MODULE]
+        argv = [TOOL_MODULE]
         use_rpc = True
     elif settings["importStrategy"] == "useBundled":
         # If we're loading from the bundle, use the absolute path.
-        entrypoint = [
+        argv = [
             os.fspath(pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE),
         ]
     else:
         # If the interpreter is same as the interpreter running this process then run
         # as module.
-        entrypoint = [os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)]
+        argv = [os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)]
 
-    argv = entrypoint + TOOL_ARGS + settings["args"] + list(extra_args)
-
-    if use_stdin:
-        argv += ["--stdin-filename", document.path]
-    else:
-        argv += [document.path]
-
-    argv = entrypoint + overwrite_args if overwrite_args else argv
+    argv += args
 
     if use_path:
         # This mode is used when running executables.
