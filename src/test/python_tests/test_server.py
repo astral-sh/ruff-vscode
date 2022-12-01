@@ -4,7 +4,6 @@
 
 from threading import Event
 
-from hamcrest import assert_that, is_
 
 from .lsp_test_client import constants, defaults, session, utils
 
@@ -50,7 +49,7 @@ def test_linting_example():
             "diagnostics": [
                 {
                     "range": {
-                        "start": {"line": 0, "character": 0},
+                        "start": {"line": 0, "character": 7},
                         "end": {"line": 0, "character": 10},
                     },
                     "message": "`sys` imported but unused",
@@ -71,4 +70,4 @@ def test_linting_example():
             ],
         }
 
-    assert_that(actual, is_(expected))
+    assert actual == expected
