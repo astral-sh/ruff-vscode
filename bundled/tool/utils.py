@@ -13,21 +13,20 @@ import site
 import subprocess
 import sys
 import threading
-from typing import Any, Callable, List, Sequence, Tuple, Union
+from typing import Any, List, Sequence, Tuple, Union
 
 # Save the working directory used when loading this module
 SERVER_CWD = os.getcwd()
 CWD_LOCK = threading.Lock()
 
 
-def as_list(content: Union[Any, List[Any], Tuple[Any]]) -> Union[List[Any], Tuple[Any]]:
+def as_list(content: Union[Any, List[Any], Tuple[Any, ...]]) -> List[Any]:
     """Ensures we always get a list"""
     if isinstance(content, (list, tuple)):
-        return content
+        return list(content)
     return [content]
 
 
-# pylint: disable-next=consider-using-generator
 _site_paths = tuple(
     [
         os.path.normcase(os.path.normpath(p))
@@ -53,7 +52,6 @@ def is_stdlib_file(file_path) -> bool:
     return os.path.normcase(os.path.normpath(file_path)).startswith(_site_paths)
 
 
-# pylint: disable-next=too-few-public-methods
 class RunResult:
     """Object to hold result from running tool."""
 
@@ -65,7 +63,7 @@ class RunResult:
 class CustomIO(io.TextIOWrapper):
     """Custom stream object to replace stdio."""
 
-    name = None
+    name = None  # type: ignore
 
     def __init__(self, name, encoding="utf-8", newline=None):
         self._buffer = io.BytesIO()
@@ -164,45 +162,3 @@ def run_path(argv: Sequence[str], use_stdin: bool, cwd: str, source: str = None)
             cwd=cwd,
         )
         return RunResult(result.stdout, result.stderr)
-
-
-def run_api(
-    callback: Callable[[Sequence[str], CustomIO, CustomIO, CustomIO | None], None],
-    argv: Sequence[str],
-    use_stdin: bool,
-    cwd: str,
-    source: str = None,
-) -> RunResult:
-    """Run a API."""
-    with CWD_LOCK:
-        if is_same_path(os.getcwd(), cwd):
-            return _run_api(callback, argv, use_stdin, source)
-        with change_cwd(cwd):
-            return _run_api(callback, argv, use_stdin, source)
-
-
-def _run_api(
-    callback: Callable[[Sequence[str], CustomIO, CustomIO, CustomIO | None], None],
-    argv: Sequence[str],
-    use_stdin: bool,
-    source: str = None,
-) -> RunResult:
-    str_output = CustomIO("<stdout>", encoding="utf-8")
-    str_error = CustomIO("<stderr>", encoding="utf-8")
-
-    try:
-        with substitute_attr(sys, "argv", argv):
-            with redirect_io("stdout", str_output):
-                with redirect_io("stderr", str_error):
-                    if use_stdin and source is not None:
-                        str_input = CustomIO("<stdin>", encoding="utf-8", newline="\n")
-                        with redirect_io("stdin", str_input):
-                            str_input.write(source)
-                            str_input.seek(0)
-                            callback(argv, str_output, str_error, str_input)
-                    else:
-                        callback(argv, str_output, str_error)
-    except SystemExit:
-        pass
-
-    return RunResult(str_output.get_value(), str_error.get_value())

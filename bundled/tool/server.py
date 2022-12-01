@@ -103,6 +103,8 @@ def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
 
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
     result = _run_tool_on_document(document, use_stdin=True)
+    if result is None:
+        return []
     return _parse_output_using_regex(result.stdout) if result.stdout else []
 
 
@@ -253,6 +255,9 @@ def code_action_resolve(params: lsp.CodeAction):
 
 def _formatting_helper(document: workspace.Document) -> list[lsp.TextEdit] | None:
     result = _run_tool_on_document(document, use_stdin=True, extra_args=["--fix", "--select", "I"])
+    if result is None:
+        return None
+
     if result.stdout:
         new_source = _match_line_endings(document, result.stdout)
 
@@ -429,6 +434,7 @@ def _run_tool_on_document(
     else:
         argv += [document.path]
 
+    result: utils.RunResult
     if use_path:
         # This mode is used when running executables.
         log_to_output(" ".join(argv))
@@ -447,7 +453,7 @@ def _run_tool_on_document(
         log_to_output(" ".join(settings["interpreter"] + ["-m"] + argv))
         log_to_output(f"CWD Linter: {cwd}")
 
-        result = jsonrpc.run_over_json_rpc(
+        rpc_result = jsonrpc.run_over_json_rpc(
             workspace=code_workspace,
             interpreter=settings["interpreter"],
             module=TOOL_MODULE,
@@ -456,11 +462,11 @@ def _run_tool_on_document(
             cwd=cwd,
             source=document.source,
         )
-        if result.exception:
-            log_error(result.exception)
-            result = utils.RunResult(result.stdout, result.stderr)
-        elif result.stderr:
-            log_to_output(result.stderr)
+        if rpc_result.exception:
+            log_error(rpc_result.exception)
+        elif rpc_result.stderr:
+            log_to_output(rpc_result.stderr)
+        result = utils.RunResult(rpc_result.stdout, rpc_result.stderr)
     else:
         # This mode is used when running executables.
         log_to_output(" ".join(argv))
