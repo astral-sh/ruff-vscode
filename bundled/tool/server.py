@@ -143,6 +143,8 @@ def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
             severity=_get_severity(check["code"], check.get("type", "Error")),
             code=check["code"],
             source=TOOL_DISPLAY,
+            # This should be the fix.
+            data="",
         )
         diagnostics.append(diagnostic)
 
@@ -213,6 +215,21 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
                 diagnostics=[],
             ),
         )
+
+    if not params.context.only or lsp.CodeActionKind.QuickFix in params.context.only:
+        diagnostics = [
+            d for d in params.context.diagnostics if d.source == "Ruff" and d.code == "F401"
+        ]
+        if diagnostics:
+            actions.append(
+                lsp.CodeAction(
+                    title="ruff: Fix import sorting and/or formatting",
+                    kind=lsp.CodeActionKind.QuickFix,
+                    data=params.text_document.uri,
+                    edit=None,
+                    diagnostics=diagnostics,
+                ),
+            )
 
     return actions if actions else None
 
