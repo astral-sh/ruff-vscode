@@ -10,7 +10,7 @@ import subprocess
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from typing import BinaryIO, Dict, Optional, Sequence, Union
+from typing import BinaryIO, Dict, Optional, Sequence, Union, cast
 
 CONTENT_LENGTH = "Content-Length: "
 RUNNER_SCRIPT = str(pathlib.Path(__file__).parent / "runner.py")
@@ -24,7 +24,7 @@ def to_str(text) -> str:
 class StreamClosedException(Exception):
     """JSON RPC stream is closed."""
 
-    pass  # pylint: disable=unnecessary-pass
+    pass
 
 
 class JsonWriter:
@@ -116,7 +116,7 @@ class JsonRpc:
 
 def create_json_rpc(readable: BinaryIO, writable: BinaryIO) -> JsonRpc:
     """Creates JSON-RPC wrapper for the readable and writable streams."""
-    return JsonRpc(readable, writable)
+    return JsonRpc(cast(io.TextIOWrapper, readable), cast(io.TextIOWrapper, writable))
 
 
 class ProcessManager:
@@ -129,7 +129,7 @@ class ProcessManager:
         self._lock = threading.Lock()
         self._thread_pool = ThreadPoolExecutor(10)
 
-    @atexit.register
+    @atexit.register  # type: ignore
     def stop_all_processes(self):
         """Send exit command to all processes and shutdown transport."""
         for i in self._rpc.values():
@@ -141,7 +141,6 @@ class ProcessManager:
 
     def start_process(self, workspace: str, args: Sequence[str], cwd: str) -> None:
         """Starts a process and establishes JSON-RPC communication over stdio."""
-        # pylint: disable=consider-using-with
         proc = subprocess.Popen(
             args,
             cwd=cwd,
@@ -149,7 +148,9 @@ class ProcessManager:
             stdin=subprocess.PIPE,
         )
         self._processes[workspace] = proc
-        self._rpc[workspace] = create_json_rpc(proc.stdout, proc.stdin)
+        self._rpc[workspace] = create_json_rpc(
+            cast(BinaryIO, proc.stdout), cast(BinaryIO, proc.stdin)
+        )
 
         def _monitor_process():
             proc.wait()
@@ -204,7 +205,6 @@ class RpcRunResult:
         self.exception: Optional[str] = exception
 
 
-# pylint: disable=too-many-arguments
 def run_over_json_rpc(
     workspace: str,
     interpreter: Sequence[str],
