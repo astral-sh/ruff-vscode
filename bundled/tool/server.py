@@ -36,7 +36,36 @@ update_sys_path(
 # **********************************************************
 import jsonrpc  # noqa: E402
 import utils  # noqa: E402
-from pygls import lsp, protocol, server, uris, workspace  # noqa: E402
+from pygls import protocol, server, uris, workspace  # noqa: E402
+from lsprotocol.types import (  # noqa: E402
+    CODE_ACTION_RESOLVE,
+    CodeAction,
+    CodeActionKind,
+    CodeActionOptions,
+    CodeActionParams,
+    Diagnostic,
+    DiagnosticSeverity,
+    DidChangeTextDocumentParams,
+    DidCloseTextDocumentParams,
+    DidOpenTextDocumentParams,
+    DidSaveTextDocumentParams,
+    EXIT,
+    INITIALIZE,
+    InitializeParams,
+    MessageType,
+    Position,
+    Range,
+    TEXT_DOCUMENT_CODE_ACTION,
+    TEXT_DOCUMENT_DID_CHANGE,
+    TEXT_DOCUMENT_DID_CLOSE,
+    TEXT_DOCUMENT_DID_OPEN,
+    TEXT_DOCUMENT_DID_SAVE,
+    TextDocumentEdit,
+    TextEdit,
+    TraceValues,
+    VersionedTextDocumentIdentifier,
+    WorkspaceEdit,
+)
 
 WORKSPACE_SETTINGS = {}
 RUNNER = pathlib.Path(__file__).parent / "runner.py"
@@ -64,47 +93,47 @@ TOOL_ARGS = ["--no-cache", "--no-fix", "--quiet", "--format", "json", "-"]
 # **********************************************************
 
 
-@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DID_OPEN)
-def did_open(params: lsp.DidOpenTextDocumentParams) -> None:
+@LSP_SERVER.feature(TEXT_DOCUMENT_DID_OPEN)
+def did_open(params: DidOpenTextDocumentParams) -> None:
     """LSP handler for textDocument/didOpen request."""
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
-    diagnostics: list[lsp.Diagnostic] = _linting_helper(document)
+    diagnostics: list[Diagnostic] = _linting_helper(document)
     LSP_SERVER.publish_diagnostics(document.uri, diagnostics)
 
 
-@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DID_SAVE)
-def did_save(params: lsp.DidSaveTextDocumentParams) -> None:
+@LSP_SERVER.feature(TEXT_DOCUMENT_DID_SAVE)
+def did_save(params: DidSaveTextDocumentParams) -> None:
     """LSP handler for textDocument/didSave request."""
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
-    diagnostics: list[lsp.Diagnostic] = _linting_helper(document)
+    diagnostics: list[Diagnostic] = _linting_helper(document)
     LSP_SERVER.publish_diagnostics(document.uri, diagnostics)
 
 
-@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DID_CHANGE)
-def did_change(params: lsp.DidChangeTextDocumentParams) -> None:
+@LSP_SERVER.feature(TEXT_DOCUMENT_DID_CHANGE)
+def did_change(params: DidChangeTextDocumentParams) -> None:
     """LSP handler for textDocument/didSave request."""
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
-    diagnostics: list[lsp.Diagnostic] = _linting_helper(document)
+    diagnostics: list[Diagnostic] = _linting_helper(document)
     LSP_SERVER.publish_diagnostics(document.uri, diagnostics)
 
 
-@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DID_CLOSE)
-def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
+@LSP_SERVER.feature(TEXT_DOCUMENT_DID_CLOSE)
+def did_close(params: DidCloseTextDocumentParams) -> None:
     """LSP handler for textDocument/didClose request."""
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
     # Publishing empty diagnostics to clear the entries for this file.
     LSP_SERVER.publish_diagnostics(document.uri, [])
 
 
-def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
+def _linting_helper(document: workspace.Document) -> list[Diagnostic]:
     result = _run_tool_on_document(document, use_stdin=True)
     if result is None:
         return []
     return _parse_output_using_regex(result.stdout) if result.stdout else []
 
 
-def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
-    diagnostics: list[lsp.Diagnostic] = []
+def _parse_output_using_regex(content: str) -> list[Diagnostic]:
+    diagnostics: list[Diagnostic] = []
 
     line_at_1 = True
     column_at_1 = True
@@ -130,16 +159,16 @@ def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
     #   ...
     # ]
     for check in json.loads(content):
-        start = lsp.Position(
+        start = Position(
             line=max([int(check["location"]["row"]) - line_offset, 0]),
             character=int(check["location"]["column"]) - col_offset,
         )
-        end = lsp.Position(
+        end = Position(
             line=max([int(check["end_location"]["row"]) - line_offset, 0]),
             character=int(check["end_location"]["column"]) - col_offset,
         )
-        diagnostic = lsp.Diagnostic(
-            range=lsp.Range(
+        diagnostic = Diagnostic(
+            range=Range(
                 start=start,
                 end=end,
             ),
@@ -153,8 +182,8 @@ def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
     return diagnostics
 
 
-def _get_severity(*_codes: list[str]) -> lsp.DiagnosticSeverity:
-    return lsp.DiagnosticSeverity.Warning
+def _get_severity(*_codes: list[str]) -> DiagnosticSeverity:
+    return DiagnosticSeverity.Warning
 
 
 # **********************************************************
@@ -167,15 +196,15 @@ def _get_severity(*_codes: list[str]) -> lsp.DiagnosticSeverity:
 
 
 @LSP_SERVER.feature(
-    lsp.CODE_ACTION,
-    lsp.CodeActionOptions(
+    TEXT_DOCUMENT_CODE_ACTION,
+    CodeActionOptions(
         code_action_kinds=[
-            lsp.CodeActionKind.SourceOrganizeImports,
+            CodeActionKind.SourceOrganizeImports,
         ],
         resolve_provider=True,
     ),
 )
-def code_action_organize_imports(params: lsp.CodeActionParams):
+def code_action_organize_imports(params: CodeActionParams):
     text_document = LSP_SERVER.workspace.get_document(params.text_document.uri)
 
     if utils.is_stdlib_file(text_document.path):
@@ -186,7 +215,7 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
     if (
         params.context.only
         and len(params.context.only) == 1
-        and lsp.CodeActionKind.SourceOrganizeImports in params.context.only
+        and CodeActionKind.SourceOrganizeImports in params.context.only
     ):
         # This is triggered when users run the Organize Imports command from
         # VS Code. The `context.only` field will have one item that is the
@@ -197,9 +226,9 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
             # import sorting issues.
             LSP_SERVER.publish_diagnostics(text_document.uri, [])
             return [
-                lsp.CodeAction(
+                CodeAction(
                     title="ruff: Organize Imports",
-                    kind=lsp.CodeActionKind.SourceOrganizeImports,
+                    kind=CodeActionKind.SourceOrganizeImports,
                     data=params.text_document.uri,
                     edit=_create_workspace_edits(text_document, results),
                     diagnostics=[],
@@ -207,11 +236,11 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
             ]
 
     actions = []
-    if not params.context.only or lsp.CodeActionKind.SourceOrganizeImports in params.context.only:
+    if not params.context.only or CodeActionKind.SourceOrganizeImports in params.context.only:
         actions.append(
-            lsp.CodeAction(
+            CodeAction(
                 title="ruff: Organize Imports",
-                kind=lsp.CodeActionKind.SourceOrganizeImports,
+                kind=CodeActionKind.SourceOrganizeImports,
                 data=params.text_document.uri,
                 edit=None,
                 diagnostics=[],
@@ -221,8 +250,8 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
     return actions if actions else None
 
 
-@LSP_SERVER.feature(lsp.CODE_ACTION_RESOLVE)
-def code_action_resolve(params: lsp.CodeAction):
+@LSP_SERVER.feature(CODE_ACTION_RESOLVE)
+def code_action_resolve(params: CodeAction):
     text_document = LSP_SERVER.workspace.get_document(params.data)
 
     results = _formatting_helper(text_document)
@@ -235,10 +264,10 @@ def code_action_resolve(params: lsp.CodeAction):
         # This could be due to error while running import sorter
         # so, don't clear out the diagnostics.
         results = [
-            lsp.TextEdit(
-                range=lsp.Range(
-                    start=lsp.Position(line=0, character=0),
-                    end=lsp.Position(line=len(text_document.lines), character=0),
+            TextEdit(
+                range=Range(
+                    start=Position(line=0, character=0),
+                    end=Position(line=len(text_document.lines), character=0),
                 ),
                 new_text=text_document.source,
             )
@@ -248,10 +277,10 @@ def code_action_resolve(params: lsp.CodeAction):
     return params
 
 
-def _formatting_helper(document: workspace.Document) -> list[lsp.TextEdit] | None:
+def _formatting_helper(document: workspace.Document) -> list[TextEdit] | None:
     result = _run_tool_on_document(document, use_stdin=True, extra_args=["--fix", "--select", "I"])
     if result is None:
-        return None
+        return []
 
     if result.stdout:
         new_source = _match_line_endings(document, result.stdout)
@@ -265,10 +294,10 @@ def _formatting_helper(document: workspace.Document) -> list[lsp.TextEdit] | Non
 
         if new_source != document.source:
             return [
-                lsp.TextEdit(
-                    range=lsp.Range(
-                        start=lsp.Position(line=0, character=0),
-                        end=lsp.Position(line=len(document.lines), character=0),
+                TextEdit(
+                    range=Range(
+                        start=Position(line=0, character=0),
+                        end=Position(line=len(document.lines), character=0),
                     ),
                     new_text=new_source,
                 )
@@ -276,11 +305,11 @@ def _formatting_helper(document: workspace.Document) -> list[lsp.TextEdit] | Non
     return None
 
 
-def _create_workspace_edits(document: workspace.Document, results: list[lsp.TextEdit] | None):
-    return lsp.WorkspaceEdit(
+def _create_workspace_edits(document: workspace.Document, results: list[TextEdit] | None):
+    return WorkspaceEdit(
         document_changes=[
-            lsp.TextDocumentEdit(
-                text_document=lsp.VersionedTextDocumentIdentifier(
+            TextDocumentEdit(
+                text_document=VersionedTextDocumentIdentifier(
                     uri=document.uri,
                     version=0 if document.version is None else document.version,
                 ),
@@ -317,8 +346,8 @@ def _match_line_endings(document: workspace.Document, text: str) -> str:
 # **********************************************************
 # Required Language Server Initialization and Exit handlers.
 # **********************************************************
-@LSP_SERVER.feature(lsp.INITIALIZE)
-def initialize(params: lsp.InitializeParams) -> None:
+@LSP_SERVER.feature(INITIALIZE)
+def initialize(params: InitializeParams) -> None:
     """LSP handler for initialize request."""
     log_to_output(f"CWD Server: {os.getcwd()}")
 
@@ -333,14 +362,14 @@ def initialize(params: lsp.InitializeParams) -> None:
 
     if isinstance(LSP_SERVER.lsp, protocol.LanguageServerProtocol):
         if any(setting["logLevel"] == "debug" for setting in settings):
-            LSP_SERVER.lsp.trace = lsp.Trace.Verbose
+            LSP_SERVER.lsp.trace = TraceValues.Verbose
         elif any(setting["logLevel"] in ["error", "warn", "info"] for setting in settings):
-            LSP_SERVER.lsp.trace = lsp.Trace.Messages
+            LSP_SERVER.lsp.trace = TraceValues.Messages
         else:
-            LSP_SERVER.lsp.trace = lsp.Trace.Off
+            LSP_SERVER.lsp.trace = TraceValues.Off
 
 
-@LSP_SERVER.feature(lsp.EXIT)
+@LSP_SERVER.feature(EXIT)
 def on_exit():
     """Handle clean up on exit."""
     jsonrpc.shutdown_json_rpc()
@@ -482,26 +511,26 @@ def _run_tool_on_document(
 # *****************************************************
 # Logging and notification.
 # *****************************************************
-def log_to_output(message: str, msg_type: lsp.MessageType = lsp.MessageType.Log) -> None:
+def log_to_output(message: str, msg_type: MessageType = MessageType.Log) -> None:
     LSP_SERVER.show_message_log(message, msg_type)
 
 
 def log_error(message: str) -> None:
-    LSP_SERVER.show_message_log(message, lsp.MessageType.Error)
+    LSP_SERVER.show_message_log(message, MessageType.Error)
     if os.getenv("LS_SHOW_NOTIFICATION", "off") in ["onError", "onWarning", "always"]:
-        LSP_SERVER.show_message(message, lsp.MessageType.Error)
+        LSP_SERVER.show_message(message, MessageType.Error)
 
 
 def log_warning(message: str) -> None:
-    LSP_SERVER.show_message_log(message, lsp.MessageType.Warning)
+    LSP_SERVER.show_message_log(message, MessageType.Warning)
     if os.getenv("LS_SHOW_NOTIFICATION", "off") in ["onWarning", "always"]:
-        LSP_SERVER.show_message(message, lsp.MessageType.Warning)
+        LSP_SERVER.show_message(message, MessageType.Warning)
 
 
 def log_always(message: str) -> None:
-    LSP_SERVER.show_message_log(message, lsp.MessageType.Info)
+    LSP_SERVER.show_message_log(message, MessageType.Info)
     if os.getenv("LS_SHOW_NOTIFICATION", "off") in ["always"]:
-        LSP_SERVER.show_message(message, lsp.MessageType.Info)
+        LSP_SERVER.show_message(message, MessageType.Info)
 
 
 # *****************************************************
