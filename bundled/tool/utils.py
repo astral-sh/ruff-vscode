@@ -13,14 +13,14 @@ import site
 import subprocess
 import sys
 import threading
-from typing import Any, List, Sequence, Tuple, Union
+from typing import Any, Sequence
 
 # Save the working directory used when loading this module
 SERVER_CWD = os.getcwd()
 CWD_LOCK = threading.Lock()
 
 
-def as_list(content: Union[Any, List[Any], Tuple[Any, ...]]) -> List[Any]:
+def as_list(content: Any | list[Any] | tuple[Any, ...]) -> list[Any]:
     """Ensures we always get a list"""
     if isinstance(content, (list, tuple)):
         return list(content)
@@ -30,24 +30,27 @@ def as_list(content: Union[Any, List[Any], Tuple[Any, ...]]) -> List[Any]:
 _site_paths = tuple(
     [
         os.path.normcase(os.path.normpath(p))
-        for p in (as_list(site.getsitepackages()) + as_list(site.getusersitepackages()))
+        for p in (
+            as_list(site.getsitepackages())
+            + as_list(site.getusersitepackages())
+        )
     ]
 )
 
 
-def is_same_path(file_path1, file_path2) -> bool:
+def is_same_path(file_path1: str, file_path2: str) -> bool:
     """Returns true if two paths are the same."""
     return os.path.normcase(os.path.normpath(file_path1)) == os.path.normcase(
         os.path.normpath(file_path2)
     )
 
 
-def is_current_interpreter(executable) -> bool:
+def is_current_interpreter(executable: str) -> bool:
     """Returns true if the executable path is same as the current interpreter."""
     return is_same_path(executable, sys.executable)
 
 
-def is_stdlib_file(file_path) -> bool:
+def is_stdlib_file(file_path: str) -> bool:
     """Return True if the file belongs to standard library."""
     return os.path.normcase(os.path.normpath(file_path)).startswith(_site_paths)
 
@@ -106,7 +109,12 @@ def change_cwd(new_cwd):
     os.chdir(SERVER_CWD)
 
 
-def _run_module(module: str, argv: Sequence[str], use_stdin: bool, source: str = None) -> RunResult:
+def _run_module(
+    module: str,
+    argv: Sequence[str],
+    use_stdin: bool,
+    source: str | None = None,
+) -> RunResult:
     """Runs as a module."""
     str_output = CustomIO("<stdout>", encoding="utf-8")
     str_error = CustomIO("<stderr>", encoding="utf-8")
@@ -116,7 +124,9 @@ def _run_module(module: str, argv: Sequence[str], use_stdin: bool, source: str =
             with redirect_io("stdout", str_output):
                 with redirect_io("stderr", str_error):
                     if use_stdin and source is not None:
-                        str_input = CustomIO("<stdin>", encoding="utf-8", newline="\n")
+                        str_input = CustomIO(
+                            "<stdin>", encoding="utf-8", newline="\n"
+                        )
                         with redirect_io("stdin", str_input):
                             str_input.write(source)
                             str_input.seek(0)
@@ -130,7 +140,11 @@ def _run_module(module: str, argv: Sequence[str], use_stdin: bool, source: str =
 
 
 def run_module(
-    module: str, argv: Sequence[str], use_stdin: bool, cwd: str, source: str = None
+    module: str,
+    argv: Sequence[str],
+    use_stdin: bool,
+    cwd: str,
+    source: str | None = None,
 ) -> RunResult:
     """Runs as a module."""
     with CWD_LOCK:
@@ -140,7 +154,12 @@ def run_module(
             return _run_module(module, argv, use_stdin, source)
 
 
-def run_path(argv: Sequence[str], use_stdin: bool, cwd: str, source: str = None) -> RunResult:
+def run_path(
+    argv: Sequence[str],
+    use_stdin: bool,
+    cwd: str,
+    source: str | None = None,
+) -> RunResult:
     """Runs as an executable."""
     if use_stdin:
         with subprocess.Popen(

@@ -34,12 +34,21 @@ def _check_files(names: List[str]) -> None:
 
 
 def _update_pip_packages(session: nox.Session) -> None:
-    session.run("pip-compile", "--generate-hashes", "--upgrade", "./requirements.in")
     session.run(
         "pip-compile",
         "--generate-hashes",
+        "--resolver",
+        "backtracking",
         "--upgrade",
-        "./src/test/python_tests/requirements.in",
+        "./requirements.in",
+    )
+    session.run(
+        "pip-compile",
+        "--generate-hashes",
+        "--resolver",
+        "backtracking",
+        "--upgrade",
+        "./requirements-dev.in",
     )
 
 
@@ -71,8 +80,13 @@ def _update_npm_packages(session: nox.Session) -> None:
             package_json["devDependencies"][package] = latest
 
     # Ensure engine matches the package
-    if package_json["engines"]["vscode"] != package_json["devDependencies"]["@types/vscode"]:
-        print("Please check VS Code engine version and @types/vscode version in package.json.")
+    if (
+        package_json["engines"]["vscode"]
+        != package_json["devDependencies"]["@types/vscode"]
+    ):
+        print(
+            "Please check VS Code engine version and @types/vscode version in package.json."
+        )
 
     new_package_json = json.dumps(package_json, indent=4)
     # JSON dumps uses \n for line ending on all platforms by default
@@ -84,7 +98,9 @@ def _update_npm_packages(session: nox.Session) -> None:
 
 def _setup_template_environment(session: nox.Session) -> None:
     session.install("wheel", "pip-tools")
-    session.run("pip-compile", "--generate-hashes", "--upgrade", "./requirements.in")
+    session.run(
+        "pip-compile", "--generate-hashes", "--upgrade", "./requirements.in"
+    )
     session.run(
         "pip-compile",
         "--generate-hashes",
@@ -96,51 +112,73 @@ def _setup_template_environment(session: nox.Session) -> None:
 
 @nox.session()
 def setup(session: nox.Session) -> None:
-    """Sets up the template for development."""
+    """Set up the template for development."""
     _setup_template_environment(session)
 
 
 @nox.session()
-def tests(session: nox.Session) -> None:
-    """Runs all the tests for the extension."""
-    session.install("-r", "src/test/python_tests/requirements.txt")
+def test(session: nox.Session) -> None:
+    """Run all the tests for the extension."""
+    session.install("-r", "./requirements-dev.txt")
     session.run("pytest", "src/test/python_tests")
 
 
 @nox.session()
 def lint(session: nox.Session) -> None:
-    """Runs linter and formatter checks on python files."""
+    """Lint the Python and TypeScript source files."""
     session.install("-r", "./requirements.txt")
-    session.install("-r", "src/test/python_tests/requirements.txt")
+    session.install("-r", "./requirements-dev.txt")
 
-    session.install("ruff")
+    # Check Python lint with Ruff.
+    session.run("ruff", "./noxfile.py")
     session.run("ruff", "./bundled/tool")
-    session.run(
-        "ruff",
-        "--extend-exclude=./src/test/python_tests/test_data",
-        "./src/test/python_tests",
-    )
-    session.run("ruff", "noxfile.py")
+    session.run("ruff", "./src/test/python_tests")
 
-    # check formatting using black
-    session.install("black")
+    # Check Python formatting with Black.
+    session.run("black", "--check", "./noxfile.py")
     session.run("black", "--check", "./bundled/tool")
     session.run("black", "--check", "./src/test/python_tests")
-    session.run("black", "--check", "noxfile.py")
 
-    # check import sorting using isort
-    session.install("isort")
-    session.run("isort", "--check", "./bundled/tool")
-    session.run("isort", "--check", "./src/test/python_tests")
-    session.run("isort", "--check", "noxfile.py")
-
-    # check typescript code
+    # Check TypeScript code.
     session.run("npm", "run", "lint", external=True)
 
 
 @nox.session()
+def typecheck(session: nox.Session) -> None:
+    """Typecheck the Python and TypeScript source files."""
+    session.install("-r", "./requirements.txt")
+    session.install("-r", "./requirements-dev.txt")
+
+    # Check Python types with Mypy.
+    session.run("mypy")
+
+    # Check TypeScript types with tsc.
+    session.run("npm", "run", "typecheck", external=True)
+
+
+@nox.session()
+def fmt(session: nox.Session) -> None:
+    """Format the Python and TypeScript source files."""
+    session.install("-r", "./requirements.txt")
+    session.install("-r", "./requirements-dev.txt")
+
+    # Sort imports with Ruff.
+    session.run("ruff", "--select", "I001", "--fix", "./noxfile.py")
+    session.run("ruff", "--select", "I001", "--fix", "./bundled/tool")
+    session.run("ruff", "--select", "I001", "--fix", "./src/test/python_tests")
+
+    # Format Python with Black.
+    session.run("black", "./noxfile.py")
+    session.run("black", "./bundled/tool")
+    session.run("black", "./src/test/python_tests")
+
+    # Format TypeScript with Prettier.
+    session.run("npm", "run", "fmt", external=True)
+
+
+@nox.session()
 def build_package(session: nox.Session) -> None:
-    """Builds VSIX package for publishing."""
+    """Build the VSIX package for publishing."""
     _check_files(["README.md", "LICENSE"])
     _setup_template_environment(session)
     session.run("npm", "install", external=True)

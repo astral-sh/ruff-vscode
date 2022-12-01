@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 """Lightweight JSON-RPC over standard IO."""
 
+from __future__ import annotations
+
 import atexit
 import io
 import json
@@ -10,7 +12,7 @@ import subprocess
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from typing import BinaryIO, Dict, Optional, Sequence, Union, cast
+from typing import BinaryIO, Sequence, cast
 
 CONTENT_LENGTH = "Content-Length: "
 RUNNER_SCRIPT = str(pathlib.Path(__file__).parent / "runner.py")
@@ -48,7 +50,9 @@ class JsonWriter:
         with self._lock:
             content = json.dumps(data)
             length = len(content.encode("utf-8"))
-            self._writer.write(f"{CONTENT_LENGTH}{length}\r\n\r\n{content}".encode("utf-8"))
+            self._writer.write(
+                f"{CONTENT_LENGTH}{length}\r\n\r\n{content}".encode()  # type: ignore
+            )
             self._writer.flush()
 
 
@@ -116,16 +120,18 @@ class JsonRpc:
 
 def create_json_rpc(readable: BinaryIO, writable: BinaryIO) -> JsonRpc:
     """Creates JSON-RPC wrapper for the readable and writable streams."""
-    return JsonRpc(cast(io.TextIOWrapper, readable), cast(io.TextIOWrapper, writable))
+    return JsonRpc(
+        cast(io.TextIOWrapper, readable), cast(io.TextIOWrapper, writable)
+    )
 
 
 class ProcessManager:
     """Manages sub-processes launched for running tools."""
 
     def __init__(self):
-        self._args: Dict[str, Sequence[str]] = {}
-        self._processes: Dict[str, subprocess.Popen] = {}
-        self._rpc: Dict[str, JsonRpc] = {}
+        self._args: dict[str, Sequence[str]] = {}
+        self._processes: dict[str, subprocess.Popen] = {}
+        self._rpc: dict[str, JsonRpc] = {}
         self._lock = threading.Lock()
         self._thread_pool = ThreadPoolExecutor(10)
 
@@ -139,7 +145,9 @@ class ProcessManager:
                 pass
         self._thread_pool.shutdown(wait=False)
 
-    def start_process(self, workspace: str, args: Sequence[str], cwd: str) -> None:
+    def start_process(
+        self, workspace: str, args: Sequence[str], cwd: str
+    ) -> None:
         """Starts a process and establishes JSON-RPC communication over stdio."""
         proc = subprocess.Popen(
             args,
@@ -175,7 +183,7 @@ class ProcessManager:
 _process_manager = ProcessManager()
 
 
-def _get_json_rpc(workspace: str) -> Union[JsonRpc, None]:
+def _get_json_rpc(workspace: str) -> JsonRpc | None:
     try:
         return _process_manager.get_json_rpc(workspace)
     except StreamClosedException:
@@ -186,7 +194,7 @@ def _get_json_rpc(workspace: str) -> Union[JsonRpc, None]:
 
 def get_or_start_json_rpc(
     workspace: str, interpreter: Sequence[str], cwd: str
-) -> Union[JsonRpc, None]:
+) -> JsonRpc | None:
     """Gets an existing JSON-RPC connection or starts one and return it."""
     res = _get_json_rpc(workspace)
     if not res:
@@ -199,10 +207,10 @@ def get_or_start_json_rpc(
 class RpcRunResult:
     """Object to hold result from running tool over RPC."""
 
-    def __init__(self, stdout: str, stderr: str, exception: Optional[str] = None):
+    def __init__(self, stdout: str, stderr: str, exception: str | None = None):
         self.stdout: str = stdout
         self.stderr: str = stderr
-        self.exception: Optional[str] = exception
+        self.exception: str | None = exception
 
 
 def run_over_json_rpc(
@@ -212,10 +220,10 @@ def run_over_json_rpc(
     argv: Sequence[str],
     use_stdin: bool,
     cwd: str,
-    source: str = None,
+    source: str | None = None,
 ) -> RpcRunResult:
     """Uses JSON-RPC to execute a command."""
-    rpc: Union[JsonRpc, None] = get_or_start_json_rpc(workspace, interpreter, cwd)
+    rpc: JsonRpc | None = get_or_start_json_rpc(workspace, interpreter, cwd)
     if not rpc:
         raise Exception("Failed to run over JSON-RPC.")
 
@@ -236,7 +244,9 @@ def run_over_json_rpc(
     data = rpc.receive_data()
 
     if data["id"] != msg_id:
-        return RpcRunResult("", f"Invalid result for request: {json.dumps(msg, indent=4)}")
+        return RpcRunResult(
+            "", f"Invalid result for request: {json.dumps(msg, indent=4)}"
+        )
 
     if "error" in data:
         if data.get("exception", False):

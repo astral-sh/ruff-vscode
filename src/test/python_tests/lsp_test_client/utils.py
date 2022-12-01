@@ -29,7 +29,8 @@ class PythonFile:
     def __init__(self, contents, root):
         self.contents = contents
         self.basename = "".join(
-            choice("abcdefghijklmnopqrstuvwxyz") if i < 8 else ".py" for i in range(9)
+            choice("abcdefghijklmnopqrstuvwxyz") if i < 8 else ".py"
+            for i in range(9)
         )
         self.fullpath = os.path.join(root, self.basename)
 

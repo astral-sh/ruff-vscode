@@ -1,0 +1,6 @@
+# This file is used to generate requirements-dev.txt.
+
+black
+mypy
+pytest
+python-jsonrpc-server
