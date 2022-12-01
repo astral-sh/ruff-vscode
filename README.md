@@ -5,6 +5,20 @@ linter. Available on the [Visual Studio Marketplace](https://marketplace.visuals
 
 The extension ships with `ruff==0.0.150`.
 
+## Highlights
+
+### "Quick Fix" actions for auto-fixable violations (like unused imports)
+
+![Dec-01-2022 17-59-31](https://user-images.githubusercontent.com/1309177/205176932-44cfc03a-120f-4bad-b710-612bdd7765d6.gif)
+
+### "Fix all": automatically fix all auto-fixable violations
+
+![Dec-01-2022 17-51-14](https://user-images.githubusercontent.com/1309177/205175763-cf34871d-5c05-4abf-9916-440afc82dbf8.gif)
+
+### "Organize Imports": `isort`-compatible import sorting
+
+![Dec-01-2022 17-52-39](https://user-images.githubusercontent.com/1309177/205175987-82e23e21-14bb-467d-9ef0-027f24b75865.gif)
+
 ## Usage
 
 Once installed in Visual Studio Code, `ruff` will automatically execute when you open or edit a
@@ -23,6 +37,16 @@ per workspace in Visual Studio Code.
 | ruff.interpreter      | `[]`         | Path to a python interpreter to use to run the linter server.                                                                                                |
 | ruff.importStrategy   | `useBundled` | Setting to choose where to load `ruff` from. `useBundled` picks ruff bundled with the extension. `fromEnvironment` uses `ruff` available in the environment. |
 | ruff.showNotification | `off`        | Setting to control when a notification is shown.                                                                                                             |
+
+You can configure Ruff to autofix violations on-save by enabling the `source.fixAll` action in `settings.json`:
+
+```json
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true
+    }
+}
+```
 
 ## Commands
 
