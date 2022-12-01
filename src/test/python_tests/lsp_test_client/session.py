@@ -100,6 +100,8 @@ class LspSession(MethodDispatcher):
 
     def initialized(self, initialized_params=None):
         """Sends the initialized notification to LSP server."""
+        if initialized_params is None:
+            initialized_params = {}
         self._endpoint.notify("initialized", initialized_params)
 
     def shutdown(self, should_exit, exit_timeout=LSP_EXIT_TIMEOUT):
