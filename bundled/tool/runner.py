@@ -43,9 +43,6 @@ while not EXIT_NOW:
 
     if method == "run":
         is_exception = False
-        # This is needed to preserve sys.path, pylint modifies
-        # sys.path and that might not work for this scenario
-        # next time around.
         with utils.substitute_attr(sys, "path", sys.path[:]):
             try:
                 result = utils.run_module(

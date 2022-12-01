@@ -49,15 +49,6 @@ LSP_SERVER = server.LanguageServer(max_workers=MAX_WORKERS)
 # Tool specific code goes below this.
 # **********************************************************
 
-# Reference:
-#  LS Protocol:
-#  https://microsoft.github.io/language-server-protocol/specifications/specification-3-16/
-#
-#  Sample implementations:
-#  Pylint: https://github.com/microsoft/vscode-pylint/blob/main/bundled/tool
-#  Black: https://github.com/microsoft/vscode-black-formatter/blob/main/bundled/tool
-#  isort: https://github.com/microsoft/vscode-isort/blob/main/bundled/tool
-
 TOOL_MODULE = "ruff"
 
 TOOL_DISPLAY = "Ruff"
@@ -301,7 +292,7 @@ def _get_line_endings(lines: list[str]) -> str | None:
         if lines[0][-2:] == "\r\n":
             return "\r\n"
         return "\n"
-    except Exception:  # pylint: disable=broad-except
+    except Exception:
         return None
 
 
