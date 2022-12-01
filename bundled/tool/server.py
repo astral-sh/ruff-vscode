@@ -10,7 +10,7 @@ import os
 import pathlib
 import sys
 import sysconfig
-from typing import Optional, Sequence, TypedDict, cast
+from typing import Sequence, TypedDict, cast
 
 
 # **********************************************************
@@ -36,8 +36,15 @@ update_sys_path(
 # **********************************************************
 import jsonrpc  # noqa: E402
 import utils  # noqa: E402
-from pygls import protocol, server, uris, workspace  # noqa: E402
 from lsprotocol.types import (  # noqa: E402
+    AnnotatedTextEdit, EXIT,
+    INITIALIZE,
+    OptionalVersionedTextDocumentIdentifier,
+    TEXT_DOCUMENT_CODE_ACTION,
+    TEXT_DOCUMENT_DID_CHANGE,
+    TEXT_DOCUMENT_DID_CLOSE,
+    TEXT_DOCUMENT_DID_OPEN,
+    TEXT_DOCUMENT_DID_SAVE,
     CodeAction,
     CodeActionKind,
     CodeActionOptions,
@@ -48,23 +55,17 @@ from lsprotocol.types import (  # noqa: E402
     DidCloseTextDocumentParams,
     DidOpenTextDocumentParams,
     DidSaveTextDocumentParams,
-    EXIT,
-    INITIALIZE,
     InitializeParams,
     MessageType,
     Position,
     Range,
-    TEXT_DOCUMENT_CODE_ACTION,
-    TEXT_DOCUMENT_DID_CHANGE,
-    TEXT_DOCUMENT_DID_CLOSE,
-    TEXT_DOCUMENT_DID_OPEN,
-    TEXT_DOCUMENT_DID_SAVE,
     TextDocumentEdit,
     TextEdit,
     TraceValues,
     VersionedTextDocumentIdentifier,
     WorkspaceEdit,
 )
+from pygls import protocol, server, uris, workspace  # noqa: E402
 
 WORKSPACE_SETTINGS = {}
 RUNNER = pathlib.Path(__file__).parent / "runner.py"
@@ -213,7 +214,9 @@ def apply_autofix(arguments: tuple[TextDocument]):
     uri = arguments[0]["uri"]
     text_document = LSP_SERVER.workspace.get_document(uri)
     LSP_SERVER.apply_edit(
-        _create_workspace_edits(text_document, _formatting_helper(text_document) or []),
+        _create_workspace_edits(
+            text_document, _formatting_helper(text_document) or []
+        ),
         "Ruff: Fix all auto-fixable problems",
     )
 
@@ -274,7 +277,8 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
                 diagnostics=[
                     diagnostic
                     for diagnostic in params.context.diagnostics
-                    if diagnostic.source == "Ruff" and diagnostic.data is not None
+                    if diagnostic.source == "Ruff"
+                    and diagnostic.data is not None
                 ],
             ),
         ]
@@ -282,7 +286,10 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
     actions: list[CodeAction] = []
 
     # Add "Ruff: Organize Imports" as a supported action.
-    if not params.context.only or CodeActionKind.SourceOrganizeImports in params.context.only:
+    if (
+        not params.context.only
+        or CodeActionKind.SourceOrganizeImports in params.context.only
+    ):
         actions.append(
             CodeAction(
                 title="Ruff: Organize Imports",
@@ -294,7 +301,10 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
         )
 
     # Add "Ruff: Fix All" as a supported action.
-    if not params.context.only or CodeActionKind.SourceFixAll in params.context.only:
+    if (
+        not params.context.only
+        or CodeActionKind.SourceFixAll in params.context.only
+    ):
         actions.append(
             CodeAction(
                 title="Ruff: Fix All",
@@ -306,7 +316,10 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
         )
 
     # Add "Ruff: Autofix" for every fixable diagnostic.
-    if not params.context.only or CodeActionKind.QuickFix in params.context.only:
+    if (
+        not params.context.only
+        or CodeActionKind.QuickFix in params.context.only
+    ):
         for diagnostic in params.context.diagnostics:
             if diagnostic.source == "Ruff":
                 if fix := diagnostic.data:
@@ -315,7 +328,9 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
                             title="Ruff: Autofix",
                             kind=CodeActionKind.QuickFix,
                             data=params.text_document.uri,
-                            edit=_create_workspace_edit(text_document, cast(Fix, fix)),
+                            edit=_create_workspace_edit(
+                                text_document, cast(Fix, fix)
+                            ),
                             diagnostics=[diagnostic],
                         ),
                     )
@@ -324,7 +339,7 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
 
 
 def _formatting_helper(
-    document: workspace.Document, *, select: Optional[str] = None
+    document: workspace.Document, *, select: str | None = None
 ) -> list[TextEdit] | None:
     result = _run_tool_on_document(
         document,
@@ -358,26 +373,28 @@ def _formatting_helper(
 
 
 def _create_workspace_edits(
-    document: workspace.Document, results: list[TextEdit] | None
+    document: workspace.Document, results: Sequence[TextEdit | AnnotatedTextEdit]
 ) -> WorkspaceEdit:
     return WorkspaceEdit(
         document_changes=[
             TextDocumentEdit(
-                text_document=VersionedTextDocumentIdentifier(
+                text_document=OptionalVersionedTextDocumentIdentifier(
                     uri=document.uri,
                     version=0 if document.version is None else document.version,
                 ),
-                edits=results,
+                edits=list(results),
             )
         ],
     )
 
 
-def _create_workspace_edit(document: workspace.Document, fix: Fix) -> WorkspaceEdit:
+def _create_workspace_edit(
+    document: workspace.Document, fix: Fix
+) -> WorkspaceEdit:
     return WorkspaceEdit(
         document_changes=[
             TextDocumentEdit(
-                text_document=VersionedTextDocumentIdentifier(
+                text_document=OptionalVersionedTextDocumentIdentifier(
                     uri=document.uri,
                     version=0 if document.version is None else document.version,
                 ),
@@ -431,13 +448,16 @@ def _match_line_endings(document: workspace.Document, text: str) -> str:
 @LSP_SERVER.feature(INITIALIZE)
 def initialize(params: InitializeParams) -> None:
     """LSP handler for initialize request."""
-    settings = params.initialization_options["settings"]
+    settings = params.initialization_options["settings"]  # type: ignore
     _update_workspace_settings(settings)
 
     if isinstance(LSP_SERVER.lsp, protocol.LanguageServerProtocol):
         if any(setting["logLevel"] == "debug" for setting in settings):
             LSP_SERVER.lsp.trace = TraceValues.Verbose
-        elif any(setting["logLevel"] in ["error", "warn", "info"] for setting in settings):
+        elif any(
+            setting["logLevel"] in ["error", "warn", "info"]
+            for setting in settings
+        ):
             LSP_SERVER.lsp.trace = TraceValues.Messages
         else:
             LSP_SERVER.lsp.trace = TraceValues.Off
@@ -462,7 +482,11 @@ def _update_workspace_settings(settings):
 
 
 def _get_settings_by_document(document: workspace.Document | None):
-    if len(WORKSPACE_SETTINGS) == 1 or document is None or document.path is None:
+    if (
+        len(WORKSPACE_SETTINGS) == 1
+        or document is None
+        or document.path is None
+    ):
         return list(WORKSPACE_SETTINGS.values())[0]
 
     document_workspace = pathlib.Path(document.path)
@@ -510,7 +534,9 @@ def _run_tool_on_document(
         # 'path' setting takes priority over everything.
         use_path = True
         argv = settings["path"]
-    elif settings["interpreter"] and not utils.is_current_interpreter(settings["interpreter"][0]):
+    elif settings["interpreter"] and not utils.is_current_interpreter(
+        settings["interpreter"][0]
+    ):
         # If there is a different interpreter set use JSON-RPC to the subprocess
         # running under that interpreter.
         argv = [TOOL_MODULE]
@@ -518,7 +544,12 @@ def _run_tool_on_document(
     elif settings["importStrategy"] == "useBundled":
         # If we're loading from the bundle, use the absolute path.
         argv = [
-            os.fspath(pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE),
+            os.fspath(
+                pathlib.Path(__file__).parent.parent
+                / "libs"
+                / "bin"
+                / TOOL_MODULE
+            ),
         ]
     else:
         # If the interpreter is same as the interpreter running this process then run
@@ -577,13 +608,19 @@ def _run_tool_on_document(
 # *****************************************************
 # Logging and notification.
 # *****************************************************
-def log_to_output(message: str, msg_type: MessageType = MessageType.Log) -> None:
+def log_to_output(
+    message: str, msg_type: MessageType = MessageType.Log
+) -> None:
     LSP_SERVER.show_message_log(message, msg_type)
 
 
 def log_error(message: str) -> None:
     LSP_SERVER.show_message_log(message, MessageType.Error)
-    if os.getenv("LS_SHOW_NOTIFICATION", "off") in ["onError", "onWarning", "always"]:
+    if os.getenv("LS_SHOW_NOTIFICATION", "off") in [
+        "onError",
+        "onWarning",
+        "always",
+    ]:
         LSP_SERVER.show_message(message, MessageType.Error)
 
 
