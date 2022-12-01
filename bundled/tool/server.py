@@ -37,14 +37,14 @@ update_sys_path(
 import jsonrpc  # noqa: E402
 import utils  # noqa: E402
 from lsprotocol.types import (  # noqa: E402
-    AnnotatedTextEdit, EXIT,
+    EXIT,
     INITIALIZE,
-    OptionalVersionedTextDocumentIdentifier,
     TEXT_DOCUMENT_CODE_ACTION,
     TEXT_DOCUMENT_DID_CHANGE,
     TEXT_DOCUMENT_DID_CLOSE,
     TEXT_DOCUMENT_DID_OPEN,
     TEXT_DOCUMENT_DID_SAVE,
+    AnnotatedTextEdit,
     CodeAction,
     CodeActionKind,
     CodeActionOptions,
@@ -57,12 +57,12 @@ from lsprotocol.types import (  # noqa: E402
     DidSaveTextDocumentParams,
     InitializeParams,
     MessageType,
+    OptionalVersionedTextDocumentIdentifier,
     Position,
     Range,
     TextDocumentEdit,
     TextEdit,
     TraceValues,
-    VersionedTextDocumentIdentifier,
     WorkspaceEdit,
 )
 from pygls import protocol, server, uris, workspace  # noqa: E402
@@ -144,15 +144,23 @@ def _parse_output_using_regex(content: str) -> list[Diagnostic]:
     # Ruff's output looks like:
     # [
     #   {
-    #     "kind": {
-    #       "UnusedVariable": "x"
-    #     },
     #     "code": "F841",
     #     "message": "Local variable `x` is assigned to but never used",
     #     "fixed": false,
     #     "location": {
     #       "row": 2,
     #       "column": 5
+    #     },
+    #     "fix": {
+    #       "content: "",
+    #       "location": {
+    #         "row": 2,
+    #         "column: 5
+    #       },
+    #       "end_location": {
+    #         "row": 3,
+    #         "column: 0
+    #       }
     #     },
     #     "filename": "/path/to/test.py"
     #   },
@@ -325,7 +333,11 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
                 if fix := diagnostic.data:
                     actions.append(
                         CodeAction(
-                            title="Ruff: Autofix",
+                            title=(
+                                f"Ruff: Fix {diagnostic.code}"
+                                if diagnostic.code
+                                else "Ruff: Fix"
+                            ),
                             kind=CodeActionKind.QuickFix,
                             data=params.text_document.uri,
                             edit=_create_workspace_edit(
@@ -373,7 +385,8 @@ def _formatting_helper(
 
 
 def _create_workspace_edits(
-    document: workspace.Document, results: Sequence[TextEdit | AnnotatedTextEdit]
+    document: workspace.Document,
+    results: Sequence[TextEdit | AnnotatedTextEdit],
 ) -> WorkspaceEdit:
     return WorkspaceEdit(
         document_changes=[
