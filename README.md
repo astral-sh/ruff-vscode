@@ -3,7 +3,7 @@
 A Visual Studio Code extension with support for the [Ruff](https://github.com/charliermarsh/ruff)
 linter. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
-The extension ships with `ruff==0.0.149`.
+The extension ships with `ruff==0.0.150`.
 
 ## Usage
 
