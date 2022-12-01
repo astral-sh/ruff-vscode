@@ -52,6 +52,11 @@ def test_linting_example():
                         "start": {"line": 0, "character": 7},
                         "end": {"line": 0, "character": 10},
                     },
+                    "data": {
+                        "content": "",
+                        "location": {"row": 1, "column": 0},
+                        "end_location": {"row": 2, "column": 0},
+                    },
                     "message": "`sys` imported but unused",
                     "severity": 2,
                     "code": "F401",
