@@ -42,7 +42,7 @@ WORKSPACE_SETTINGS = {}
 RUNNER = pathlib.Path(__file__).parent / "runner.py"
 
 MAX_WORKERS = 5
-LSP_SERVER = server.LanguageServer(max_workers=MAX_WORKERS)
+LSP_SERVER = server.LanguageServer(name="Ruff", version="2022.0.17", max_workers=MAX_WORKERS)
 
 
 # **********************************************************
@@ -143,8 +143,7 @@ def _parse_output_using_regex(content: str) -> list[lsp.Diagnostic]:
             severity=_get_severity(check["code"], check.get("type", "Error")),
             code=check["code"],
             source=TOOL_DISPLAY,
-            # This should be the fix.
-            data="",
+            data=check.get("fix"),
         )
         diagnostics.append(diagnostic)
 
@@ -164,21 +163,30 @@ def _get_severity(*_codes: list[str]) -> lsp.DiagnosticSeverity:
 # **********************************************************
 
 
+@LSP_SERVER.command("ruff.applyAutofix")
+def do_thing(*args, **kwargs):
+    # This has to be implemented, or something?
+    print("do_thing")
+
+
 @LSP_SERVER.feature(
     lsp.CODE_ACTION,
     lsp.CodeActionOptions(
         code_action_kinds=[
             lsp.CodeActionKind.SourceOrganizeImports,
+            lsp.CodeActionKind.QuickFix,
+            # This needs to be added to pygls.
+            lsp.CodeActionKind.SourceFixAll,
         ],
         resolve_provider=True,
     ),
 )
-def code_action_organize_imports(params: lsp.CodeActionParams):
+def code_action_organize_imports(params: lsp.CodeActionParams) -> list[lsp.CodeAction] | None:
     text_document = LSP_SERVER.workspace.get_document(params.text_document.uri)
 
     if utils.is_stdlib_file(text_document.path):
-        # Don't format standard library python files.
-        # Publishing empty diagnostics clears the entry
+        # Don't format standard library files.
+        # Publishing empty diagnostics clears the entry.
         return None
 
     if (
@@ -189,14 +197,14 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
         # This is triggered when users run the Organize Imports command from
         # VS Code. The `context.only` field will have one item that is the
         # `SourceOrganizeImports` code action.
-        results = _formatting_helper(text_document)
+        results = _formatting_helper(text_document, select="I001")
         if results:
             # Clear out diagnostics, since we are making changes to address
             # import sorting issues.
             LSP_SERVER.publish_diagnostics(text_document.uri, [])
             return [
                 lsp.CodeAction(
-                    title="ruff: Organize Imports",
+                    title="Ruff: Organize Imports",
                     kind=lsp.CodeActionKind.SourceOrganizeImports,
                     data=params.text_document.uri,
                     edit=_create_workspace_edits(text_document, results),
@@ -204,11 +212,11 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
                 )
             ]
 
-    actions = []
+    actions: list[lsp.CodeAction] = []
     if not params.context.only or lsp.CodeActionKind.SourceOrganizeImports in params.context.only:
         actions.append(
             lsp.CodeAction(
-                title="ruff: Organize Imports",
+                title="Ruff: Organize Imports",
                 kind=lsp.CodeActionKind.SourceOrganizeImports,
                 data=params.text_document.uri,
                 edit=None,
@@ -216,29 +224,64 @@ def code_action_organize_imports(params: lsp.CodeActionParams):
             ),
         )
 
+    if not params.context.only or lsp.CodeActionKind.SourceFixAll in params.context.only:
+        actions.append(
+            lsp.CodeAction(
+                title="Ruff: Fix all",
+                kind=lsp.CodeActionKind.SourceFixAll,
+                data=params.text_document.uri,
+                edit=None,
+                diagnostics=[],
+            ),
+        )
+
     if not params.context.only or lsp.CodeActionKind.QuickFix in params.context.only:
-        diagnostics = [
-            d for d in params.context.diagnostics if d.source == "Ruff" and d.code == "F401"
-        ]
-        if diagnostics:
-            actions.append(
-                lsp.CodeAction(
-                    title="ruff: Fix import sorting and/or formatting",
-                    kind=lsp.CodeActionKind.QuickFix,
-                    data=params.text_document.uri,
-                    edit=None,
-                    diagnostics=diagnostics,
-                ),
-            )
+        for diagnostic in params.context.diagnostics:
+            if (fix := diagnostic.data) and diagnostic.source == "Ruff":
+                actions.append(
+                    lsp.CodeAction(
+                        title="Ruff: Autofix",
+                        kind=lsp.CodeActionKind.QuickFix,
+                        data=params.text_document.uri,
+                        edit=lsp.WorkspaceEdit(
+                            document_changes=[
+                                lsp.TextDocumentEdit(
+                                    text_document=lsp.OptionalVersionedTextDocumentIdentifier(
+                                        uri=params.text_document.uri,
+                                        version=None,
+                                    ),
+                                    edits=[
+                                        lsp.TextEdit(
+                                            range=lsp.Range(
+                                                start=lsp.Position(
+                                                    line=fix["patch"]["location"]["row"] - 1,
+                                                    character=fix["patch"]["location"]["column"],
+                                                ),
+                                                end=lsp.Position(
+                                                    line=fix["patch"]["end_location"]["row"] - 1,
+                                                    character=fix["patch"]["end_location"][
+                                                        "column"
+                                                    ],
+                                                ),
+                                            ),
+                                            new_text=fix["patch"]["content"],
+                                        )
+                                    ],
+                                )
+                            ],
+                        ),
+                        diagnostics=[diagnostic],
+                    ),
+                )
 
     return actions if actions else None
 
 
 @LSP_SERVER.feature(lsp.CODE_ACTION_RESOLVE)
-def code_action_resolve(params: lsp.CodeAction):
+def code_action_resolve(params: lsp.CodeAction) -> lsp.CodeAction:
     text_document = LSP_SERVER.workspace.get_document(params.data)
 
-    results = _formatting_helper(text_document)
+    results = _formatting_helper(text_document, select="I001")
     if results:
         # Clear out diagnostics, since we are making changes to address
         # import sorting issues.
@@ -261,8 +304,10 @@ def code_action_resolve(params: lsp.CodeAction):
     return params
 
 
-def _formatting_helper(document: workspace.Document) -> list[lsp.TextEdit] | None:
-    result = _run_tool_on_document(document, use_stdin=True, extra_args=["--fix", "--select", "I"])
+def _formatting_helper(document: workspace.Document, *, select: str) -> list[lsp.TextEdit] | None:
+    result = _run_tool_on_document(
+        document, use_stdin=True, extra_args=["--fix", "--select", select]
+    )
     if result is None:
         return None
 
@@ -289,7 +334,9 @@ def _formatting_helper(document: workspace.Document) -> list[lsp.TextEdit] | Non
     return None
 
 
-def _create_workspace_edits(document: workspace.Document, results: list[lsp.TextEdit] | None):
+def _create_workspace_edits(
+    document: workspace.Document, results: list[lsp.TextEdit] | None
+) -> lsp.WorkspaceEdit:
     return lsp.WorkspaceEdit(
         document_changes=[
             lsp.TextDocumentEdit(
@@ -434,6 +481,8 @@ def _run_tool_on_document(
         # If the interpreter is same as the interpreter running this process then run
         # as module.
         argv = [os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)]
+
+    argv = ["/Users/crmarsh/workspace/ruff/target/release/ruff"]
 
     argv += TOOL_ARGS + settings["args"] + list(extra_args)
 

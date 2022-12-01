@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
+import { LanguageClient, ExecuteCommandRequest } from 'vscode-languageclient/node';
 import { restartServer } from './common/server';
 import { registerLogger, setLoggingLevel, traceLog, traceVerbose } from './common/log/logging';
 import { OutputChannelLogger } from './common/log/outputChannelLogger';
@@ -35,7 +35,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Setup logging
     const outputChannel = createOutputChannel(serverName);
     context.subscriptions.push(outputChannel);
-    // setLoggingLevel(settings[0].logLevel);
     context.subscriptions.push(registerLogger(new OutputChannelLogger(outputChannel)));
 
     traceLog(`Name: ${serverName}`);
@@ -62,6 +61,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 runPythonExtensionCommand('python.triggerEnvSelection', getProjectRoot().uri);
             }
         }),
+    );
+
+    context.subscriptions.push(
+        registerCommand(`${serverId}.executeAutofix`, async () => {
+			const textEditor = vscode.window.activeTextEditor;
+
+			if (!textEditor) {
+				return;
+			}
+
+			const textDocument = {
+				uri: textEditor.document.uri.toString(),
+				version: textEditor.document.version,
+			};
+			const params = {
+				command: `${serverId}.applyAutofix`,
+				arguments: [textDocument],
+			};
+
+			await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+				await vscode.window.showErrorMessage(
+					'Failed to apply Stylelint fixes to the document. Please consider opening an issue with steps to reproduce.',
+				);
+			});
+		}),
     );
 
     context.subscriptions.push(

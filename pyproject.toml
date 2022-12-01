@@ -5,6 +5,7 @@ select = [
   "F",
   "W",
   "Q",
+  "U",
 ]
 target-version = "py37"
 extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]
