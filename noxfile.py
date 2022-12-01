@@ -2,10 +2,8 @@
 # Licensed under the MIT License.
 
 import json
-import os
 import pathlib
 import urllib.request as url_lib
-from typing import List
 
 import nox
 
@@ -22,15 +20,6 @@ def _install_bundle(session: nox.Session) -> None:
         "-r",
         "./requirements.txt",
     )
-
-
-def _check_files(names: List[str]) -> None:
-    root_dir = pathlib.Path(__file__).parent
-    for name in names:
-        file_path = root_dir / name
-        lines: List[str] = file_path.read_text().splitlines()
-        if any(line for line in lines if line.startswith("# TODO:")):
-            raise Exception(f"Please update {os.fspath(file_path)}.")
 
 
 def _update_pip_packages(session: nox.Session) -> None:
@@ -179,7 +168,6 @@ def fmt(session: nox.Session) -> None:
 @nox.session()
 def build_package(session: nox.Session) -> None:
     """Build the VSIX package for publishing."""
-    _check_files(["README.md", "LICENSE"])
     _setup_template_environment(session)
     session.run("npm", "install", external=True)
     session.run("npm", "run", "vsce-package", external=True)
