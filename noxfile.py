@@ -74,7 +74,8 @@ def _update_npm_packages(session: nox.Session) -> None:
         != package_json["devDependencies"]["@types/vscode"]
     ):
         print(
-            "Please check VS Code engine version and @types/vscode version in package.json."
+            "Please check VS Code engine version and @types/vscode version in "
+            "package.json."
         )
 
     new_package_json = json.dumps(package_json, indent=4)
