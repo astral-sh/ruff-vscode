@@ -161,6 +161,160 @@ def _get_severity(*_codes: list[str]) -> lsp.DiagnosticSeverity:
 
 
 # **********************************************************
+# Linting features end here
+# **********************************************************
+
+# **********************************************************
+# Code Action features start here
+# **********************************************************
+
+
+@LSP_SERVER.feature(
+    lsp.CODE_ACTION,
+    lsp.CodeActionOptions(
+        code_action_kinds=[
+            lsp.CodeActionKind.SourceOrganizeImports,
+        ],
+        resolve_provider=True,
+    ),
+)
+def code_action_organize_imports(params: lsp.CodeActionParams):
+    text_document = LSP_SERVER.workspace.get_document(params.text_document.uri)
+
+    if utils.is_stdlib_file(text_document.path):
+        # Don't format standard library python files.
+        # Publishing empty diagnostics clears the entry
+        return None
+
+    if (
+        params.context.only
+        and len(params.context.only) == 1
+        and lsp.CodeActionKind.SourceOrganizeImports in params.context.only
+    ):
+        # This is triggered when users run the Organize Imports command from
+        # VS Code. The `context.only` field will have one item that is the
+        # `SourceOrganizeImports` code action.
+        results = _formatting_helper(text_document)
+        if results:
+            # Clear out diagnostics, since we are making changes to address
+            # import sorting issues.
+            LSP_SERVER.publish_diagnostics(text_document.uri, [])
+            return [
+                lsp.CodeAction(
+                    title="ruff: Organize Imports",
+                    kind=lsp.CodeActionKind.SourceOrganizeImports,
+                    data=params.text_document.uri,
+                    edit=_create_workspace_edits(text_document, results),
+                    diagnostics=[],
+                )
+            ]
+
+    actions = []
+    if not params.context.only or lsp.CodeActionKind.SourceOrganizeImports in params.context.only:
+        actions.append(
+            lsp.CodeAction(
+                title="ruff: Organize Imports",
+                kind=lsp.CodeActionKind.SourceOrganizeImports,
+                data=params.text_document.uri,
+                edit=None,
+                diagnostics=[],
+            ),
+        )
+
+    return actions if actions else None
+
+
+@LSP_SERVER.feature(lsp.CODE_ACTION_RESOLVE)
+def code_action_resolve(params: lsp.CodeAction):
+    text_document = LSP_SERVER.workspace.get_document(params.data)
+
+    results = _formatting_helper(text_document)
+    if results:
+        # Clear out diagnostics, since we are making changes to address
+        # import sorting issues.
+        LSP_SERVER.publish_diagnostics(text_document.uri, [])
+    else:
+        # There are no changes so return the original code as is.
+        # This could be due to error while running import sorter
+        # so, don't clear out the diagnostics.
+        results = [
+            lsp.TextEdit(
+                range=lsp.Range(
+                    start=lsp.Position(line=0, character=0),
+                    end=lsp.Position(line=len(text_document.lines), character=0),
+                ),
+                new_text=text_document.source,
+            )
+        ]
+
+    params.edit = _create_workspace_edits(text_document, results)
+    return params
+
+
+def _formatting_helper(document: workspace.Document) -> list[lsp.TextEdit] | None:
+    result = _run_tool_on_document(document, use_stdin=True, extra_args=["--fix", "--select", "I"])
+    if result.stdout:
+        new_source = _match_line_endings(document, result.stdout)
+
+        # Skip last line ending in a notebook cell
+        if document.uri.startswith("vscode-notebook-cell"):
+            if new_source.endswith("\r\n"):
+                new_source = new_source[:-2]
+            elif new_source.endswith("\n"):
+                new_source = new_source[:-1]
+
+        if new_source != document.source:
+            return [
+                lsp.TextEdit(
+                    range=lsp.Range(
+                        start=lsp.Position(line=0, character=0),
+                        end=lsp.Position(line=len(document.lines), character=0),
+                    ),
+                    new_text=new_source,
+                )
+            ]
+    return None
+
+
+def _create_workspace_edits(document: workspace.Document, results: list[lsp.TextEdit] | None):
+    return lsp.WorkspaceEdit(
+        document_changes=[
+            lsp.TextDocumentEdit(
+                text_document=lsp.VersionedTextDocumentIdentifier(
+                    uri=document.uri,
+                    version=0 if document.version is None else document.version,
+                ),
+                edits=results,
+            )
+        ],
+    )
+
+
+def _get_line_endings(lines: list[str]) -> str | None:
+    """Returns line endings used in the text."""
+    try:
+        if lines[0][-2:] == "\r\n":
+            return "\r\n"
+        return "\n"
+    except Exception:  # pylint: disable=broad-except
+        return None
+
+
+def _match_line_endings(document: workspace.Document, text: str) -> str:
+    """Ensures that the edited text line endings matches the document line endings."""
+    expected = _get_line_endings(document.source.splitlines(keepends=True))
+    actual = _get_line_endings(text.splitlines(keepends=True))
+    if actual == expected or actual is None or expected is None:
+        return text
+    return text.replace(actual, expected)
+
+
+# **********************************************************
+# Code Action features ends here
+# **********************************************************
+
+
+# **********************************************************
 # Required Language Server Initialization and Exit handlers.
 # **********************************************************
 @LSP_SERVER.feature(lsp.INITIALIZE)
