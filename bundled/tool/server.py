@@ -10,7 +10,7 @@ import os
 import pathlib
 import sys
 import sysconfig
-from typing import Sequence
+from typing import Optional, Sequence, TypedDict, cast
 
 
 # **********************************************************
@@ -38,7 +38,6 @@ import jsonrpc  # noqa: E402
 import utils  # noqa: E402
 from pygls import protocol, server, uris, workspace  # noqa: E402
 from lsprotocol.types import (  # noqa: E402
-    CODE_ACTION_RESOLVE,
     CodeAction,
     CodeActionKind,
     CodeActionOptions,
@@ -168,14 +167,12 @@ def _parse_output_using_regex(content: str) -> list[Diagnostic]:
             character=int(check["end_location"]["column"]) - col_offset,
         )
         diagnostic = Diagnostic(
-            range=Range(
-                start=start,
-                end=end,
-            ),
+            range=Range(start=start, end=end),
             message=check.get("message"),
             severity=_get_severity(check["code"], check.get("type", "Error")),
             code=check["code"],
             source=TOOL_DISPLAY,
+            data=check.get("fix"),
         )
         diagnostics.append(diagnostic)
 
@@ -195,51 +192,100 @@ def _get_severity(*_codes: list[str]) -> DiagnosticSeverity:
 # **********************************************************
 
 
+class TextDocument(TypedDict):
+    uri: str
+    version: int
+
+
+class Location(TypedDict):
+    row: int
+    column: int
+
+
+class Fix(TypedDict):
+    content: str
+    location: Location
+    end_location: Location
+
+
+@LSP_SERVER.command("ruff.applyAutofix")
+def apply_autofix(arguments: tuple[TextDocument]):
+    uri = arguments[0]["uri"]
+    text_document = LSP_SERVER.workspace.get_document(uri)
+    LSP_SERVER.apply_edit(
+        _create_workspace_edits(text_document, _formatting_helper(text_document) or []),
+        "Ruff: Fix all auto-fixable problems",
+    )
+
+
 @LSP_SERVER.feature(
     TEXT_DOCUMENT_CODE_ACTION,
     CodeActionOptions(
         code_action_kinds=[
             CodeActionKind.SourceOrganizeImports,
+            CodeActionKind.QuickFix,
+            CodeActionKind.SourceFixAll,
         ],
         resolve_provider=True,
     ),
 )
-def code_action_organize_imports(params: CodeActionParams):
+def code_action(params: CodeActionParams) -> list[CodeAction] | None:
+
     text_document = LSP_SERVER.workspace.get_document(params.text_document.uri)
 
     if utils.is_stdlib_file(text_document.path):
-        # Don't format standard library python files.
-        # Publishing empty diagnostics clears the entry
+        # Don't format standard library files.
+        # Publishing empty diagnostics clears the entry.
         return None
 
+    # Generate the "Ruff: Organize Imports" edit
     if (
         params.context.only
         and len(params.context.only) == 1
         and CodeActionKind.SourceOrganizeImports in params.context.only
     ):
-        # This is triggered when users run the Organize Imports command from
-        # VS Code. The `context.only` field will have one item that is the
-        # `SourceOrganizeImports` code action.
-        results = _formatting_helper(text_document)
-        if results:
-            # Clear out diagnostics, since we are making changes to address
-            # import sorting issues.
-            LSP_SERVER.publish_diagnostics(text_document.uri, [])
+        if results := _formatting_helper(text_document, select="I001"):
             return [
                 CodeAction(
-                    title="ruff: Organize Imports",
+                    title="Ruff: Organize Imports",
                     kind=CodeActionKind.SourceOrganizeImports,
                     data=params.text_document.uri,
                     edit=_create_workspace_edits(text_document, results),
                     diagnostics=[],
                 )
             ]
+        else:
+            return []
 
-    actions = []
+    # Generate the "Ruff: Fix All" edit.
+    if (
+        params.context.only
+        and len(params.context.only) == 1
+        and CodeActionKind.SourceFixAll in params.context.only
+    ):
+        return [
+            CodeAction(
+                title="Ruff: Fix All",
+                kind=CodeActionKind.SourceFixAll,
+                data=params.text_document.uri,
+                edit=_create_workspace_edits(
+                    text_document, _formatting_helper(text_document) or []
+                ),
+                diagnostics=[
+                    diagnostic
+                    for diagnostic in params.context.diagnostics
+                    if diagnostic.source == "Ruff" and diagnostic.data is not None
+                ],
+            ),
+        ]
+
+    actions: list[CodeAction] = []
+
+    # Add "Ruff: Organize Imports" as a supported action.
     if not params.context.only or CodeActionKind.SourceOrganizeImports in params.context.only:
         actions.append(
             CodeAction(
-                title="ruff: Organize Imports",
+                title="Ruff: Organize Imports",
                 kind=CodeActionKind.SourceOrganizeImports,
                 data=params.text_document.uri,
                 edit=None,
@@ -247,45 +293,51 @@ def code_action_organize_imports(params: CodeActionParams):
             ),
         )
 
+    # Add "Ruff: Fix All" as a supported action.
+    if not params.context.only or CodeActionKind.SourceFixAll in params.context.only:
+        actions.append(
+            CodeAction(
+                title="Ruff: Fix All",
+                kind=CodeActionKind.SourceFixAll,
+                data=params.text_document.uri,
+                edit=None,
+                diagnostics=[],
+            ),
+        )
+
+    # Add "Ruff: Autofix" for every fixable diagnostic.
+    if not params.context.only or CodeActionKind.QuickFix in params.context.only:
+        for diagnostic in params.context.diagnostics:
+            if diagnostic.source == "Ruff":
+                if fix := diagnostic.data:
+                    actions.append(
+                        CodeAction(
+                            title="Ruff: Autofix",
+                            kind=CodeActionKind.QuickFix,
+                            data=params.text_document.uri,
+                            edit=_create_workspace_edit(text_document, cast(Fix, fix)),
+                            diagnostics=[diagnostic],
+                        ),
+                    )
+
     return actions if actions else None
 
 
-@LSP_SERVER.feature(CODE_ACTION_RESOLVE)
-def code_action_resolve(params: CodeAction):
-    text_document = LSP_SERVER.workspace.get_document(params.data)
-
-    results = _formatting_helper(text_document)
-    if results:
-        # Clear out diagnostics, since we are making changes to address
-        # import sorting issues.
-        LSP_SERVER.publish_diagnostics(text_document.uri, [])
-    else:
-        # There are no changes so return the original code as is.
-        # This could be due to error while running import sorter
-        # so, don't clear out the diagnostics.
-        results = [
-            TextEdit(
-                range=Range(
-                    start=Position(line=0, character=0),
-                    end=Position(line=len(text_document.lines), character=0),
-                ),
-                new_text=text_document.source,
-            )
-        ]
-
-    params.edit = _create_workspace_edits(text_document, results)
-    return params
-
-
-def _formatting_helper(document: workspace.Document) -> list[TextEdit] | None:
-    result = _run_tool_on_document(document, use_stdin=True, extra_args=["--fix", "--select", "I"])
+def _formatting_helper(
+    document: workspace.Document, *, select: Optional[str] = None
+) -> list[TextEdit] | None:
+    result = _run_tool_on_document(
+        document,
+        use_stdin=True,
+        extra_args=["--fix", "--select", select] if select else ["--fix"],
+    )
     if result is None:
         return []
 
     if result.stdout:
         new_source = _match_line_endings(document, result.stdout)
 
-        # Skip last line ending in a notebook cell
+        # Skip last line ending in a notebook cell.
         if document.uri.startswith("vscode-notebook-cell"):
             if new_source.endswith("\r\n"):
                 new_source = new_source[:-2]
@@ -305,7 +357,9 @@ def _formatting_helper(document: workspace.Document) -> list[TextEdit] | None:
     return None
 
 
-def _create_workspace_edits(document: workspace.Document, results: list[TextEdit] | None):
+def _create_workspace_edits(
+    document: workspace.Document, results: list[TextEdit] | None
+) -> WorkspaceEdit:
     return WorkspaceEdit(
         document_changes=[
             TextDocumentEdit(
@@ -314,6 +368,34 @@ def _create_workspace_edits(document: workspace.Document, results: list[TextEdit
                     version=0 if document.version is None else document.version,
                 ),
                 edits=results,
+            )
+        ],
+    )
+
+
+def _create_workspace_edit(document: workspace.Document, fix: Fix) -> WorkspaceEdit:
+    return WorkspaceEdit(
+        document_changes=[
+            TextDocumentEdit(
+                text_document=VersionedTextDocumentIdentifier(
+                    uri=document.uri,
+                    version=0 if document.version is None else document.version,
+                ),
+                edits=[
+                    TextEdit(
+                        range=Range(
+                            start=Position(
+                                line=fix["location"]["row"] - 1,
+                                character=fix["location"]["column"],
+                            ),
+                            end=Position(
+                                line=fix["end_location"]["row"] - 1,
+                                character=fix["end_location"]["column"],
+                            ),
+                        ),
+                        new_text=fix["content"],
+                    )
+                ],
             )
         ],
     )
@@ -349,16 +431,8 @@ def _match_line_endings(document: workspace.Document, text: str) -> str:
 @LSP_SERVER.feature(INITIALIZE)
 def initialize(params: InitializeParams) -> None:
     """LSP handler for initialize request."""
-    log_to_output(f"CWD Server: {os.getcwd()}")
-
-    paths = "\r\n   ".join(sys.path)
-    log_to_output(f"sys.path used to run Server:\r\n   {paths}")
-
     settings = params.initialization_options["settings"]
     _update_workspace_settings(settings)
-    log_to_output(
-        f"Settings used to run Server:\r\n{json.dumps(settings, indent=4, ensure_ascii=False)}\r\n"
-    )
 
     if isinstance(LSP_SERVER.lsp, protocol.LanguageServerProtocol):
         if any(setting["logLevel"] == "debug" for setting in settings):
@@ -461,8 +535,6 @@ def _run_tool_on_document(
     result: utils.RunResult
     if use_path:
         # This mode is used when running executables.
-        log_to_output(" ".join(argv))
-        log_to_output(f"CWD Server: {cwd}")
         result = utils.run_path(
             argv=argv,
             use_stdin=use_stdin,
@@ -474,9 +546,6 @@ def _run_tool_on_document(
     elif use_rpc:
         # This mode is used if the interpreter running this server is different from
         # the interpreter used for running this server.
-        log_to_output(" ".join(settings["interpreter"] + ["-m"] + argv))
-        log_to_output(f"CWD Linter: {cwd}")
-
         rpc_result = jsonrpc.run_over_json_rpc(
             workspace=code_workspace,
             interpreter=settings["interpreter"],
@@ -493,8 +562,6 @@ def _run_tool_on_document(
         result = utils.RunResult(rpc_result.stdout, rpc_result.stderr)
     else:
         # This mode is used when running executables.
-        log_to_output(" ".join(argv))
-        log_to_output(f"CWD Server: {cwd}")
         result = utils.run_path(
             argv=argv,
             use_stdin=use_stdin,
@@ -504,7 +571,6 @@ def _run_tool_on_document(
         if result.stderr:
             log_to_output(result.stderr)
 
-    log_to_output(f"{document.uri} :\r\n{result.stdout}")
     return result
 
 

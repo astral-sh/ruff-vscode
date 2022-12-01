@@ -135,6 +135,11 @@
         },
         "commands": [
             {
+                "title": "Fix all auto-fixable problems",
+                "category": "Ruff",
+                "command": "ruff.executeAutofix"
+            },
+            {
                 "title": "Restart Server",
                 "category": "Ruff",
                 "command": "ruff.restart"

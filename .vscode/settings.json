@@ -14,5 +14,8 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.cwd": "${workspaceFolder}",
-    "python.analysis.extraPaths": ["bundled/libs"]
+    "python.analysis.extraPaths": [
+        "bundled/libs"
+    ],
+    "python.formatting.provider": "black"
 }
