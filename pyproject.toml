@@ -1,5 +1,5 @@
 [tool.ruff]
-line-length = 80
+line-length = 88
 select = [
   "E",
   "F",
@@ -12,4 +12,4 @@ target-version = "py37"
 extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]
 
 [tool.black]
-line-length = 80
+line-length = 88

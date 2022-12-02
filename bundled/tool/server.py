@@ -11,6 +11,7 @@ import pathlib
 import sys
 import sysconfig
 from typing import Sequence, cast
+
 from typing_extensions import TypedDict
 
 
@@ -223,9 +224,7 @@ def apply_autofix(arguments: tuple[TextDocument]):
     uri = arguments[0]["uri"]
     text_document = LSP_SERVER.workspace.get_document(uri)
     LSP_SERVER.apply_edit(
-        _create_workspace_edits(
-            text_document, _formatting_helper(text_document) or []
-        ),
+        _create_workspace_edits(text_document, _formatting_helper(text_document) or []),
         "Ruff: Fix all auto-fixable problems",
     )
 
@@ -287,8 +286,7 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
                 diagnostics=[
                     diagnostic
                     for diagnostic in params.context.diagnostics
-                    if diagnostic.source == "Ruff"
-                    and diagnostic.data is not None
+                    if diagnostic.source == "Ruff" and diagnostic.data is not None
                 ],
             ),
         ]
@@ -311,10 +309,7 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
         )
 
     # Add "Ruff: Fix All" as a supported action.
-    if (
-        not params.context.only
-        or CodeActionKind.SourceFixAll in params.context.only
-    ):
+    if not params.context.only or CodeActionKind.SourceFixAll in params.context.only:
         actions.append(
             CodeAction(
                 title="Ruff: Fix All",
@@ -326,10 +321,7 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
         )
 
     # Add "Ruff: Autofix" for every fixable diagnostic.
-    if (
-        not params.context.only
-        or CodeActionKind.QuickFix in params.context.only
-    ):
+    if not params.context.only or CodeActionKind.QuickFix in params.context.only:
         for diagnostic in params.context.diagnostics:
             if diagnostic.source == "Ruff":
                 if diagnostic.data is not None:
@@ -403,9 +395,7 @@ def _create_workspace_edits(
     )
 
 
-def _create_workspace_edit(
-    document: workspace.Document, fix: Fix
-) -> WorkspaceEdit:
+def _create_workspace_edit(document: workspace.Document, fix: Fix) -> WorkspaceEdit:
     return WorkspaceEdit(
         document_changes=[
             TextDocumentEdit(
@@ -470,8 +460,7 @@ def initialize(params: InitializeParams) -> None:
         if any(setting["logLevel"] == "debug" for setting in settings):
             LSP_SERVER.lsp.trace = TraceValues.Verbose
         elif any(
-            setting["logLevel"] in ["error", "warn", "info"]
-            for setting in settings
+            setting["logLevel"] in ["error", "warn", "info"] for setting in settings
         ):
             LSP_SERVER.lsp.trace = TraceValues.Messages
         else:
@@ -497,11 +486,7 @@ def _update_workspace_settings(settings):
 
 
 def _get_settings_by_document(document: workspace.Document | None):
-    if (
-        len(WORKSPACE_SETTINGS) == 1
-        or document is None
-        or document.path is None
-    ):
+    if len(WORKSPACE_SETTINGS) == 1 or document is None or document.path is None:
         return list(WORKSPACE_SETTINGS.values())[0]
 
     document_workspace = pathlib.Path(document.path)
@@ -560,10 +545,7 @@ def _run_tool_on_document(
         # If we're loading from the bundle, use the absolute path.
         argv = [
             os.fspath(
-                pathlib.Path(__file__).parent.parent
-                / "libs"
-                / "bin"
-                / TOOL_MODULE
+                pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE
             ),
         ]
     else:
@@ -623,9 +605,7 @@ def _run_tool_on_document(
 # *****************************************************
 # Logging and notification.
 # *****************************************************
-def log_to_output(
-    message: str, msg_type: MessageType = MessageType.Log
-) -> None:
+def log_to_output(message: str, msg_type: MessageType = MessageType.Log) -> None:
     LSP_SERVER.show_message_log(message, msg_type)
 
 

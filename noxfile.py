@@ -88,9 +88,7 @@ def _update_npm_packages(session: nox.Session) -> None:
 
 def _setup_template_environment(session: nox.Session) -> None:
     session.install("wheel", "pip-tools")
-    session.run(
-        "pip-compile", "--generate-hashes", "--upgrade", "./requirements.in"
-    )
+    session.run("pip-compile", "--generate-hashes", "--upgrade", "./requirements.in")
     session.run(
         "pip-compile", "--generate-hashes", "--upgrade", "./requirements-dev.in"
     )

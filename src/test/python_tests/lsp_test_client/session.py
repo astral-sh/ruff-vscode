@@ -35,9 +35,7 @@ class LspSession(MethodDispatcher):
         self._endpoint = None
         self._notification_callbacks = {}
         self.script = (
-            script
-            if script
-            else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
+            script if script else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
         )
 
     def __enter__(self):
@@ -55,12 +53,8 @@ class LspSession(MethodDispatcher):
             shell="WITH_COVERAGE" in os.environ,
         )
 
-        self._writer = JsonRpcStreamWriter(
-            os.fdopen(self._sub.stdin.fileno(), "wb")
-        )
-        self._reader = JsonRpcStreamReader(
-            os.fdopen(self._sub.stdout.fileno(), "rb")
-        )
+        self._writer = JsonRpcStreamWriter(os.fdopen(self._sub.stdin.fileno(), "wb"))
+        self._reader = JsonRpcStreamReader(os.fdopen(self._sub.stdout.fileno(), "rb"))
 
         dispatcher = {
             PUBLISH_DIAGNOSTICS: self._publish_diagnostics,
@@ -130,9 +124,7 @@ class LspSession(MethodDispatcher):
 
     def notify_did_change(self, did_change_params):
         """Sends did change notification to LSP Server."""
-        self._send_notification(
-            "textDocument/didChange", params=did_change_params
-        )
+        self._send_notification("textDocument/didChange", params=did_change_params)
 
     def notify_did_save(self, did_save_params):
         """Sends did save notification to LSP Server."""
@@ -144,9 +136,7 @@ class LspSession(MethodDispatcher):
 
     def notify_did_close(self, did_close_params):
         """Sends did close notification to LSP Server."""
-        self._send_notification(
-            "textDocument/didClose", params=did_close_params
-        )
+        self._send_notification("textDocument/didClose", params=did_close_params)
 
     def set_notification_callback(self, notification_name, callback):
         """Set custom LS notification handler."""
@@ -172,9 +162,7 @@ class LspSession(MethodDispatcher):
 
     def _window_log_message(self, window_log_message_params):
         """Internal handler for window log message."""
-        return self._handle_notification(
-            WINDOW_LOG_MESSAGE, window_log_message_params
-        )
+        return self._handle_notification(WINDOW_LOG_MESSAGE, window_log_message_params)
 
     def _window_show_message(self, window_show_message_params):
         """Internal handler for window show message."""
@@ -194,9 +182,7 @@ class LspSession(MethodDispatcher):
         self._thread_pool.submit(_handler)
         return fut
 
-    def _send_request(
-        self, name, params=None, handle_response=lambda f: f.done()
-    ):
+    def _send_request(self, name, params=None, handle_response=lambda f: f.done()):
         """Sends {name} request to the LSP server."""
         fut = self._endpoint.request(name, params)
         fut.add_done_callback(handle_response)
