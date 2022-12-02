@@ -88,27 +88,43 @@ def _update_npm_packages(session: nox.Session) -> None:
 
 def _setup_template_environment(session: nox.Session) -> None:
     session.install("wheel", "pip-tools")
-    session.run("pip-compile", "--generate-hashes", "--upgrade", "./requirements.in")
     session.run(
-        "pip-compile", "--generate-hashes", "--upgrade", "./requirements-dev.in"
+        "pip-compile",
+        "--generate-hashes",
+        "--resolver",
+        "backtracking",
+        "--upgrade",
+        "./requirements.in",
+    )
+    session.run(
+        "pip-compile",
+        "--generate-hashes",
+        "--resolver",
+        "backtracking",
+        "--upgrade",
+        "./requirements-dev.in",
     )
     _install_bundle(session)
 
 
-@nox.session()
+@nox.session(python="3.10")
 def setup(session: nox.Session) -> None:
     """Set up the template for development."""
     _setup_template_environment(session)
 
 
-@nox.session()
+@nox.session(python=["3.7", "3.8", "3.9", "3.10"])
 def test(session: nox.Session) -> None:
     """Run all the tests for the extension."""
+    setup(session)
+
+    session.install("-r", "./requirements.txt")
     session.install("-r", "./requirements-dev.txt")
+
     session.run("pytest", "src/test/python_tests")
 
 
-@nox.session()
+@nox.session(python="3.10")
 def lint(session: nox.Session) -> None:
     """Lint the Python and TypeScript source files."""
     session.install("-r", "./requirements.txt")
@@ -128,7 +144,7 @@ def lint(session: nox.Session) -> None:
     session.run("npm", "run", "lint", external=True)
 
 
-@nox.session()
+@nox.session(python="3.10")
 def typecheck(session: nox.Session) -> None:
     """Typecheck the Python and TypeScript source files."""
     session.install("-r", "./requirements.txt")
@@ -141,7 +157,7 @@ def typecheck(session: nox.Session) -> None:
     session.run("npm", "run", "typecheck", external=True)
 
 
-@nox.session()
+@nox.session(python="3.10")
 def fmt(session: nox.Session) -> None:
     """Format the Python and TypeScript source files."""
     session.install("-r", "./requirements.txt")
@@ -161,7 +177,7 @@ def fmt(session: nox.Session) -> None:
     session.run("npm", "run", "fmt", external=True)
 
 
-@nox.session()
+@nox.session(python="3.10")
 def build_package(session: nox.Session) -> None:
     """Build the VSIX package for publishing."""
     _setup_template_environment(session)
@@ -169,9 +185,12 @@ def build_package(session: nox.Session) -> None:
     session.run("npm", "run", "vsce-package", external=True)
 
 
-@nox.session()
+@nox.session(python="3.10")
 def update_packages(session: nox.Session) -> None:
     """Update pip and npm packages."""
     session.install("wheel", "pip-tools")
     _update_pip_packages(session)
     _update_npm_packages(session)
+
+
+nox.options.sessions = ["test", "lint", "typecheck"]
