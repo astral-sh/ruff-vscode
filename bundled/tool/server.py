@@ -12,8 +12,6 @@ import sys
 import sysconfig
 from typing import Sequence, cast
 
-from typing_extensions import TypedDict
-
 
 # **********************************************************
 # Update sys.path before importing any bundled libraries.
@@ -68,6 +66,7 @@ from lsprotocol.types import (  # noqa: E402
     WorkspaceEdit,
 )
 from pygls import protocol, server, uris, workspace  # noqa: E402
+from typing_extensions import TypedDict  # noqa: E402
 
 WORKSPACE_SETTINGS = {}
 RUNNER = pathlib.Path(__file__).parent / "runner.py"
