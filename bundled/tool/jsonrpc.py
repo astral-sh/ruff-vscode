@@ -120,9 +120,7 @@ class JsonRpc:
 
 def create_json_rpc(readable: BinaryIO, writable: BinaryIO) -> JsonRpc:
     """Creates JSON-RPC wrapper for the readable and writable streams."""
-    return JsonRpc(
-        cast(io.TextIOWrapper, readable), cast(io.TextIOWrapper, writable)
-    )
+    return JsonRpc(cast(io.TextIOWrapper, readable), cast(io.TextIOWrapper, writable))
 
 
 class ProcessManager:
@@ -145,9 +143,7 @@ class ProcessManager:
                 pass
         self._thread_pool.shutdown(wait=False)
 
-    def start_process(
-        self, workspace: str, args: Sequence[str], cwd: str
-    ) -> None:
+    def start_process(self, workspace: str, args: Sequence[str], cwd: str) -> None:
         """Starts a process and establishes JSON-RPC communication over stdio."""
         proc = subprocess.Popen(
             args,

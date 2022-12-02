@@ -27,9 +27,7 @@ def test_linting_example():
             actual = params
             done.set()
 
-        ls_session.set_notification_callback(
-            session.PUBLISH_DIAGNOSTICS, _handler
-        )
+        ls_session.set_notification_callback(session.PUBLISH_DIAGNOSTICS, _handler)
 
         ls_session.notify_did_open(
             {
