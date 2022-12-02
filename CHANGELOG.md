@@ -2,9 +2,13 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
-## 2022.0.18 (1 December 2022)
+## 2022.0.19 (1 December 2022)
 
-What's Changed
+* Restore Python 3.7 compatibility by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/44
+
+**Full Changelog**: https://github.com/charliermarsh/vscode-ruff/compare/2022.0.18...2022.0.19
+
+## 2022.0.18 (1 December 2022)
 
 * Enable `ruff: Organize Imports` action by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/32
 * Bump Ruff version to 0.0.149 by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/33
@@ -26,8 +30,6 @@ What's Changed
 
 ## 2022.0.16 (25 November 2022)
 
-What's Changed
-
 * Publish to OpenVSX by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/30
 * Bump Ruff version to 0.0.138 by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/31
 
@@ -35,16 +37,12 @@ What's Changed
 
 ## 2022.0.15 (20 November 2022)
 
-What's Changed
-
 * Bump Ruff version to 0.0.132 by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/27
 * add changelog.md by @akanz1 in https://github.com/charliermarsh/vscode-ruff/pull/24
 
 **Full Changelog**: https://github.com/charliermarsh/vscode-ruff/compare/2022.0.14...2022.0.15
 
 ## 2022.0.14 (15 November 2022)
-
-What's Changed
 
 * Update README.md by @akanz1 in [#21](https://github.com/charliermarsh/vscode-ruff/pull/21)
 * Bump Ruff version to 0.0.121 by @charliermarsh in [#22](https://github.com/charliermarsh/vscode-ruff/pull/22)
@@ -54,15 +52,11 @@ What's Changed
 
 ## 2022.0.13 (13 November 2022)
 
-What's Changed
-
 * Use scripts path when interpreter is set by @charliermarsh in [#18](https://github.com/charliermarsh/vscode-ruff/pull/18)
 * Bump Ruff version to 0.0.117 by @charliermarsh in [#19](https://github.com/charliermarsh/vscode-ruff/pull/19)
 
 **Full Changelog**: https://github.com/charliermarsh/vscode-ruff/compare/2022.0.12...2022.0.13
 
 ## 2022.0.12 (11 November 2022)
-
-What's Changed
 
 * Add .idea and .ruff_cache to .vscodeignore by @charliermarsh in [#14](https://github.com/charliermarsh/vscode-ruff/pull/14)

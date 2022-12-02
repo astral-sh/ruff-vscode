@@ -9,15 +9,15 @@ The extension ships with `ruff==0.0.150`.
 
 ### "Quick Fix" actions for auto-fixable violations (like unused imports)
 
-![Dec-01-2022 17-59-31](https://user-images.githubusercontent.com/1309177/205176932-44cfc03a-120f-4bad-b710-612bdd7765d6.gif)
+![](https://user-images.githubusercontent.com/1309177/205176932-44cfc03a-120f-4bad-b710-612bdd7765d6.gif)
 
 ### "Fix all": automatically fix all auto-fixable violations
 
-![Dec-01-2022 17-51-14](https://user-images.githubusercontent.com/1309177/205175763-cf34871d-5c05-4abf-9916-440afc82dbf8.gif)
+![](https://user-images.githubusercontent.com/1309177/205175763-cf34871d-5c05-4abf-9916-440afc82dbf8.gif)
 
 ### "Organize Imports": `isort`-compatible import sorting
 
-![Dec-01-2022 17-52-39](https://user-images.githubusercontent.com/1309177/205175987-82e23e21-14bb-467d-9ef0-027f24b75865.gif)
+![](https://user-images.githubusercontent.com/1309177/205175987-82e23e21-14bb-467d-9ef0-027f24b75865.gif)
 
 ## Usage
 
@@ -65,13 +65,12 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 2. Install `nox` in the activated environment: `python -m pip install nox`.
 3. Run `nox --session setup`.
 
-### Linting
+### Development
 
-To run linters: `nox --session lint`.
-
-### Testing
-
-To run tests: `nox --session tests`.
+- `nox --session fmt`
+- `nox --session lint`
+- `nox --session typecheck`
+- `nox --session test`
 
 ### Packaging and Publishing
 
