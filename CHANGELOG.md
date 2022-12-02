@@ -2,6 +2,14 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2022.0.20 (1 December 2022)
+
+* Bump default line length by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/46
+* Enable CI by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/47
+* Delay import of typing_extensions by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/49
+
+**Full Changelog**: https://github.com/charliermarsh/vscode-ruff/compare/2022.0.19...2022.0.20
+
 ## 2022.0.19 (1 December 2022)
 
 * Restore Python 3.7 compatibility by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/44
