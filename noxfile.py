@@ -92,10 +92,7 @@ def _setup_template_environment(session: nox.Session) -> None:
         "pip-compile", "--generate-hashes", "--upgrade", "./requirements.in"
     )
     session.run(
-        "pip-compile",
-        "--generate-hashes",
-        "--upgrade",
-        "./src/test/python_tests/requirements.in",
+        "pip-compile", "--generate-hashes", "--upgrade", "./requirements-dev.in"
     )
     _install_bundle(session)
 
