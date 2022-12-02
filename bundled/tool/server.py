@@ -10,7 +10,8 @@ import os
 import pathlib
 import sys
 import sysconfig
-from typing import Sequence, TypedDict, cast
+from typing import Sequence, cast
+from typing_extensions import TypedDict
 
 
 # **********************************************************
@@ -255,7 +256,8 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
         and len(params.context.only) == 1
         and CodeActionKind.SourceOrganizeImports in params.context.only
     ):
-        if results := _formatting_helper(text_document, select="I001"):
+        results = _formatting_helper(text_document, select="I001")
+        if results is not None:
             return [
                 CodeAction(
                     title="Ruff: Organize Imports",
@@ -330,7 +332,7 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
     ):
         for diagnostic in params.context.diagnostics:
             if diagnostic.source == "Ruff":
-                if fix := diagnostic.data:
+                if diagnostic.data is not None:
                     actions.append(
                         CodeAction(
                             title=(
@@ -341,7 +343,7 @@ def code_action(params: CodeActionParams) -> list[CodeAction] | None:
                             kind=CodeActionKind.QuickFix,
                             data=params.text_document.uri,
                             edit=_create_workspace_edit(
-                                text_document, cast(Fix, fix)
+                                text_document, cast(Fix, diagnostic.data)
                             ),
                             diagnostics=[diagnostic],
                         ),
