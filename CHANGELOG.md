@@ -2,6 +2,12 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2022.0.21 (6 December 2022)
+
+* Bump Ruff version to 0.0.165 by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/52
+
+**Full Changelog**: https://github.com/charliermarsh/vscode-ruff/compare/2022.0.20...2022.0.21
+
 ## 2022.0.20 (1 December 2022)
 
 * Bump default line length by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/46
