@@ -60,6 +60,7 @@ def test_linting_example():
                     "severity": 2,
                     "code": "F401",
                     "source": SERVER_INFO["name"],
+                    "tags": [1],
                 },
                 {
                     "range": {
