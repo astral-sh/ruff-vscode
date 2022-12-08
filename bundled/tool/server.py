@@ -51,6 +51,7 @@ from lsprotocol.types import (  # noqa: E402
     CodeActionParams,
     Diagnostic,
     DiagnosticSeverity,
+    DiagnosticTag,
     DidChangeTextDocumentParams,
     DidCloseTextDocumentParams,
     DidOpenTextDocumentParams,
@@ -183,6 +184,15 @@ def _parse_output_using_regex(content: str) -> list[Diagnostic]:
             code=check["code"],
             source=TOOL_DISPLAY,
             data=check.get("fix"),
+            tags=(
+                [DiagnosticTag.Unnecessary]
+                if check["code"]
+                in {
+                    "F401",  # `module` imported but unused
+                    "F841",  # local variable `name` is assigned to but never used
+                }
+                else None
+            ),
         )
         diagnostics.append(diagnostic)
 
