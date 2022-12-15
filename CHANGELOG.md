@@ -2,6 +2,14 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2022.0.22 (14 December 2022)
+
+* Fix 'Exception ignored in atexit callback' in jsonrpc by @eddyg in https://github.com/charliermarsh/vscode-ruff/pull/54
+* Mark unused imports and local variables as unnecessary by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/55
+* Bump Ruff version to 0.0.182 by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/57
+
+**Full Changelog**: https://github.com/charliermarsh/vscode-ruff/compare/2022.0.21...2022.0.22
+
 ## 2022.0.21 (6 December 2022)
 
 * Bump Ruff version to 0.0.165 by @charliermarsh in https://github.com/charliermarsh/vscode-ruff/pull/52
