@@ -23,7 +23,7 @@ def to_str(text) -> str:
     return text.decode("utf-8") if isinstance(text, bytes) else text
 
 
-class StreamClosedException(Exception):
+class StreamClosedError(Exception):
     """JSON RPC stream is closed."""
 
     pass
@@ -45,7 +45,7 @@ class JsonWriter:
     def write(self, data):
         """Writes given data to stream in JSON-RPC format."""
         if self._writer.closed:
-            raise StreamClosedException()
+            raise StreamClosedError()
 
         with self._lock:
             content = json.dumps(data)
@@ -70,7 +70,7 @@ class JsonReader:
     def read(self):
         """Reads data from the stream in JSON-RPC format."""
         if self._reader.closed:
-            raise StreamClosedException
+            raise StreamClosedError
         length = None
         while not length:
             line = to_str(self._readline())
@@ -173,7 +173,7 @@ class ProcessManager:
         with self._lock:
             if workspace in self._rpc:
                 return self._rpc[workspace]
-        raise StreamClosedException()
+        raise StreamClosedError()
 
 
 _process_manager = ProcessManager()
@@ -182,7 +182,7 @@ _process_manager = ProcessManager()
 def _get_json_rpc(workspace: str) -> JsonRpc | None:
     try:
         return _process_manager.get_json_rpc(workspace)
-    except StreamClosedException:
+    except StreamClosedError:
         return None
     except KeyError:
         return None
