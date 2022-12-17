@@ -10,7 +10,7 @@ import os
 import pathlib
 import sys
 import sysconfig
-from typing import Sequence, cast
+from typing import Any, Sequence, cast
 
 
 # **********************************************************
@@ -69,7 +69,7 @@ from lsprotocol.types import (  # noqa: E402
 from pygls import protocol, server, uris, workspace  # noqa: E402
 from typing_extensions import TypedDict  # noqa: E402
 
-WORKSPACE_SETTINGS = {}
+WORKSPACE_SETTINGS: dict[str, dict[str, Any]] = {}
 RUNNER = pathlib.Path(__file__).parent / "runner.py"
 
 MAX_WORKERS = 5
@@ -485,7 +485,30 @@ def on_exit():
 # *****************************************************
 # Internal functional and settings management APIs.
 # *****************************************************
-def _update_workspace_settings(settings):
+def _get_default_settings(workspace_path: str) -> dict[str, Any]:
+    return {
+        "check": False,
+        "workspaceFS": workspace_path,
+        "workspace": uris.from_fs_path(workspace_path),
+        "logLevel": "error",
+        "args": [],
+        "severity": {
+            "E": "Hint",
+            "W": "Warning",
+        },
+        "path": [],
+        "interpreter": [sys.executable],
+        "importStrategy": "useBundled",
+        "showNotifications": "off",
+    }
+
+
+def _update_workspace_settings(settings) -> None:
+    if not settings:
+        key = os.getcwd()
+        WORKSPACE_SETTINGS[key] = _get_default_settings(key)
+        return
+
     for setting in settings:
         key = uris.to_fs_path(setting["workspace"])
         WORKSPACE_SETTINGS[key] = {
@@ -494,20 +517,27 @@ def _update_workspace_settings(settings):
         }
 
 
-def _get_settings_by_document(document: workspace.Document | None):
-    if len(WORKSPACE_SETTINGS) == 1 or document is None or document.path is None:
-        return list(WORKSPACE_SETTINGS.values())[0]
-
+def _get_document_key(document: workspace.Document) -> str | None:
     document_workspace = pathlib.Path(document.path)
     workspaces = {s["workspaceFS"] for s in WORKSPACE_SETTINGS.values()}
 
-    # COMMENT: about non workspace files
     while document_workspace != document_workspace.parent:
         if str(document_workspace) in workspaces:
-            return WORKSPACE_SETTINGS[str(document_workspace)]
+            return str(document_workspace)
         document_workspace = document_workspace.parent
+    return None
 
-    return list(WORKSPACE_SETTINGS.values())[0]
+
+def _get_settings_by_document(document: workspace.Document | None) -> dict[str, Any]:
+    if document is None or document.path is None:
+        return list(WORKSPACE_SETTINGS.values())[0]
+
+    key = _get_document_key(document)
+    if key is None:
+        key = os.fspath(pathlib.Path(document.path).parent)
+        return _get_default_settings(key)
+
+    return WORKSPACE_SETTINGS[str(key)]
 
 
 # *****************************************************
@@ -528,7 +558,7 @@ def _run_tool_on_document(
         return None
 
     if utils.is_stdlib_file(document.path):
-        # Skip standard library python files.
+        log_warning(f"Skipping standard library file: {document.path}")
         return None
 
     # deep copy here to prevent accidentally updating global settings.
