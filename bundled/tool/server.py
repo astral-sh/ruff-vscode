@@ -492,10 +492,6 @@ def _get_default_settings(workspace_path: str) -> dict[str, Any]:
         "workspace": uris.from_fs_path(workspace_path),
         "logLevel": "error",
         "args": [],
-        "severity": {
-            "E": "Hint",
-            "W": "Warning",
-        },
         "path": [],
         "interpreter": [sys.executable],
         "importStrategy": "useBundled",
