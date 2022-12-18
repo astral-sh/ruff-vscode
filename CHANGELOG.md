@@ -2,6 +2,15 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2022.0.23 (17 December 2022)
+
+* Modify settings logic to match isort plugin by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/60
+* Remove severity from default settings by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/62
+* Bump Ruff version to 0.0.185 by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/63
+* Add `ruff-lsp` to README by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/64
+
+**Full Changelog**: https://github.com/charliermarsh/ruff-vscode/compare/2022.0.22...2022.0.23
+
 ## 2022.0.22 (14 December 2022)
 
 * Fix 'Exception ignored in atexit callback' in jsonrpc by @eddyg in https://github.com/charliermarsh/vscode-ruff/pull/54

@@ -75,7 +75,7 @@ RUNNER = pathlib.Path(__file__).parent / "runner.py"
 MAX_WORKERS = 5
 LSP_SERVER = server.LanguageServer(
     name="Ruff",
-    version="2022.0.22",
+    version="2022.0.23",
     max_workers=MAX_WORKERS,
 )
 
