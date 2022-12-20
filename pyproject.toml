@@ -14,3 +14,19 @@ extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]
 
 [tool.black]
 line-length = 88
+
+[tool.mypy]
+files = "bundled/tool"
+mypy_path = "bundled/tool"
+namespace_packages = true
+explicit_package_bases = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "debugpy.*",
+    "lsprotocol.*",
+    "pygls.*",
+]
+ignore_missing_imports = true
