@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  nox:
+    name: 'nox'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # Install Node dependencies.
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm ci
+      # Setup Nox (which will in-turn install Python dependencies).
+      - uses: wntrblm/nox@2022.11.21
+        with:
+          python-versions: '3.7, 3.8, 3.9, 3.10'
+      - run: nox --session lint
+      - run: nox --session typecheck
+      - run: nox --session test

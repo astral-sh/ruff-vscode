@@ -2,7 +2,7 @@
     "name": "ruff",
     "displayName": "Ruff",
     "description": "A Visual Studio Code extension with support for the Ruff linter.",
-    "version": "2022.0.14",
+    "version": "2022.0.23",
     "serverInfo": {
         "name": "Ruff",
         "module": "ruff"
@@ -44,17 +44,18 @@
     ],
     "main": "./dist/extension.js",
     "scripts": {
-        "vscode:prepublish": "npm run package",
         "compile": "webpack",
-        "watch": "webpack --watch",
-        "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
         "compile-tests": "tsc -p . --outDir out",
-        "watch-tests": "tsc -p . -w --outDir out",
-        "pretest": "npm run compile-tests && npm run compile && npm run lint",
+        "fmt": "prettier -w '*.json' 'src/**/*.ts' '.github/**/*.yaml'",
         "lint": "eslint src --ext ts",
-        "format-check": "prettier --check 'src/**/*.ts' 'build/**/*.yml' '.github/**/*.yml'",
+        "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
+        "pretest": "npm run compile-tests && npm run compile && npm run lint",
         "test": "node ./out/test/runTest.js",
-        "vsce-package": "vsce package -o ruff.vsix"
+        "typecheck": "tsc --noEmit",
+        "vsce-package": "vsce package -o ruff.vsix",
+        "vscode:prepublish": "npm run package",
+        "watch": "webpack --watch",
+        "watch-tests": "tsc -p . -w --outDir out"
     },
     "contributes": {
         "configuration": {
@@ -135,6 +136,11 @@
         },
         "commands": [
             {
+                "title": "Fix all auto-fixable problems",
+                "category": "Ruff",
+                "command": "ruff.executeAutofix"
+            },
+            {
                 "title": "Restart Server",
                 "category": "Ruff",
                 "command": "ruff.restart"
@@ -142,24 +148,26 @@
         ]
     },
     "dependencies": {
-        "fs-extra": "^10.1.0",
+        "fs-extra": "^11.1.0",
+        "ovsx": "^0.7.1",
         "vscode-languageclient": "7.0.0"
     },
     "devDependencies": {
         "@types/fs-extra": "^9.0.13",
-        "@types/vscode": "1.64.0",
-        "@types/glob": "^7.2.0",
+        "@types/glob": "^8.0.0",
         "@types/node": "14.x",
-        "@typescript-eslint/eslint-plugin": "^5.32.0",
-        "@typescript-eslint/parser": "^5.32.0",
-        "@vscode/test-electron": "^2.1.5",
-        "eslint": "^8.21.0",
+        "@types/vscode": "1.64.0",
+        "@typescript-eslint/eslint-plugin": "^5.46.1",
+        "@typescript-eslint/parser": "^5.46.1",
+        "@vscode/test-electron": "^2.2.1",
+        "eslint": "^8.30.0",
+        "eslint-plugin-prettier": "^4.2.1",
         "glob": "^8.0.3",
-        "prettier": "^2.7.1",
-        "typescript": "^4.7.4",
-        "ts-loader": "^9.3.1",
-        "webpack": "^5.74.0",
-        "webpack-cli": "^4.10.0",
-        "vsce": "^2.10.0"
+        "prettier": "^2.8.1",
+        "ts-loader": "^9.4.2",
+        "typescript": "^4.9.4",
+        "vsce": "^2.15.0",
+        "webpack": "^5.75.0",
+        "webpack-cli": "^5.0.1"
     }
 }

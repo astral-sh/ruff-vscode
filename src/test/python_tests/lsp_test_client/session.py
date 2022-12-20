@@ -23,27 +23,26 @@ WINDOW_LOG_MESSAGE = "window/logMessage"
 WINDOW_SHOW_MESSAGE = "window/showMessage"
 
 
-# pylint: disable=too-many-instance-attributes
 class LspSession(MethodDispatcher):
     """Send and Receive messages over LSP as a test LS Client."""
 
     def __init__(self, cwd=None, script=None):
         self.cwd = cwd if cwd else os.getcwd()
-        # pylint: disable=consider-using-with
         self._thread_pool = ThreadPoolExecutor()
         self._sub = None
         self._writer = None
         self._reader = None
         self._endpoint = None
         self._notification_callbacks = {}
-        self.script = script if script else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
+        self.script = (
+            script if script else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
+        )
 
     def __enter__(self):
         """Context manager entrypoint.
 
         shell=True needed for pytest-cov to work in subprocess.
         """
-        # pylint: disable=consider-using-with
         self._sub = subprocess.Popen(
             [sys.executable, str(self.script)],
             stdout=subprocess.PIPE,
@@ -70,7 +69,7 @@ class LspSession(MethodDispatcher):
         self.shutdown(True)
         try:
             self._sub.terminate()
-        except Exception:  # pylint:disable=broad-except
+        except Exception:
             pass
         self._endpoint.shutdown()
         self._thread_pool.shutdown()
@@ -94,7 +93,9 @@ class LspSession(MethodDispatcher):
         self._send_request(
             "initialize",
             params=(
-                initialize_params if initialize_params is not None else VSCODE_DEFAULT_INITIALIZE
+                initialize_params
+                if initialize_params is not None
+                else VSCODE_DEFAULT_INITIALIZE
             ),
             handle_response=_after_initialize,
         )
@@ -103,6 +104,8 @@ class LspSession(MethodDispatcher):
 
     def initialized(self, initialized_params=None):
         """Sends the initialized notification to LSP server."""
+        if initialized_params is None:
+            initialized_params = {}
         self._endpoint.notify("initialized", initialized_params)
 
     def shutdown(self, should_exit, exit_timeout=LSP_EXIT_TIMEOUT):
@@ -153,7 +156,9 @@ class LspSession(MethodDispatcher):
 
     def _publish_diagnostics(self, publish_diagnostics_params):
         """Internal handler for text document publish diagnostics."""
-        return self._handle_notification(PUBLISH_DIAGNOSTICS, publish_diagnostics_params)
+        return self._handle_notification(
+            PUBLISH_DIAGNOSTICS, publish_diagnostics_params
+        )
 
     def _window_log_message(self, window_log_message_params):
         """Internal handler for window log message."""
@@ -161,7 +166,9 @@ class LspSession(MethodDispatcher):
 
     def _window_show_message(self, window_show_message_params):
         """Internal handler for window show message."""
-        return self._handle_notification(WINDOW_SHOW_MESSAGE, window_show_message_params)
+        return self._handle_notification(
+            WINDOW_SHOW_MESSAGE, window_show_message_params
+        )
 
     def _handle_notification(self, notification_name, params):
         """Internal handler for notifications."""
