@@ -51,6 +51,21 @@ You can configure Ruff to autofix violations on-save by enabling the `source.fix
 }
 ```
 
+If you're using the VS Code Python extension, you can configure Ruff to run in lieu of another
+formatter by marking the Ruff extension as your default Python formatter:
+
+```json
+{
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": true
+        }
+    }
+}
+```
+
 ## Commands
 
 | Command                             | Description                      |
