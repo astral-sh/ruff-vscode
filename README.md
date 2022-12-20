@@ -41,7 +41,10 @@ per workspace in Visual Studio Code.
 | ruff.importStrategy   | `useBundled` | Setting to choose where to load `ruff` from. `useBundled` picks ruff bundled with the extension. `fromEnvironment` uses `ruff` available in the environment. |
 | ruff.showNotification | `off`        | Setting to control when a notification is shown.                                                                                                             |
 
-You can configure Ruff to autofix violations on-save by enabling the `source.fixAll` action in `settings.json`:
+### Example configurations
+
+You can configure Ruff to autofix violations on-save by enabling the `source.fixAll` action in
+`settings.json`:
 
 ```json
 {
@@ -51,8 +54,23 @@ You can configure Ruff to autofix violations on-save by enabling the `source.fix
 }
 ```
 
-If you're using the VS Code Python extension, you can configure Ruff to run in lieu of another
-formatter by marking the Ruff extension as your default Python formatter:
+If you're using the VS Code Python extension, you can configure VS Code to autofix violations
+on-save using Ruff, then re-format with Black, via the following `settings.json`:
+
+```json
+{
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": true
+        }
+    },
+    "python.formatting.provider": "black"
+}
+```
+
+If you'd like to run Ruff in lieu of another formatter, you can mark the Ruff extension as your
+default Python formatter in `settings.json`:
 
 ```json
 {
