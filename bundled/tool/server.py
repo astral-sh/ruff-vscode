@@ -115,38 +115,6 @@ def did_save(params: DidSaveTextDocumentParams) -> None:
     LSP_SERVER.publish_diagnostics(document.uri, diagnostics)
 
 
-NOQA_REGEX = re.compile(r"(?i:# noqa)(?::\s?(?P<codes>([A-Z]+[0-9]+(?:[,\s]+)?)+))?")
-CODE_REGEX = re.compile(r"[A-Z]{1,3}[0-9]{3}")
-
-
-@LSP_SERVER.feature(TEXT_DOCUMENT_HOVER)
-def hover(params: HoverParams) -> Hover | None:
-    """LSP handler for textDocument/hover request."""
-    document = LSP_SERVER.workspace.get_document(params.text_document.uri)
-    match = NOQA_REGEX.search(document.lines[params.position.line])
-    if not match:
-        return
-    codes = match.group("codes")
-    if not codes:
-        return
-
-    codes_start = match.start("codes")
-    for match in CODE_REGEX.finditer(codes):
-        start, end = match.span()
-        start += codes_start
-        end += codes_start
-        if start <= params.position.character < end:
-            code = match.group()
-            result = _run_tool_subcommand(document, ["--explain", code])
-            if result.stdout:
-                return Hover(
-                    contents=MarkupContent(
-                        kind=MarkupKind.Markdown,
-                        value=result.stdout.strip(),
-                    )
-                )
-
-
 @LSP_SERVER.feature(TEXT_DOCUMENT_DID_CHANGE)
 def did_change(params: DidChangeTextDocumentParams) -> None:
     """LSP handler for textDocument/didSave request."""
@@ -237,6 +205,41 @@ def _parse_output_using_regex(content: str) -> list[Diagnostic]:
 
 def _get_severity(*_codes: list[str]) -> DiagnosticSeverity:
     return DiagnosticSeverity.Warning
+
+
+NOQA_REGEX = re.compile(r"(?i:# noqa)(?::\s?(?P<codes>([A-Z]+[0-9]+(?:[,\s]+)?)+))?")
+CODE_REGEX = re.compile(r"[A-Z]{1,3}[0-9]{3}")
+
+
+@LSP_SERVER.feature(TEXT_DOCUMENT_HOVER)
+def hover(params: HoverParams) -> Hover | None:
+    """LSP handler for textDocument/hover request."""
+    document = LSP_SERVER.workspace.get_document(params.text_document.uri)
+    match = NOQA_REGEX.search(document.lines[params.position.line])
+    if not match:
+        return None
+
+    codes = match.group("codes")
+    if not codes:
+        return None
+
+    codes_start = match.start("codes")
+    for match in CODE_REGEX.finditer(codes):
+        start, end = match.span()
+        start += codes_start
+        end += codes_start
+        if start <= params.position.character < end:
+            code = match.group()
+            result = _run_subcommand_on_document(document, ["--explain", code])
+            if result.stdout:
+                return Hover(
+                    contents=MarkupContent(
+                        kind=MarkupKind.Markdown,
+                        value=result.stdout.strip(),
+                    )
+                )
+
+    return None
 
 
 # **********************************************************
@@ -569,6 +572,45 @@ def _get_settings_by_document(document: workspace.Document | None) -> dict[str, 
 # *****************************************************
 # Internal execution APIs.
 # *****************************************************
+def _executable_path(settings: dict[str, Any]) -> list[str]:
+    """Returns the path to the executable."""
+    bundled_path = os.fspath(
+        pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE
+    )
+    if settings["path"]:
+        # 'path' setting takes priority over everything.
+        executable_path = settings["path"]
+    elif settings["importStrategy"] == "useBundled":
+        # If we're loading from the bundle, use the absolute path.
+        executable_path = [bundled_path]
+    elif settings["interpreter"] and not utils.is_current_interpreter(
+        settings["interpreter"][0]
+    ):
+        # If there is a different interpreter set, find its scripts path.
+        if settings["interpreter"][0] not in INTERPRETER_PATHS:
+            INTERPRETER_PATHS[settings["interpreter"][0]] = utils.scripts(
+                settings["interpreter"][0]
+            )
+
+        path: str = os.path.join(
+            INTERPRETER_PATHS[settings["interpreter"][0]], TOOL_MODULE
+        )
+        if os.path.isfile(path):
+            executable_path = [path]
+        else:
+            executable_path = [bundled_path]
+    else:
+        # If the interpreter is same as the interpreter running this process, get the
+        # scripts path directly.
+        path = os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)
+        if os.path.isfile(path):
+            executable_path = [path]
+        else:
+            executable_path = [bundled_path]
+
+    return executable_path
+
+
 def _run_tool_on_document(
     document: workspace.Document,
     use_stdin: bool = False,
@@ -590,44 +632,7 @@ def _run_tool_on_document(
     # Deep copy, to prevent accidentally updating global settings.
     settings = copy.deepcopy(_get_settings_by_document(document))
 
-    cwd = settings["workspaceFS"]
-
-    bundled_path = os.fspath(
-        pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE
-    )
-    if settings["path"]:
-        # 'path' setting takes priority over everything.
-        argv = settings["path"]
-    elif settings["importStrategy"] == "useBundled":
-        # If we're loading from the bundle, use the absolute path.
-        argv = [bundled_path]
-    elif settings["interpreter"] and not utils.is_current_interpreter(
-        settings["interpreter"][0]
-    ):
-        # If there is a different interpreter set, find its scripts path.
-        if settings["interpreter"][0] not in INTERPRETER_PATHS:
-            INTERPRETER_PATHS[settings["interpreter"][0]] = utils.scripts(
-                settings["interpreter"][0]
-            )
-
-        path: str = os.path.join(
-            INTERPRETER_PATHS[settings["interpreter"][0]], TOOL_MODULE
-        )
-        if os.path.isfile(path):
-            argv = [path]
-        else:
-            argv = [bundled_path]
-    else:
-        # If the interpreter is same as the interpreter running this process, get the
-        # scripts path directly.
-        path = os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)
-        if os.path.isfile(path):
-            argv = [path]
-        else:
-            argv = [bundled_path]
-
-    argv += TOOL_ARGS + settings["args"] + list(extra_args)
-
+    argv = _executable_path(settings) + TOOL_ARGS + settings["args"] + list(extra_args)
     if use_stdin:
         argv += ["--stdin-filename", document.path]
     else:
@@ -637,7 +642,7 @@ def _run_tool_on_document(
     result: utils.RunResult = utils.run_path(
         argv=argv,
         use_stdin=use_stdin,
-        cwd=cwd,
+        cwd=settings["workspaceFS"],
         source=document.source.replace("\r\n", "\n"),
     )
     if result.stderr:
@@ -646,61 +651,21 @@ def _run_tool_on_document(
     return result
 
 
-def _run_tool_subcommand(
+def _run_subcommand_on_document(
     document: workspace.Document,
     args: Sequence[str],
-) -> utils.RunResult | None:
-    """Runs tool on the given document.
-
-    If `use_stdin` is `True` then contents of the document is passed to the tool via
-    stdin.
-    """
+) -> utils.RunResult:
+    """Runs the tool subcommand on the given document."""
     # Deep copy, to prevent accidentally updating global settings.
     settings = copy.deepcopy(_get_settings_by_document(document))
 
-    cwd = settings["workspaceFS"]
-
-    bundled_path = os.fspath(
-        pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE
-    )
-    if settings["path"]:
-        # 'path' setting takes priority over everything.
-        argv = settings["path"]
-    elif settings["importStrategy"] == "useBundled":
-        # If we're loading from the bundle, use the absolute path.
-        argv = [bundled_path]
-    elif settings["interpreter"] and not utils.is_current_interpreter(
-        settings["interpreter"][0]
-    ):
-        # If there is a different interpreter set, find its scripts path.
-        if settings["interpreter"][0] not in INTERPRETER_PATHS:
-            INTERPRETER_PATHS[settings["interpreter"][0]] = utils.scripts(
-                settings["interpreter"][0]
-            )
-
-        path: str = os.path.join(
-            INTERPRETER_PATHS[settings["interpreter"][0]], TOOL_MODULE
-        )
-        if os.path.isfile(path):
-            argv = [path]
-        else:
-            argv = [bundled_path]
-    else:
-        # If the interpreter is same as the interpreter running this process, get the
-        # scripts path directly.
-        path = os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)
-        if os.path.isfile(path):
-            argv = [path]
-        else:
-            argv = [bundled_path]
-
-    argv += list(args)
+    argv = _executable_path(settings) + list(args)
 
     log_to_output(f"Running Ruff with: {argv}")
     result: utils.RunResult = utils.run_path(
         argv=argv,
         use_stdin=False,
-        cwd=cwd,
+        cwd=settings["workspaceFS"],
     )
     if result.stderr:
         log_to_output(result.stderr)
