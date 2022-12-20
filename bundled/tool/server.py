@@ -11,7 +11,6 @@ import pathlib
 import re
 import sys
 import sysconfig
-from typing import Sequence, Any
 from typing import Any, Sequence, cast
 
 
@@ -38,12 +37,13 @@ update_sys_path(
 # **********************************************************
 import utils  # noqa: E402
 from lsprotocol.types import (  # noqa: E402
-    Hover, INITIALIZE,
-    MarkupContent, MarkupKind, TEXT_DOCUMENT_CODE_ACTION,
+    INITIALIZE,
+    TEXT_DOCUMENT_CODE_ACTION,
     TEXT_DOCUMENT_DID_CHANGE,
     TEXT_DOCUMENT_DID_CLOSE,
     TEXT_DOCUMENT_DID_OPEN,
     TEXT_DOCUMENT_DID_SAVE,
+    TEXT_DOCUMENT_HOVER,
     AnnotatedTextEdit,
     CodeAction,
     CodeActionKind,
@@ -56,7 +56,11 @@ from lsprotocol.types import (  # noqa: E402
     DidCloseTextDocumentParams,
     DidOpenTextDocumentParams,
     DidSaveTextDocumentParams,
+    Hover,
+    HoverParams,
     InitializeParams,
+    MarkupContent,
+    MarkupKind,
     MessageType,
     OptionalVersionedTextDocumentIdentifier,
     Position,
@@ -111,12 +115,11 @@ def did_save(params: DidSaveTextDocumentParams) -> None:
     LSP_SERVER.publish_diagnostics(document.uri, diagnostics)
 
 
-
 NOQA_REGEX = re.compile(r"(?i:# noqa)(?::\s?(?P<codes>([A-Z]+[0-9]+(?:[,\s]+)?)+))?")
-CODE_REGEX = re.compile(r"[A-Z]+[0-9]+")
+CODE_REGEX = re.compile(r"[A-Z]{1,3}[0-9]{3}")
 
 
-@LSP_SERVER.feature(HOVER)
+@LSP_SERVER.feature(TEXT_DOCUMENT_HOVER)
 def hover(params: HoverParams) -> Hover | None:
     """LSP handler for textDocument/hover request."""
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
@@ -128,25 +131,20 @@ def hover(params: HoverParams) -> Hover | None:
         return
 
     codes_start = match.start("codes")
-    for m in CODE_REGEX.finditer(codes):
-        start, end = m.span()
+    for match in CODE_REGEX.finditer(codes):
+        start, end = match.span()
         start += codes_start
         end += codes_start
         if start <= params.position.character < end:
-            code = m.group()
-            settings = copy.deepcopy(_get_settings_by_document(document))
-            result = _run_tool_on_document(
-                document,
-                settings,
-                ["--explain", code, document.path],
-                use_stdin=False,
-            )
-            return Hover(
-                contents=MarkupContent(
-                    kind=MarkupKind.Markdown,
-                    value=(result.stdout or result.stderr).strip(),
+            code = match.group()
+            result = _run_tool_subcommand(document, ["--explain", code])
+            if result.stdout:
+                return Hover(
+                    contents=MarkupContent(
+                        kind=MarkupKind.Markdown,
+                        value=result.stdout.strip(),
+                    )
                 )
-            )
 
 
 @LSP_SERVER.feature(TEXT_DOCUMENT_DID_CHANGE)
@@ -163,7 +161,6 @@ def did_close(params: DidCloseTextDocumentParams) -> None:
     document = LSP_SERVER.workspace.get_document(params.text_document.uri)
     # Publishing empty diagnostics to clear the entries for this file.
     LSP_SERVER.publish_diagnostics(document.uri, [])
-
 
 
 def _linting_helper(document: workspace.Document) -> list[Diagnostic]:
@@ -574,8 +571,8 @@ def _get_settings_by_document(document: workspace.Document | None) -> dict[str, 
 # *****************************************************
 def _run_tool_on_document(
     document: workspace.Document,
-    args: Sequence[str] = [],
     use_stdin: bool = False,
+    extra_args: Sequence[str] = [],
 ) -> utils.RunResult | None:
     """Runs tool on the given document.
 
@@ -629,7 +626,12 @@ def _run_tool_on_document(
         else:
             argv = [bundled_path]
 
-    argv += args
+    argv += TOOL_ARGS + settings["args"] + list(extra_args)
+
+    if use_stdin:
+        argv += ["--stdin-filename", document.path]
+    else:
+        argv += [document.path]
 
     log_to_output(f"Running Ruff with: {argv}")
     result: utils.RunResult = utils.run_path(
@@ -637,6 +639,68 @@ def _run_tool_on_document(
         use_stdin=use_stdin,
         cwd=cwd,
         source=document.source.replace("\r\n", "\n"),
+    )
+    if result.stderr:
+        log_to_output(result.stderr)
+
+    return result
+
+
+def _run_tool_subcommand(
+    document: workspace.Document,
+    args: Sequence[str],
+) -> utils.RunResult | None:
+    """Runs tool on the given document.
+
+    If `use_stdin` is `True` then contents of the document is passed to the tool via
+    stdin.
+    """
+    # Deep copy, to prevent accidentally updating global settings.
+    settings = copy.deepcopy(_get_settings_by_document(document))
+
+    cwd = settings["workspaceFS"]
+
+    bundled_path = os.fspath(
+        pathlib.Path(__file__).parent.parent / "libs" / "bin" / TOOL_MODULE
+    )
+    if settings["path"]:
+        # 'path' setting takes priority over everything.
+        argv = settings["path"]
+    elif settings["importStrategy"] == "useBundled":
+        # If we're loading from the bundle, use the absolute path.
+        argv = [bundled_path]
+    elif settings["interpreter"] and not utils.is_current_interpreter(
+        settings["interpreter"][0]
+    ):
+        # If there is a different interpreter set, find its scripts path.
+        if settings["interpreter"][0] not in INTERPRETER_PATHS:
+            INTERPRETER_PATHS[settings["interpreter"][0]] = utils.scripts(
+                settings["interpreter"][0]
+            )
+
+        path: str = os.path.join(
+            INTERPRETER_PATHS[settings["interpreter"][0]], TOOL_MODULE
+        )
+        if os.path.isfile(path):
+            argv = [path]
+        else:
+            argv = [bundled_path]
+    else:
+        # If the interpreter is same as the interpreter running this process, get the
+        # scripts path directly.
+        path = os.path.join(sysconfig.get_path("scripts"), TOOL_MODULE)
+        if os.path.isfile(path):
+            argv = [path]
+        else:
+            argv = [bundled_path]
+
+    argv += list(args)
+
+    log_to_output(f"Running Ruff with: {argv}")
+    result: utils.RunResult = utils.run_path(
+        argv=argv,
+        use_stdin=False,
+        cwd=cwd,
     )
     if result.stderr:
         log_to_output(result.stderr)
