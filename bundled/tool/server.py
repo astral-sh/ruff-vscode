@@ -79,7 +79,7 @@ INTERPRETER_PATHS: dict[str, str] = {}
 MAX_WORKERS = 5
 LSP_SERVER = server.LanguageServer(
     name="Ruff",
-    version="2022.0.23",
+    version="2022.0.24",
     max_workers=MAX_WORKERS,
 )
 
