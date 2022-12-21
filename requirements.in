@@ -2,5 +2,5 @@
 
 pygls>=1.0.0a3
 packaging
-ruff==0.0.185
+ruff==0.0.190
 typing_extensions
