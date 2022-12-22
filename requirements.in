@@ -1,6 +1,4 @@
 # This file is used to generate requirements.txt.
 
-pygls>=1.0.0a3
-packaging
+ruff-lsp==0.0.6
 ruff==0.0.190
-typing_extensions

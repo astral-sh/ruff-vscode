@@ -22,14 +22,10 @@ lsprotocol==2022.0.0a9 \
     --hash=sha256:db81eafc80485a6052f6771aaf6fb9cef58cb6409d510c60132f12c6e91d9182 \
     --hash=sha256:e4bc3d2ed71045f64cbe4d053bd6d45300a77b122b372a383914ce4ddb9c62d4
     # via pygls
-packaging==22.0 \
-    --hash=sha256:2198ec20bd4c017b8f9717e00f0c8714076fc2fd93816750ab48e2c41de2cfd3 \
-    --hash=sha256:957e2148ba0e1a3b282772e791ef1d8083648bc131c8ab0c1feba110ce1146c3
-    # via -r ./requirements.in
 pygls==1.0.0 \
     --hash=sha256:3414594ac29ff3ab990f004c675d1077e4e2659eae5cc3ae67cc6fa4d861e342 \
     --hash=sha256:c2a1c22e30028f7ca9d3f0a04da8eef29f0f1701bdbd97d8614d8e1e6711f336
-    # via -r ./requirements.in
+    # via ruff-lsp
 ruff==0.0.190 \
     --hash=sha256:23a950bf48ee1465ea32fb92da217e89062dcf49fc4b85cae2bb02bea20878d8 \
     --hash=sha256:240492844090c30e4ed228c2c73ebd9d44e2e68e721eec839cb62790e506e473 \
@@ -47,6 +43,12 @@ ruff==0.0.190 \
     --hash=sha256:d8eeddbbf871de451dd238f6bcee688da63187e3ab72c6438be1ab3cd94be72d \
     --hash=sha256:e5c9aa23cff7eb7408a3ca0568b12f561a5678f6420563b94ba8eb8c2f3a5d6b \
     --hash=sha256:fa69edffffaadb5c12a7a3b5cfcc27158a169b36128e63a827ab568b56d0e45b
+    # via
+    #   -r ./requirements.in
+    #   ruff-lsp
+ruff-lsp==0.0.6 \
+    --hash=sha256:2297972d28e01be1d0b0804e18184723ad375dd097d9ef2d40b2448024b31fa3 \
+    --hash=sha256:e3e0577689bb9cb47894c53aff71b4de63c4320c1ee7074a832cdad3f9014028
     # via -r ./requirements.in
 typeguard==2.13.3 \
     --hash=sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4 \
@@ -55,4 +57,4 @@ typeguard==2.13.3 \
 typing-extensions==4.4.0 \
     --hash=sha256:1511434bb92bf8dd198c12b1cc812e800d4181cfcb867674e0f8279cc93087aa \
     --hash=sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e
-    # via -r ./requirements.in
+    # via ruff-lsp
