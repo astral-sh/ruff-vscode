@@ -131,5 +131,5 @@ export async function getDebuggerPath(): Promise<string | undefined> {
 
 export async function runPythonExtensionCommand(command: string, ...rest: any[]) {
     await activateExtension();
-    return await commands.executeCommand(command, ...rest);
+    return commands.executeCommand(command, ...rest);
 }
