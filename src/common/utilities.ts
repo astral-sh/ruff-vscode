@@ -30,10 +30,10 @@ export function getProjectRoot(): WorkspaceFolder {
     } else {
         let root = workspaces[0].uri.fsPath;
         let rootWorkspace = workspaces[0];
-        for (const w of workspaces) {
-            if (root.length > w.uri.fsPath.length) {
-                root = w.uri.fsPath;
-                rootWorkspace = w;
+        for (const workspace of workspaces) {
+            if (root.length > workspace.uri.fsPath.length) {
+                root = workspace.uri.fsPath;
+                rootWorkspace = workspace;
             }
         }
         return rootWorkspace;

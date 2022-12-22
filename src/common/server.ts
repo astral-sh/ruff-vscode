@@ -114,7 +114,7 @@ export async function restartServer(
         _disposables.forEach((d) => d.dispose());
         _disposables = [];
     }
-    const workspaceSetting = await getWorkspaceSettings(serverId, getProjectRoot(), true);
+    const workspaceSetting = await getWorkspaceSettings(serverId, getProjectRoot());
     if (workspaceSetting.interpreter.length === 0) {
         traceError(
             'Python interpreter missing:\r\n' +
@@ -130,7 +130,7 @@ export async function restartServer(
         serverName,
         outputChannel,
         {
-            settings: await getExtensionSettings(serverId, true),
+            settings: await getExtensionSettings(serverId),
         },
         workspaceSetting,
     );

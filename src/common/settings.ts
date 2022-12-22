@@ -16,39 +16,32 @@ export interface ISettings {
     showNotifications: string;
 }
 
-export async function getExtensionSettings(namespace: string, includeInterpreter?: boolean): Promise<ISettings[]> {
+export async function getExtensionSettings(namespace: string): Promise<ISettings[]> {
     const settings: ISettings[] = [];
     const workspaces = getWorkspaceFolders();
 
     for (const workspace of workspaces) {
-        const workspaceSetting = await getWorkspaceSettings(namespace, workspace, includeInterpreter);
+        const workspaceSetting = await getWorkspaceSettings(namespace, workspace);
         settings.push(workspaceSetting);
     }
 
     return settings;
 }
 
-export function getInterpreterFromSetting(namespace: string) {
+export function getInterpreterFromSetting(namespace: string): string[] | undefined {
     const config = getConfiguration(namespace);
     return config.get<string[]>('interpreter');
 }
 
-export async function getWorkspaceSettings(
-    namespace: string,
-    workspace: WorkspaceFolder,
-    includeInterpreter?: boolean,
-): Promise<ISettings> {
+export async function getWorkspaceSettings(namespace: string, workspace: WorkspaceFolder): Promise<ISettings> {
     const config = getConfiguration(namespace, workspace.uri);
 
-    let interpreter: string[] | undefined = [];
-    if (includeInterpreter) {
-        interpreter = getInterpreterFromSetting(namespace);
-        if (interpreter === undefined || interpreter.length === 0) {
-            interpreter = (await getInterpreterDetails(workspace.uri)).path;
-        }
+    let interpreter: string[] | undefined = getInterpreterFromSetting(namespace);
+    if (interpreter === undefined || interpreter.length === 0) {
+        interpreter = (await getInterpreterDetails(workspace.uri)).path;
     }
 
-    const workspaceSetting = {
+    return {
         workspace: workspace.uri.toString(),
         logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? 'error',
         args: config.get<string[]>(`args`) ?? [],
@@ -57,7 +50,6 @@ export async function getWorkspaceSettings(
         importStrategy: config.get<string>(`importStrategy`) ?? 'fromEnvironment',
         showNotifications: config.get<string>(`showNotifications`) ?? 'off',
     };
-    return workspaceSetting;
 }
 
 export function checkIfConfigurationChanged(e: ConfigurationChangeEvent, namespace: string): boolean {
@@ -69,6 +61,5 @@ export function checkIfConfigurationChanged(e: ConfigurationChangeEvent, namespa
         `${namespace}.importStrategy`,
         `${namespace}.showNotifications`,
     ];
-    const changed = settings.map((s) => e.affectsConfiguration(s));
-    return changed.includes(true);
+    return settings.some((s) => e.affectsConfiguration(s));
 }
