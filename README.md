@@ -32,14 +32,15 @@ per workspace in Visual Studio Code.
 
 ## Settings
 
-| Settings              | Default      | Description                                                                                                                                                  |
-| --------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ruff.args             | `[]`         | Custom arguments passed to `ruff`. E.g `"ruff.args": ["--config=/path/to/pyproject.toml"]`.                                                                  |
-| ruff.logLevel         | `error`      | Sets the tracing level for the extension.                                                                                                                    |
-| ruff.path             | `[]`         | Setting to provide custom `ruff` executable. E.g. `["~/global_env/ruff"]`.                                                                                   |
-| ruff.interpreter      | `[]`         | Path to a python interpreter to use to run the linter server.                                                                                                |
-| ruff.importStrategy   | `useBundled` | Setting to choose where to load `ruff` from. `useBundled` picks ruff bundled with the extension. `fromEnvironment` uses `ruff` available in the environment. |
-| ruff.showNotification | `off`        | Setting to control when a notification is shown.                                                                                                             |
+| Settings         | Default | Description                                                                              |
+|------------------|---------|------------------------------------------------------------------------------------------|
+| args             | `[]`    | Custom arguments passed to `ruff`. E.g `"args": ["--config=/path/to/pyproject.toml"]`.   |
+| logLevel         | `error` | Sets the tracing level for the extension.                                                |
+| path             | `[]`    | Setting to provide custom `ruff` executables, to try in order. E.g. `["/path/to/ruff"]`. |
+| interpreter      | `[]`    | Path to a Python interpreter to use to run the linter server.                            |
+| showNotification | `off`   | Setting to control when a notification is shown.                                         |
+| organizeImports  | `true`  | Whether to register Ruff as capable of handling `source.organizeImports` actions.        |
+| fixAll           | `true`  | Whether to register Ruff as capable of handling `source.fixAll` actions.                 |
 
 ### Example configurations
 
