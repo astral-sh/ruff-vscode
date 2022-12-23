@@ -131,6 +131,18 @@
                     ],
                     "scope": "machine",
                     "type": "string"
+                },
+                "ruff.organizeImports": {
+                    "default": true,
+                    "description": "Whether to register Ruff as capable of handling `source.organizeImports` actions.",
+                    "scope": "window",
+                    "type": "boolean"
+                },
+                "ruff.fixAll": {
+                    "default": true,
+                    "description": "Whether to register Ruff as capable of handling `source.fixAll` actions.",
+                    "scope": "window",
+                    "type": "boolean"
                 }
             }
         },
