@@ -2,6 +2,14 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2022.0.25 (22 December 2022)
+
+* Migrate to ruff-lsp by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/75
+* Simplify some TypeScript code by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/77
+* Upgrade ruff-lsp to v0.0.8 by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/79
+
+**Full Changelog**: https://github.com/charliermarsh/ruff-vscode/compare/2022.0.24...2022.0.25
+
 ## 2022.0.24 (21 December 2022)
 
 * Add docs on replacing Black et al by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/66
