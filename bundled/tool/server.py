@@ -12,7 +12,7 @@ BUNDLE_DIR = pathlib.Path(__file__).parent.parent
 def update_sys_path(path_to_add: str) -> None:
     """Add given path to `sys.path`."""
     if path_to_add not in sys.path and os.path.isdir(path_to_add):
-        sys.path.append(path_to_add)
+        sys.path.insert(0, path_to_add)
 
 
 # Ensure that we can import LSP libraries, and other bundled libraries.
