@@ -12,15 +12,15 @@ The extension ships with `ruff==0.0.192`.
 
 ### "Quick Fix" actions for auto-fixable violations (like unused imports)
 
-![](https://user-images.githubusercontent.com/1309177/205176932-44cfc03a-120f-4bad-b710-612bdd7765d6.gif)
+![Demo of Ruff's "Quick Fix" action](https://user-images.githubusercontent.com/1309177/205176932-44cfc03a-120f-4bad-b710-612bdd7765d6.gif)
 
 ### "Fix all": automatically fix all auto-fixable violations
 
-![](https://user-images.githubusercontent.com/1309177/205175763-cf34871d-5c05-4abf-9916-440afc82dbf8.gif)
+![Demo of Ruff's "Fix all" action](https://user-images.githubusercontent.com/1309177/205175763-cf34871d-5c05-4abf-9916-440afc82dbf8.gif)
 
 ### "Organize Imports": `isort`-compatible import sorting
 
-![](https://user-images.githubusercontent.com/1309177/205175987-82e23e21-14bb-467d-9ef0-027f24b75865.gif)
+![Demo of Ruff's "Organize Imports" action](https://user-images.githubusercontent.com/1309177/205175987-82e23e21-14bb-467d-9ef0-027f24b75865.gif)
 
 ## Usage
 
@@ -149,11 +149,5 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 ### Development
 
 - `nox --session fmt`
-- `nox --session lint`
-- `nox --session typecheck`
+- `nox --session check`
 - `nox --session test`
-
-### Packaging and Publishing
-
-To build the extension, run: `nox --session build_package`. Then upload the generated `.vsix` file
-to the [extension management page](https://marketplace.visualstudio.com/manage).

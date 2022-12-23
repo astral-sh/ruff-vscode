@@ -16,8 +16,8 @@ extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]
 line-length = 88
 
 [tool.mypy]
-files = "bundled/tool"
-mypy_path = "bundled/tool"
+files = ["bundled/tool", "build"]
+mypy_path = ["bundled/tool", "build"]
 namespace_packages = true
 explicit_package_bases = true
 no_implicit_optional = true

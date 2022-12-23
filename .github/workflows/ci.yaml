@@ -21,6 +21,5 @@ jobs:
       - uses: wntrblm/nox@2022.11.21
         with:
           python-versions: '3.7, 3.8, 3.9, 3.10'
-      - run: nox --session lint
-      - run: nox --session typecheck
+      - run: nox --session check
       - run: nox --session test

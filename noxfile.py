@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 import json
 import pathlib
 import urllib.request as url_lib
@@ -125,7 +122,7 @@ def test(session: nox.Session) -> None:
 
 
 @nox.session(python="3.10")
-def lint(session: nox.Session) -> None:
+def check(session: nox.Session) -> None:
     """Lint the Python and TypeScript source files."""
     session.install("-r", "./requirements.txt")
     session.install("-r", "./requirements-dev.txt")
@@ -133,22 +130,17 @@ def lint(session: nox.Session) -> None:
     # Check Python lint with Ruff.
     session.run("ruff", "./noxfile.py")
     session.run("ruff", "./bundled/tool")
+    session.run("ruff", "./build")
     session.run("ruff", "./src/test/python_tests")
 
     # Check Python formatting with Black.
     session.run("black", "--check", "./noxfile.py")
     session.run("black", "--check", "./bundled/tool")
+    session.run("black", "--check", "./build")
     session.run("black", "--check", "./src/test/python_tests")
 
     # Check TypeScript code.
     session.run("npm", "run", "lint", external=True)
-
-
-@nox.session(python="3.10")
-def typecheck(session: nox.Session) -> None:
-    """Typecheck the Python and TypeScript source files."""
-    session.install("-r", "./requirements.txt")
-    session.install("-r", "./requirements-dev.txt")
 
     # Check Python types with Mypy.
     session.run("mypy")
@@ -166,11 +158,13 @@ def fmt(session: nox.Session) -> None:
     # Sort imports with Ruff.
     session.run("ruff", "--select", "I001", "--fix", "./noxfile.py")
     session.run("ruff", "--select", "I001", "--fix", "./bundled/tool")
+    session.run("ruff", "--select", "I001", "--fix", "./build")
     session.run("ruff", "--select", "I001", "--fix", "./src/test/python_tests")
 
     # Format Python with Black.
     session.run("black", "./noxfile.py")
     session.run("black", "./bundled/tool")
+    session.run("black", "./build")
     session.run("black", "./src/test/python_tests")
 
     # Format TypeScript with Prettier.
@@ -193,4 +187,4 @@ def update_packages(session: nox.Session) -> None:
     _update_npm_packages(session)
 
 
-nox.options.sessions = ["test", "lint", "typecheck"]
+nox.options.sessions = ["test", "check"]
