@@ -4,10 +4,6 @@
 #
 #    pip-compile --generate-hashes --resolver=backtracking ./requirements-dev.in
 #
-attrs==22.2.0 \
-    --hash=sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836 \
-    --hash=sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99
-    # via pytest
 black==22.12.0 \
     --hash=sha256:101c69b23df9b44247bd88e1d7e90154336ac4992502d4197bdac35dd7ee3320 \
     --hash=sha256:159a46a4947f73387b4d83e87ea006dbb2337eab6c879620a3ba52699b1f4351 \
@@ -26,14 +22,6 @@ click==8.1.3 \
     --hash=sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e \
     --hash=sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48
     # via black
-exceptiongroup==1.1.0 \
-    --hash=sha256:327cbda3da756e2de031a3107b81ab7b3770a602c4d16ca618298c526f4bec1e \
-    --hash=sha256:bcb67d800a4497e1b404c2dd44fca47d3b7a5e5433dbab67f96c1a685cdfdf23
-    # via pytest
-iniconfig==1.1.1 \
-    --hash=sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3 \
-    --hash=sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32
-    # via pytest
 mypy==0.991 \
     --hash=sha256:0714258640194d75677e86c786e80ccf294972cc76885d3ebbb560f11db0003d \
     --hash=sha256:0c8f3be99e8a8bd403caa8c03be619544bc2c77a7093685dcf308c6b109426c6 \
@@ -72,10 +60,6 @@ mypy-extensions==0.4.3 \
     # via
     #   black
     #   mypy
-packaging==22.0 \
-    --hash=sha256:2198ec20bd4c017b8f9717e00f0c8714076fc2fd93816750ab48e2c41de2cfd3 \
-    --hash=sha256:957e2148ba0e1a3b282772e791ef1d8083648bc131c8ab0c1feba110ce1146c3
-    # via pytest
 pathspec==0.10.3 \
     --hash=sha256:3c95343af8b756205e2aba76e843ba9520a24dd84f68c22b9f93251507509dd6 \
     --hash=sha256:56200de4077d9d0791465aa9095a01d421861e405b5096955051deefd697d6f6
@@ -84,14 +68,6 @@ platformdirs==2.6.0 \
     --hash=sha256:1a89a12377800c81983db6be069ec068eee989748799b946cce2a6e80dcc54ca \
     --hash=sha256:b46ffafa316e6b83b47489d240ce17173f123a9b9c83282141c3daf26ad9ac2e
     # via black
-pluggy==1.0.0 \
-    --hash=sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159 \
-    --hash=sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3
-    # via pytest
-pytest==7.2.0 \
-    --hash=sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71 \
-    --hash=sha256:c4014eb40e10f11f355ad4e3c2fb2c6c6d1919c73f3b5a433de4708202cade59
-    # via -r ./requirements-dev.in
 python-jsonrpc-server==0.4.0 \
     --hash=sha256:62c543e541f101ec5b57dc654efc212d2c2e3ea47ff6f54b2e7dcb36ecf20595 \
     --hash=sha256:e5a908ff182e620aac07db5f57887eeb0afe33993008f57dc1b85b594cea250c
@@ -102,7 +78,6 @@ tomli==2.0.1 \
     # via
     #   black
     #   mypy
-    #   pytest
 typing-extensions==4.4.0 \
     --hash=sha256:1511434bb92bf8dd198c12b1cc812e800d4181cfcb867674e0f8279cc93087aa \
     --hash=sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e

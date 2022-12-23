@@ -1,6 +1,5 @@
 # This file is used to generate requirements-dev.txt.
 
-black
-mypy
-pytest
-python-jsonrpc-server
+black==22.12.0
+mypy==0.991
+python-jsonrpc-server==0.4.0

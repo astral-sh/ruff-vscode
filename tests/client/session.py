@@ -1,17 +1,21 @@
 """LSP session client for testing."""
 
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
 from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Event
+from typing import Any
 
 from pyls_jsonrpc.dispatchers import MethodDispatcher
 from pyls_jsonrpc.endpoint import Endpoint
 from pyls_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 
-from .constants import PROJECT_ROOT
-from .defaults import VSCODE_DEFAULT_INITIALIZE
+from tests.client.constants import PROJECT_ROOT
+from tests.client.defaults import VSCODE_DEFAULT_INITIALIZE
+from tests.client.utils import unwrap
 
 LSP_EXIT_TIMEOUT = 5000
 
@@ -22,19 +26,20 @@ WINDOW_SHOW_MESSAGE = "window/showMessage"
 
 
 class LspSession(MethodDispatcher):
-    """Send and Receive messages over LSP as a test LS Client."""
+    """Send and Receive messages over LSP."""
 
     def __init__(self, cwd=None, script=None):
         self.cwd = cwd if cwd else os.getcwd()
-        self._thread_pool = ThreadPoolExecutor()
-        self._sub = None
-        self._writer = None
-        self._reader = None
-        self._endpoint = None
-        self._notification_callbacks = {}
         self.script = (
             script if script else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
         )
+
+        self._thread_pool: ThreadPoolExecutor = ThreadPoolExecutor()
+        self._sub: subprocess.Popen | None = None
+        self._writer: JsonRpcStreamWriter | None = None
+        self._reader: JsonRpcStreamReader | None = None
+        self._endpoint: Any = None
+        self._notification_callbacks = {}
 
     def __enter__(self):
         """Context manager entrypoint.
@@ -48,11 +53,14 @@ class LspSession(MethodDispatcher):
             bufsize=0,
             cwd=self.cwd,
             env=os.environ,
-            shell="WITH_COVERAGE" in os.environ,
         )
 
-        self._writer = JsonRpcStreamWriter(os.fdopen(self._sub.stdin.fileno(), "wb"))
-        self._reader = JsonRpcStreamReader(os.fdopen(self._sub.stdout.fileno(), "rb"))
+        self._writer = JsonRpcStreamWriter(
+            os.fdopen(unwrap(self._sub.stdin).fileno(), "wb")
+        )
+        self._reader = JsonRpcStreamReader(
+            os.fdopen(unwrap(self._sub.stdout).fileno(), "rb")
+        )
 
         dispatcher = {
             PUBLISH_DIAGNOSTICS: self._publish_diagnostics,
@@ -66,7 +74,7 @@ class LspSession(MethodDispatcher):
     def __exit__(self, typ, value, _tb):
         self.shutdown(True)
         try:
-            self._sub.terminate()
+            unwrap(self._sub).terminate()
         except Exception:
             pass
         self._endpoint.shutdown()
@@ -106,7 +114,7 @@ class LspSession(MethodDispatcher):
             initialized_params = {}
         self._endpoint.notify("initialized", initialized_params)
 
-    def shutdown(self, should_exit, exit_timeout=LSP_EXIT_TIMEOUT):
+    def shutdown(self, should_exit, exit_timeout: float = LSP_EXIT_TIMEOUT):
         """Sends the shutdown request to LSP server."""
 
         def _after_shutdown(_):
@@ -115,10 +123,10 @@ class LspSession(MethodDispatcher):
 
         self._send_request("shutdown", handle_response=_after_shutdown)
 
-    def exit_lsp(self, exit_timeout=LSP_EXIT_TIMEOUT):
+    def exit_lsp(self, exit_timeout: float = LSP_EXIT_TIMEOUT):
         """Handles LSP server process exit."""
         self._endpoint.notify("exit")
-        assert self._sub.wait(exit_timeout) == 0
+        assert unwrap(self._sub).wait(exit_timeout) == 0
 
     def notify_did_change(self, did_change_params):
         """Sends did change notification to LSP Server."""
@@ -170,7 +178,7 @@ class LspSession(MethodDispatcher):
 
     def _handle_notification(self, notification_name, params):
         """Internal handler for notifications."""
-        fut = Future()
+        fut: Future = Future()
 
         def _handler():
             callback = self.get_notification_callback(notification_name)
