@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 import { Disposable, OutputChannel } from 'vscode';
 import { State } from 'vscode-languageclient';
 import {

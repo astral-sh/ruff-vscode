@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 import { createWriteStream } from 'fs-extra';
 import { Disposable } from 'vscode';
 import { FileLogger } from './fileLogger';

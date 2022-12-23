@@ -13,7 +13,7 @@ jobs:
   # We have to do this ahead-of-time, and store it as a job output,
   # to ensure that we use the same Build ID across all build jobs.
   build-id:
-    name: "Build ID"
+    name: 'Build ID'
     runs-on: ubuntu-latest
     outputs:
       RELEASE_BUILD_ID: ${{ steps.release-build-id-generator.outputs.BUILD_ID }}
@@ -121,7 +121,7 @@ jobs:
 
   # Phase 3: Publish the built extension to the Marketplace.
   publish:
-    name: "Publish"
+    name: 'Publish'
     needs: ['build']
     runs-on: ubuntu-latest
     steps:
