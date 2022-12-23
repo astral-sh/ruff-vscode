@@ -34,26 +34,27 @@ def parse_version(version: str) -> Tuple[str, str, str, str]:
     return major, minor, micro, suffix
 
 
-def main(package_json: pathlib.Path, *, release: bool) -> None:
+def main(package_json: pathlib.Path, *, pre_release: bool) -> None:
     package = json.loads(package_json.read_text(encoding="utf-8"))
 
     major, minor, micro, suffix = parse_version(package["version"])
 
-    if release and not is_even(minor):
-        raise ValueError(
-            f"Release version should have EVEN numbered minor version: "
-            f"{package['version']}"
-        )
-    elif not release and is_even(minor):
+    if pre_release and is_even(minor):
         raise ValueError(
             f"Pre-Release version should have ODD numbered minor version: "
             f"{package['version']}"
         )
 
-    if release:
-        print(micro)
-    else:
+    if not pre_release and not is_even(minor):
+        raise ValueError(
+            f"Release version should have EVEN numbered minor version: "
+            f"{package['version']}"
+        )
+
+    if pre_release:
         print(micro_build_number())
+    else:
+        print(micro)
 
 
 if __name__ == "__main__":
@@ -61,10 +62,10 @@ if __name__ == "__main__":
         description="Generate a build ID for a release or pre-release version."
     )
     parser.add_argument(
-        "--release",
+        "--pre-release",
         action="store_true",
-        help="Treats the current build as a release build.",
+        help="Treats the current build as a pre-release build.",
     )
     args = parser.parse_args()
 
-    main(PACKAGE_JSON_PATH, release=args.release)
+    main(PACKAGE_JSON_PATH, pre_release=args.pre_release)

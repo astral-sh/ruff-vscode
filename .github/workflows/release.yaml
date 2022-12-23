@@ -4,14 +4,13 @@ on:
   create:
     tags:
       - v*
-  pull_request:
-    branches: [main]
 
 env:
   FETCH_DEPTH: 0
 
 jobs:
-  # Phase 1: Generate the Build ID. We have to do this ahead-of-time, and store it as a job output,
+  # Phase 1: Generate the Build ID.
+  # We have to do this ahead-of-time, and store it as a job output,
   # to ensure that we use the same Build ID across all build jobs.
   build-id:
     name: "Build ID"
@@ -31,14 +30,14 @@ jobs:
         if: "startsWith(github.ref, 'refs/tags/')"
         id: release-build-id-generator
         run: |
-          export BUILD_ID=$(python -m build.generate_build_id --release)
+          export BUILD_ID=$(python -m build.generate_build_id)
           echo "BUILD_ID: ${BUILD_ID}"
           echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
       - name: Generate Build ID (nightly)
         if: "!startsWith(github.ref, 'refs/tags/')"
         id: nightly-build-id-generator
         run: |
-          export BUILD_ID=$(python -m build.generate_build_id)
+          export BUILD_ID=$(python -m build.generate_build_id --pre-release)
           echo "BUILD_ID: ${BUILD_ID}"
           echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
 
@@ -99,11 +98,11 @@ jobs:
       - name: Set Build ID (release)
         if: "startsWith(github.ref, 'refs/tags/')"
         run: |
-          python -m build.update_ext_version --build-id ${{ needs.build-id.outputs.RELEASE_BUILD_ID }} --for-publishing --release
+          python -m build.update_ext_version --build-id ${{ needs.build-id.outputs.RELEASE_BUILD_ID }} --for-publishing
       - name: Set Build ID (nightly)
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
-          python -m build.update_ext_version --build-id ${{ needs.build-id.outputs.NIGHTLY_BUILD_ID }} --for-publishing
+          python -m build.update_ext_version --build-id ${{ needs.build-id.outputs.NIGHTLY_BUILD_ID }} --for-publishing --pre-release
 
       # Build the extension.
       - name: Package Extension (release)

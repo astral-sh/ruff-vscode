@@ -26,20 +26,25 @@ def parse_version(version: str) -> Tuple[str, str, str, str]:
 
 
 def main(
-    package_json: pathlib.Path, *, release: bool, build_id: int, for_publishing: bool
+    package_json: pathlib.Path,
+    *,
+    pre_release: bool,
+    build_id: int,
+    for_publishing: bool,
 ) -> None:
     package = json.loads(package_json.read_text(encoding="utf-8"))
 
     major, minor, micro, suffix = parse_version(package["version"])
 
-    if release and not is_even(minor):
-        raise ValueError(
-            f"Release version should have EVEN numbered minor version: "
-            f"{package['version']}"
-        )
-    elif not release and is_even(minor):
+    if pre_release and is_even(minor):
         raise ValueError(
             f"Pre-Release version should have ODD numbered minor version: "
+            f"{package['version']}"
+        )
+
+    if not pre_release and not is_even(minor):
+        raise ValueError(
+            f"Release version should have EVEN numbered minor version: "
             f"{package['version']}"
         )
 
@@ -49,7 +54,7 @@ def main(
 
     print(f"Updating build FROM: {package['version']}")
     package["version"] = ".".join((major, minor, str(build_id)))
-    if not for_publishing and not release and len(suffix):
+    if not for_publishing and pre_release and len(suffix):
         package["version"] += "-" + suffix
     print(f"Updating build TO: {package['version']}")
 
@@ -64,9 +69,9 @@ if __name__ == "__main__":
         description="Update the Python extension micro version based on a build ID."
     )
     parser.add_argument(
-        "--release",
+        "--pre-release",
         action="store_true",
-        help="Treats the current build as a release build.",
+        help="Treats the current build as a pre-release build.",
     )
     parser.add_argument(
         "--build-id",
@@ -84,7 +89,7 @@ if __name__ == "__main__":
 
     main(
         PACKAGE_JSON_PATH,
-        release=args.release,
+        pre_release=args.pre_release,
         build_id=args.build_id,
         for_publishing=args.for_publishing,
     )
