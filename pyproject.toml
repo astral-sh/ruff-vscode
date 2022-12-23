@@ -10,23 +10,23 @@ select = [
   "N",
 ]
 target-version = "py37"
-extend-exclude = ["bundled/libs", "src/test/python_tests/test_data"]
+extend-exclude = ["bundled/libs", "tests/data"]
 
 [tool.black]
 line-length = 88
+extend-exclude = "tests/data"
 
 [tool.mypy]
-files = ["bundled/tool", "build"]
-mypy_path = ["bundled/tool", "build"]
-namespace_packages = true
-explicit_package_bases = true
+files = ["bundled/tool", "build", "tests"]
+exclude = "tests/data"
 no_implicit_optional = true
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = [
-    "debugpy.*",
-    "lsprotocol.*",
-    "pygls.*",
+  "debugpy.*",
+  "lsprotocol.*",
+  "pygls.*",
+  "pyls_jsonrpc.*",
 ]
 ignore_missing_imports = true

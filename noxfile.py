@@ -118,7 +118,7 @@ def test(session: nox.Session) -> None:
     session.install("-r", "./requirements.txt")
     session.install("-r", "./requirements-dev.txt")
 
-    session.run("pytest", "src/test/python_tests")
+    session.run("python", "-m", "unittest")
 
 
 @nox.session(python="3.10")
@@ -131,13 +131,13 @@ def check(session: nox.Session) -> None:
     session.run("ruff", "./noxfile.py")
     session.run("ruff", "./bundled/tool")
     session.run("ruff", "./build")
-    session.run("ruff", "./src/test/python_tests")
+    session.run("ruff", "./tests")
 
     # Check Python formatting with Black.
     session.run("black", "--check", "./noxfile.py")
     session.run("black", "--check", "./bundled/tool")
     session.run("black", "--check", "./build")
-    session.run("black", "--check", "./src/test/python_tests")
+    session.run("black", "--check", "./tests")
 
     # Check TypeScript code.
     session.run("npm", "run", "lint", external=True)
@@ -159,13 +159,13 @@ def fmt(session: nox.Session) -> None:
     session.run("ruff", "--select", "I001", "--fix", "./noxfile.py")
     session.run("ruff", "--select", "I001", "--fix", "./bundled/tool")
     session.run("ruff", "--select", "I001", "--fix", "./build")
-    session.run("ruff", "--select", "I001", "--fix", "./src/test/python_tests")
+    session.run("ruff", "--select", "I001", "--fix", "./tests")
 
     # Format Python with Black.
     session.run("black", "./noxfile.py")
     session.run("black", "./bundled/tool")
     session.run("black", "./build")
-    session.run("black", "./src/test/python_tests")
+    session.run("black", "./tests")
 
     # Format TypeScript with Prettier.
     session.run("npm", "run", "fmt", external=True)

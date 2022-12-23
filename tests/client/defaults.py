@@ -2,8 +2,9 @@
 
 import os
 
-from .constants import PROJECT_ROOT
-from .utils import as_uri, get_initialization_options
+from tests.client.constants import PROJECT_ROOT
+from tests.client.package_json import get_initialization_options
+from tests.client.utils import as_uri
 
 VSCODE_DEFAULT_INITIALIZE = {
     "processId": os.getpid(),
