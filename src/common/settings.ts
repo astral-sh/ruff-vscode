@@ -14,6 +14,8 @@ export interface ISettings {
     interpreter: string[];
     importStrategy: string;
     showNotifications: string;
+    organizeImports: boolean;
+    fixAll: boolean;
 }
 
 export async function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -49,6 +51,8 @@ export async function getWorkspaceSettings(namespace: string, workspace: Workspa
         interpreter: interpreter ?? [],
         importStrategy: config.get<string>(`importStrategy`) ?? 'fromEnvironment',
         showNotifications: config.get<string>(`showNotifications`) ?? 'off',
+        organizeImports: config.get<boolean>(`organizeImports`) ?? true,
+        fixAll: config.get<boolean>(`fixAll`) ?? true,
     };
 }
 
@@ -60,6 +64,8 @@ export function checkIfConfigurationChanged(e: ConfigurationChangeEvent, namespa
         `${namespace}.interpreter`,
         `${namespace}.importStrategy`,
         `${namespace}.showNotifications`,
+        `${namespace}.organizeImports`,
+        `${namespace}.fixAll`,
     ];
     return settings.some((s) => e.affectsConfiguration(s));
 }
