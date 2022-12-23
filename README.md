@@ -149,8 +149,7 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 ### Development
 
 - `nox --session fmt`
-- `nox --session lint`
-- `nox --session typecheck`
+- `nox --session check`
 - `nox --session test`
 
 ### Packaging and Publishing
