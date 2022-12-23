@@ -2,6 +2,10 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2022.0.26 (22 December 2022)
+
+**Full Changelog**: https://github.com/charliermarsh/ruff-vscode/compare/2022.0.25...2022.0.26
+
 ## 2022.0.25 (22 December 2022)
 
 * Migrate to ruff-lsp by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/75
