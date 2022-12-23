@@ -48,8 +48,23 @@ You can configure Ruff to autofix violations on-save by enabling the `source.fix
 
 ```json
 {
-    "editor.codeActionsOnSave": {
-        "source.fixAll": true
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll": true
+        }
+    }
+}
+```
+
+You can configure Ruff to organize imports on-save by enabling the `source.organizeImports` action in
+`settings.json`:
+
+```json
+{
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
     }
 }
 ```
@@ -66,6 +81,36 @@ on-save using Ruff, then re-format with Black, via the following `settings.json`
         }
     },
     "python.formatting.provider": "black"
+}
+```
+
+If you'd like to use Ruff as an autofix linter, but continue to sort imports with the `isort` VS
+Code extension, you can disable Ruff's import-sorting capabilities via the following
+`settings.json`:
+
+```json
+{
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll": true,
+            "source.organizeImports": true
+        }
+    },
+    "ruff.organizeImports": false
+}
+```
+
+If you'd like to run Ruff on-save, but avoid enabling other extensions to run on-save, you can
+use Ruff's scoped `source.fixAll` and `source.organizeImports` actions via the following `settings.json`:
+
+```json
+{
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": true,
+            "source.organizeImports.ruff": true
+        }
+    }
 }
 ```
 
