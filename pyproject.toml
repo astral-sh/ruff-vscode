@@ -27,6 +27,6 @@ module = [
   "debugpy.*",
   "lsprotocol.*",
   "pygls.*",
-  "pyls_jsonrpc.*",
+  "pylsp_jsonrpc.*",
 ]
 ignore_missing_imports = true

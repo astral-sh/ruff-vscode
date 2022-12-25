@@ -9,9 +9,9 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Event
 from typing import Any
 
-from pyls_jsonrpc.dispatchers import MethodDispatcher
-from pyls_jsonrpc.endpoint import Endpoint
-from pyls_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
+from pylsp_jsonrpc.dispatchers import MethodDispatcher
+from pylsp_jsonrpc.endpoint import Endpoint
+from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 
 from tests.client.constants import PROJECT_ROOT
 from tests.client.defaults import VSCODE_DEFAULT_INITIALIZE
