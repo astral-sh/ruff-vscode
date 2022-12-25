@@ -2,4 +2,4 @@
 
 black==22.12.0
 mypy==0.991
-python-jsonrpc-server==0.4.0
+python-lsp-jsonrpc==1.0.0
