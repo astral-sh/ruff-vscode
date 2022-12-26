@@ -1,5 +1,0 @@
-# This file is used to generate requirements-dev.txt.
-
-black==22.12.0
-mypy==0.991
-python-lsp-jsonrpc==1.0.0

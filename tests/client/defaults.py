@@ -1,12 +1,13 @@
 """Default initialize request params."""
 
 import os
+from typing import Any, Mapping
 
 from tests.client.constants import PROJECT_ROOT
 from tests.client.package_json import get_initialization_options
 from tests.client.utils import as_uri
 
-VSCODE_DEFAULT_INITIALIZE = {
+VSCODE_DEFAULT_INITIALIZE: Mapping[str, Any] = {
     "processId": os.getpid(),
     "clientInfo": {"name": "vscode", "version": "1.45.0"},
     "rootPath": str(PROJECT_ROOT),

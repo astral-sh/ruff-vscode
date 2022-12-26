@@ -6,14 +6,14 @@ import os
 import subprocess
 import sys
 from concurrent.futures import Future, ThreadPoolExecutor
+from pathlib import Path
 from threading import Event
-from typing import Any
+from typing import Any, Callable
 
 from pylsp_jsonrpc.dispatchers import MethodDispatcher
 from pylsp_jsonrpc.endpoint import Endpoint
 from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 
-from tests.client.constants import PROJECT_ROOT
 from tests.client.defaults import VSCODE_DEFAULT_INITIALIZE
 from tests.client.utils import unwrap
 
@@ -28,18 +28,16 @@ WINDOW_SHOW_MESSAGE = "window/showMessage"
 class LspSession(MethodDispatcher):
     """Send and Receive messages over LSP."""
 
-    def __init__(self, cwd=None, script=None):
-        self.cwd = cwd if cwd else os.getcwd()
-        self.script = (
-            script if script else (PROJECT_ROOT / "bundled" / "tool" / "server.py")
-        )
+    def __init__(self, cwd: str, script: Path):
+        self.cwd = cwd
+        self.script = script
 
         self._thread_pool: ThreadPoolExecutor = ThreadPoolExecutor()
         self._sub: subprocess.Popen | None = None
-        self._writer: JsonRpcStreamWriter | None = None
         self._reader: JsonRpcStreamReader | None = None
+        self._writer: JsonRpcStreamWriter | None = None
         self._endpoint: Any = None
-        self._notification_callbacks = {}
+        self._notification_callbacks: dict[str, Callable] = {}
 
     def __enter__(self):
         """Context manager entrypoint.
@@ -55,12 +53,8 @@ class LspSession(MethodDispatcher):
             env=os.environ,
         )
 
-        self._writer = JsonRpcStreamWriter(
-            os.fdopen(unwrap(self._sub.stdin).fileno(), "wb")
-        )
-        self._reader = JsonRpcStreamReader(
-            os.fdopen(unwrap(self._sub.stdout).fileno(), "rb")
-        )
+        self._writer = JsonRpcStreamWriter(self._sub.stdin)
+        self._reader = JsonRpcStreamReader(self._sub.stdout)
 
         dispatcher = {
             PUBLISH_DIAGNOSTICS: self._publish_diagnostics,
@@ -73,12 +67,12 @@ class LspSession(MethodDispatcher):
 
     def __exit__(self, typ, value, _tb):
         self.shutdown(True)
-        try:
-            unwrap(self._sub).terminate()
-        except Exception:
-            pass
-        self._endpoint.shutdown()
+        unwrap(self._sub).terminate()
+        unwrap(self._sub).wait()
+        self._endpoint.shutdown()  # type: ignore[union-attr]
         self._thread_pool.shutdown()
+        unwrap(self._writer).close()  # type: ignore[attr-defined]
+        unwrap(self._reader).close()  # type: ignore[attr-defined]
 
     def initialize(
         self,
@@ -149,8 +143,7 @@ class LspSession(MethodDispatcher):
         self._notification_callbacks[notification_name] = callback
 
     def get_notification_callback(self, notification_name):
-        """Gets callback if set or default callback for a given LS
-        notification."""
+        """Gets callback if set or default callback for a given LS notification."""
         try:
             return self._notification_callbacks[notification_name]
         except KeyError:

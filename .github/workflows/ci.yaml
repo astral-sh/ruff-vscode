@@ -7,19 +7,26 @@ on:
     branches: [main]
 
 jobs:
-  nox:
-    name: 'nox'
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10']
     runs-on: ubuntu-latest
     steps:
+      - uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3
-      # Install Node dependencies.
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: npm ci
-      # Setup Nox (which will in-turn install Python dependencies).
-      - uses: wntrblm/nox@2022.11.21
+      - uses: actions/setup-python@v4
         with:
-          python-versions: '3.7, 3.8, 3.9, 3.10'
-      - run: nox --session check
-      - run: nox --session test
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: just install
+      - name: Run checks
+        run: just check
+      - name: Run tests
+        run: just test

@@ -143,9 +143,12 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 
 ### Getting Started
 
-1. Create and activate a virtual environment.
-2. Install `nox` in the activated environment: `python -m pip install nox`.
-3. Run `nox --session setup`.
+- Install [`just`](https://github.com/casey/just), or see the `justfile` for corresponding commands.
+- Create and activate a virtual environment (e.g., `python -m venv .venv && source .venv/bin/activate`).
+- Install development dependencies (`just install`).
+- To automatically format the codebase, run: `just fmt`.
+- To run lint and type checks, run: `just check`.
+- To run tests, run: `just test`.
 
 ### Development
 
