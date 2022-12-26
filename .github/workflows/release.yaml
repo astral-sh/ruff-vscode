@@ -2,7 +2,7 @@ name: Release
 on:
   workflow_dispatch:
   release:
-    types: [ published ]
+    types: [published]
 
 env:
   FETCH_DEPTH: 0

@@ -1,4 +1,0 @@
-# This file is used to generate requirements.txt.
-
-ruff-lsp==0.0.10
-ruff==0.0.193
