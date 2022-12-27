@@ -23,5 +23,8 @@ update_sys_path(os.fspath(BUNDLE_DIR / "libs"))
 if __name__ == "__main__":
     from ruff_lsp import server
 
+    if not hasattr(server, "set_bundle"):
+        raise RuntimeError("ruff-vscode needs at least ruff-lsp v0.0.6")
+
     server.set_bundle(os.fspath(BUNDLE_DIR / "libs" / "bin" / server.TOOL_MODULE))
     server.start()
