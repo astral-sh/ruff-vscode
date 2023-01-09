@@ -1,4 +1,4 @@
-import { ConfigurationChangeEvent, WorkspaceFolder } from 'vscode';
+import { ConfigurationChangeEvent, ConfigurationScope, Uri, WorkspaceFolder } from 'vscode';
 import { getInterpreterDetails } from './python';
 import { LoggingLevelSettingType } from './log/types';
 import { getConfiguration, getWorkspaceFolders } from './vscodeapi';
@@ -20,8 +20,11 @@ export async function getExtensionSettings(namespace: string): Promise<ISettings
     const workspaces = getWorkspaceFolders();
 
     for (const workspace of workspaces) {
-        const workspaceSetting = await getWorkspaceSettings(namespace, workspace);
-        settings.push(workspaceSetting);
+        const workspaceSetting = await getResourceSettings(namespace, workspace.uri);
+        settings.push({
+            workspace: workspace.uri.toString(),
+            ...workspaceSetting,
+        });
     }
 
     return settings;
@@ -32,16 +35,15 @@ export function getInterpreterFromSetting(namespace: string): string[] | undefin
     return config.get<string[]>('interpreter');
 }
 
-export async function getWorkspaceSettings(namespace: string, workspace: WorkspaceFolder): Promise<ISettings> {
-    const config = getConfiguration(namespace, workspace.uri);
+export async function getResourceSettings(namespace: string, resource?: Uri): Promise<Omit<ISettings, 'workspace'>> {
+    const config = getConfiguration(namespace, resource);
 
     let interpreter: string[] | undefined = getInterpreterFromSetting(namespace);
     if (interpreter === undefined || interpreter.length === 0) {
-        interpreter = (await getInterpreterDetails(workspace.uri)).path;
+        interpreter = (await getInterpreterDetails(resource)).path;
     }
 
     return {
-        workspace: workspace.uri.toString(),
         logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? 'error',
         args: config.get<string[]>(`args`) ?? [],
         path: config.get<string[]>(`path`) ?? [],

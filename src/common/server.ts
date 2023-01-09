@@ -10,7 +10,7 @@ import {
 import { DEBUG_SERVER_SCRIPT_PATH, SERVER_SCRIPT_PATH } from './constants';
 import { traceError, traceInfo, traceLog, traceVerbose } from './log/logging';
 import { getDebuggerPath } from './python';
-import { getExtensionSettings, getWorkspaceSettings, ISettings } from './settings';
+import { getExtensionSettings, getResourceSettings, ISettings } from './settings';
 import { getProjectRoot, traceLevelToLSTrace } from './utilities';
 import { isVirtualWorkspace } from './vscodeapi';
 
@@ -18,14 +18,16 @@ export type IInitOptions = { settings: ISettings[] };
 
 async function getDebugServerOptions(
     interpreter: string[],
-    cwd: string,
-    env: {
+    cwd?: string,
+    env?: {
         [x: string]: string | undefined;
     },
 ): Promise<Executable> {
-    // Set debugger path needed for debugging python code.
-    if (env.DEBUGPY_ENABLED !== 'False') {
-        env.DEBUGPY_PATH = await getDebuggerPath();
+    // Set debugger path needed for debugging Python code.
+    if (env) {
+        if (env.DEBUGPY_ENABLED !== 'False') {
+            env.DEBUGPY_PATH = await getDebuggerPath();
+        }
     }
 
     const command = interpreter[0];
@@ -41,8 +43,8 @@ async function getDebugServerOptions(
 
 async function getRunServerOptions(
     interpreter: string[],
-    cwd: string,
-    env: {
+    cwd?: string,
+    env?: {
         [x: string]: string | undefined;
     },
 ): Promise<Executable> {
@@ -63,25 +65,25 @@ export async function createServer(
     serverName: string,
     outputChannel: OutputChannel,
     initializationOptions: IInitOptions,
-    workspaceSetting: ISettings,
+    settings: Omit<ISettings, 'workspace'>,
 ): Promise<LanguageClient> {
-    const cwd = getProjectRoot().uri.fsPath;
+    const cwd = getProjectRoot()?.uri.fsPath;
     const newEnv = { ...process.env };
 
-    // Set import strategy
-    newEnv.LS_IMPORT_STRATEGY = workspaceSetting.importStrategy;
+    // Set import strategy.
+    newEnv.LS_IMPORT_STRATEGY = settings.importStrategy;
 
-    // Set notification type
-    newEnv.LS_SHOW_NOTIFICATION = workspaceSetting.showNotifications;
+    // Set notification type.
+    newEnv.LS_SHOW_NOTIFICATION = settings.showNotifications;
 
     const serverOptions: ServerOptions = {
         run: await getRunServerOptions(interpreter, cwd, { ...newEnv }),
         debug: await getDebugServerOptions(interpreter, cwd, { ...newEnv }),
     };
 
-    // Options to control the language client
+    // Options to control the language client.
     const clientOptions: LanguageClientOptions = {
-        // Register the server for python documents
+        // Register the server for python documents.
         documentSelector: isVirtualWorkspace()
             ? [{ language: 'python' }]
             : [
@@ -100,6 +102,7 @@ export async function createServer(
 }
 
 let _disposables: Disposable[] = [];
+
 export async function restartServer(
     serverId: string,
     serverName: string,
@@ -112,8 +115,10 @@ export async function restartServer(
         _disposables.forEach((d) => d.dispose());
         _disposables = [];
     }
-    const workspaceSetting = await getWorkspaceSettings(serverId, getProjectRoot());
-    if (workspaceSetting.interpreter.length === 0) {
+
+    const workspaceFolder = getProjectRoot();
+    const resourceSettings = await getResourceSettings(serverId, workspaceFolder?.uri);
+    if (resourceSettings.interpreter.length === 0) {
         traceError(
             'Python interpreter missing:\r\n' +
                 '[Option 1] Select python interpreter using the ms-python.python.\r\n' +
@@ -123,17 +128,17 @@ export async function restartServer(
     }
 
     const newLSClient = await createServer(
-        workspaceSetting.interpreter,
+        resourceSettings.interpreter,
         serverId,
         serverName,
         outputChannel,
         {
             settings: await getExtensionSettings(serverId),
         },
-        workspaceSetting,
+        resourceSettings,
     );
 
-    newLSClient.trace = traceLevelToLSTrace(workspaceSetting.logLevel);
+    newLSClient.trace = traceLevelToLSTrace(resourceSettings.logLevel);
     traceInfo(`Server: Start requested.`);
     _disposables.push(
         newLSClient.onDidChangeState((e) => {
