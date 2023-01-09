@@ -46,9 +46,9 @@ ruff==0.0.216 \
     # via
     #   ruff-lsp
     #   ruff-vscode (./pyproject.toml)
-ruff-lsp==0.0.14 \
-    --hash=sha256:081c847fb9b9df950aa90e20cce9b1ee6006c9523b0d134c65c65cfcc9997847 \
-    --hash=sha256:4adcd828bb96bb5e4773077f037f8ccd5a55d3352b305e47d6f99c33f3419fa0
+ruff-lsp==0.0.15 \
+    --hash=sha256:516097af23e55b28b772f66c06202d18b5ad795bd39a0229f2da61c2f40f86cf \
+    --hash=sha256:c6d3b84490da3b6f2ca2500fd6f17896a8229d6fb92b67008037e92ac7738524
     # via ruff-vscode (./pyproject.toml)
 typeguard==2.13.3 \
     --hash=sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4 \
