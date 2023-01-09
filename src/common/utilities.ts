@@ -20,9 +20,11 @@ export function traceLevelToLSTrace(level: string): Trace {
     }
 }
 
-export function getProjectRoot(): WorkspaceFolder {
+export function getProjectRoot(): WorkspaceFolder | null {
     const workspaces: readonly WorkspaceFolder[] = getWorkspaceFolders();
-    if (workspaces.length === 1) {
+    if (workspaces.length === 0) {
+        return null;
+    } else if (workspaces.length === 1) {
         return workspaces[0];
     } else {
         let root = workspaces[0].uri.fsPath;

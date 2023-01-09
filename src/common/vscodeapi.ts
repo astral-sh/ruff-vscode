@@ -5,7 +5,6 @@ import {
     ConfigurationScope,
     Disposable,
     OutputChannel,
-    Uri,
     window,
     workspace,
     WorkspaceConfiguration,
@@ -33,8 +32,4 @@ export function isVirtualWorkspace(): boolean {
 
 export function getWorkspaceFolders(): readonly WorkspaceFolder[] {
     return workspace.workspaceFolders ?? [];
-}
-
-export function getWorkspaceFolder(uri: Uri): WorkspaceFolder | undefined {
-    return workspace.getWorkspaceFolder(uri);
 }
