@@ -3,7 +3,7 @@
 A Visual Studio Code extension with support for the [Ruff](https://github.com/charliermarsh/ruff)
 linter. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
-The extension ships with `ruff==0.0.192`.
+The extension ships with `ruff==0.0.216`.
 
 (Interested in using [Ruff](https://github.com/charliermarsh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/charliermarsh/ruff-lsp).)
@@ -136,6 +136,11 @@ default Python formatter in `settings.json`:
 | ----------------------------------- | -------------------------------- |
 | Ruff: Fix all auto-fixable problems | Fix all auto-fixable problems.   |
 | Ruff: Restart Server                | Force restart the linter server. |
+
+## Requirements
+
+This extension requires a version of the VSCode Python extension that supports Python 3.7+. Ruff
+itself is compatible with Python 3.7 to 3.11.
 
 ## Development
 
