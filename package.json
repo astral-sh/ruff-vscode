@@ -143,6 +143,16 @@
                     "description": "Whether to register Ruff as capable of handling `source.fixAll` actions.",
                     "scope": "window",
                     "type": "boolean"
+                },
+                "ruff.trace.server": {
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "default": "off",
+                    "markdownDescription": "Traces the communication between VSCode and the ruff-lsp."
                 }
             }
         },
