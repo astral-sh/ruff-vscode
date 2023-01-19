@@ -153,6 +153,11 @@
                 "command": "ruff.executeAutofix"
             },
             {
+                "title": "Format imports",
+                "category": "Ruff",
+                "command": "ruff.executeOrganizeImports"
+            },
+            {
                 "title": "Restart Server",
                 "category": "Ruff",
                 "command": "ruff.restart"

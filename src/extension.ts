@@ -83,6 +83,32 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 );
             });
         }),
+
+        registerCommand(`${serverId}.executeOrganizeImports`, async () => {
+            if (!client) {
+                return;
+            }
+
+            const textEditor = vscode.window.activeTextEditor;
+            if (!textEditor) {
+                return;
+            }
+
+            const textDocument = {
+                uri: textEditor.document.uri.toString(),
+                version: textEditor.document.version,
+            };
+            const params = {
+                command: `${serverId}.applyOrganizeImports`,
+                arguments: [textDocument],
+            };
+
+            await client.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+                await vscode.window.showErrorMessage(
+                    'Failed to apply Ruff fixes to the document. Please consider opening an issue with steps to reproduce.',
+                );
+            });
+        }),
     );
 
     context.subscriptions.push(
