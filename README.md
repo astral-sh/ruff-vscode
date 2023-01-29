@@ -115,14 +115,13 @@ use Ruff's scoped `source.fixAll` and `source.organizeImports` actions via the f
 }
 ```
 
-If you'd like to run Ruff in lieu of another formatter, you can mark the Ruff extension as your
-default Python formatter in `settings.json`:
+If you'd like to run Ruff in lieu of another formatter altogether, be sure to unset the
+`editor.defaultFormatter` in `settings.json`:
 
 ```json
 {
     "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.formatOnSave": true,
+        "editor.defaultFormatter": null,
         "editor.codeActionsOnSave": {
             "source.fixAll": true
         }
