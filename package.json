@@ -92,15 +92,15 @@
                     "type": "array"
                 },
                 "ruff.importStrategy": {
-                    "default": "useBundled",
+                    "default": "fromEnvironment",
                     "description": "Defines where `ruff` is imported from. This setting may be ignored if `ruff.path` is set.",
                     "enum": [
-                        "useBundled",
-                        "fromEnvironment"
+                        "fromEnvironment",
+                        "useBundled"
                     ],
                     "enumDescriptions": [
-                        "Always use the bundled version of `ruff`.",
-                        "Use `ruff` from environment, fallback to bundled version only if `ruff` not available in the environment."
+                        "Use `ruff` from environment, fallback to bundled version only if `ruff` not available in the environment.",
+                        "Always use the bundled version of `ruff`."
                     ],
                     "scope": "window",
                     "type": "string"
