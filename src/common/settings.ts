@@ -20,7 +20,7 @@ export async function getExtensionSettings(namespace: string): Promise<ISettings
     const workspaces = getWorkspaceFolders();
 
     for (const workspace of workspaces) {
-        const workspaceSetting = await getResourceSettings(namespace, workspace.uri);
+        const workspaceSetting = await getWorkspaceSettings(namespace, workspace.uri);
         settings.push({
             workspace: workspace.uri.toString(),
             ...workspaceSetting,
@@ -35,13 +35,30 @@ export function getInterpreterFromSetting(namespace: string): string[] | undefin
     return config.get<string[]>('interpreter');
 }
 
-export async function getResourceSettings(namespace: string, resource?: Uri): Promise<Omit<ISettings, 'workspace'>> {
+export async function getWorkspaceSettings(namespace: string, resource?: Uri): Promise<Omit<ISettings, 'workspace'>> {
     const config = getConfiguration(namespace, resource);
 
     let interpreter: string[] | undefined = getInterpreterFromSetting(namespace);
     if (interpreter === undefined || interpreter.length === 0) {
         interpreter = (await getInterpreterDetails(resource)).path;
     }
+
+    return {
+        logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? 'error',
+        args: config.get<string[]>(`args`) ?? [],
+        path: config.get<string[]>(`path`) ?? [],
+        interpreter: interpreter ?? [],
+        importStrategy: config.get<string>(`importStrategy`) ?? 'fromEnvironment',
+        showNotifications: config.get<string>(`showNotifications`) ?? 'off',
+        organizeImports: config.get<boolean>(`organizeImports`) ?? true,
+        fixAll: config.get<boolean>(`fixAll`) ?? true,
+    };
+}
+
+export async function getGlobalSettings(namespace: string): Promise<Omit<ISettings, 'workspace'>> {
+    const config = getConfiguration(namespace);
+
+    let interpreter: string[] | undefined = getInterpreterFromSetting(namespace);
 
     return {
         logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? 'error',
