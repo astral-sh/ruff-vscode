@@ -10,11 +10,11 @@ import {
 import { DEBUG_SERVER_SCRIPT_PATH, SERVER_SCRIPT_PATH } from './constants';
 import { traceError, traceInfo, traceLog, traceVerbose } from './log/logging';
 import { getDebuggerPath } from './python';
-import { getExtensionSettings, getResourceSettings, ISettings } from './settings';
+import { getExtensionSettings, getGlobalSettings, getWorkspaceSettings, ISettings } from './settings';
 import { getProjectRoot, traceLevelToLSTrace } from './utilities';
 import { isVirtualWorkspace } from './vscodeapi';
 
-export type IInitOptions = { settings: ISettings[] };
+export type IInitOptions = { settings: ISettings[]; globalSettings: Omit<ISettings, 'workspace'> };
 
 async function getDebugServerOptions(
     interpreter: string[],
@@ -117,7 +117,7 @@ export async function restartServer(
     }
 
     const workspaceFolder = getProjectRoot();
-    const resourceSettings = await getResourceSettings(serverId, workspaceFolder?.uri);
+    const resourceSettings = await getWorkspaceSettings(serverId, workspaceFolder?.uri);
     if (resourceSettings.interpreter.length === 0) {
         traceError(
             'Python interpreter missing:\r\n' +
@@ -134,6 +134,7 @@ export async function restartServer(
         outputChannel,
         {
             settings: await getExtensionSettings(serverId),
+            globalSettings: await getGlobalSettings(serverId),
         },
         resourceSettings,
     );
