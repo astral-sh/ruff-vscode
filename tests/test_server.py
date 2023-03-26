@@ -66,10 +66,14 @@ class TestServer(unittest.TestCase):
                             },
                             "data": {
                                 "fix": {
-                                    "content": "",
                                     "message": "Remove unused import: `sys`",
-                                    "location": {"row": 1, "column": 0},
-                                    "end_location": {"row": 2, "column": 0},
+                                    "edits": [
+                                        {
+                                            "content": "",
+                                            "location": {"row": 1, "column": 0},
+                                            "end_location": {"row": 2, "column": 0},
+                                        }
+                                    ],
                                 },
                                 "noqa_row": 1,
                             },
@@ -148,10 +152,14 @@ class TestServer(unittest.TestCase):
                             },
                             "data": {
                                 "fix": {
-                                    "content": "",
                                     "message": "Remove unused import: `sys`",
-                                    "location": {"row": 1, "column": 0},
-                                    "end_location": {"row": 2, "column": 0},
+                                    "edits": [
+                                        {
+                                            "content": "",
+                                            "location": {"row": 1, "column": 0},
+                                            "end_location": {"row": 2, "column": 0},
+                                        }
+                                    ],
                                 },
                                 "noqa_row": 1,
                             },
