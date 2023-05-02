@@ -4,9 +4,9 @@
 #
 #    pip-compile --generate-hashes --output-file=./requirements.txt --resolver=backtracking ./pyproject.toml
 #
-attrs==22.2.0 \
-    --hash=sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836 \
-    --hash=sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99
+attrs==23.1.0 \
+    --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
+    --hash=sha256:6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015
     # via
     #   cattrs
     #   lsprotocol
@@ -18,6 +18,10 @@ exceptiongroup==1.1.1 \
     --hash=sha256:232c37c63e4f682982c8b6459f33a8981039e5fb8756b2074364e5055c498c9e \
     --hash=sha256:d484c3090ba2889ae2928419117447a14daf3c1231d5e30d0aae34f354f01785
     # via cattrs
+importlib-metadata==6.6.0 \
+    --hash=sha256:43dd286a2cd8995d5eaef7fee2066340423b818ed3fd70adf0bad5f1fac53fed \
+    --hash=sha256:92501cdf9cc66ebd3e612f1b4f0c0765dfa42f0fa38ffb319b6bd84dd675d705
+    # via attrs
 lsprotocol==2023.0.0a1 \
     --hash=sha256:133c339a7cccb299a5b357f9b8ef6aebe27616e0daf4ba54e63476afe0e12e47 \
     --hash=sha256:32edfd4856abba1349bf5a070567445b3d7286951afba3644b472629796f82d0
@@ -28,30 +32,30 @@ pygls==1.0.1 \
     --hash=sha256:adacc96da77598c70f46acfdfd1481d3da90cd54f639f7eee52eb6e4dbd57b55 \
     --hash=sha256:f3ee98ddbb4690eb5c755bc32ba7e129607f14cbd313575f33d0cea443b78cb2
     # via ruff-lsp
-ruff==0.0.259 \
-    --hash=sha256:22e1e35bf5f12072cd644d22afd9203641ccf258bc14ff91aa1c43dc14f6047d \
-    --hash=sha256:29e2b77b7d5da6a7dd5cf9b738b511355c5734ece56f78e500d4b5bffd58c1a0 \
-    --hash=sha256:38704f151323aa5858370a2f792e122cc25e5d1aabe7d42ceeab83da18f0b456 \
-    --hash=sha256:40ae87f2638484b7e8a7567b04a7af719f1c484c5bf132038b702bb32e1f6577 \
-    --hash=sha256:428507fb321b386dda70d66cd1a8aa0abf51d7c197983d83bb9e4fa5ee60300b \
-    --hash=sha256:49e903bcda19f6bb0725a962c058eb5d61f40d84ef52ed53b61939b69402ab4e \
-    --hash=sha256:5b3c1beacf6037e7f0781d4699d9a2dd4ba2462f475be5b1f45cf84c4ba3c69d \
-    --hash=sha256:71f0ef1985e9a6696fa97da8459917fa34bdaa2c16bd33bd5edead585b7d44f7 \
-    --hash=sha256:79b02fa17ec1fd8d306ae302cb47fb614b71e1f539997858243769bcbe78c6d9 \
-    --hash=sha256:7cfef26619cba184d59aa7fa17b48af5891d51fc0b755a9bc533478a10d4d066 \
-    --hash=sha256:8b56496063ab3bfdf72339a5fbebb8bd46e5c5fee25ef11a9f03b208fa0562ec \
-    --hash=sha256:aa9449b898287e621942cc71b9327eceb8f0c357e4065fecefb707ef2d978df8 \
-    --hash=sha256:c5fbaea9167f1852757f02133e5daacdb8c75b3431343205395da5b10499927a \
-    --hash=sha256:d2fb20e89e85d147c85caa807707a1488bccc1f3854dc3d53533e89b52a0c5ff \
-    --hash=sha256:daaea322e7e85f4c13d82be9536309e1c4b8b9851bb0cbc7eeb15d490fd46bf9 \
-    --hash=sha256:e4f39e18702de69faaaee3969934b92d7467285627f99a5b6ecd55a7d9f5d086 \
-    --hash=sha256:f3938dc45e2a3f818e9cbd53007265c22246fbfded8837b2c563bf0ebde1a226
+ruff==0.0.264 \
+    --hash=sha256:04ec5d75e4bca754cedd20d53e2ba4920d6259e7579abfb2e8e30c3c80e41b17 \
+    --hash=sha256:05ee163a046fc593d150179d23f4af447fb82f3e59cd34e031ea0868c65bb8e8 \
+    --hash=sha256:068a82a29d80848a56e3d9d4308e6e0ca8b2ecdaf5ac342a292545a59b7f2c21 \
+    --hash=sha256:18a29ed37bf8cfe6dce8a2db56c313a64c0804095108753621f3c3321e0c9c5f \
+    --hash=sha256:323ae6c1702b26c96d0fbf939c5959c37e79021f86b70f63634df918bc77f36e \
+    --hash=sha256:3e2c38449548e122f2612843a7c04e22b4fd491656955c57b8cb05df11639ad6 \
+    --hash=sha256:4564e0f245eb515c6ed63988c21e9c40bcfd485cd1ec63bdd790f9a81d301f15 \
+    --hash=sha256:484e395d1984ab9e1e66bd42e7a5192decfee86998d07d36ee50b2fadccc8734 \
+    --hash=sha256:5a8658ebcc37d62f72840cbdf564171c1a2b6831db482b4d917962541a2f4a44 \
+    --hash=sha256:67326fdc9ac0a1b13e229c6e24e8d115863c52cd710faaaaa588851535281d6c \
+    --hash=sha256:71fd865ebacc1083259b3fb7e3eb45235a86e62e21830b8a6b067be0ec54aa2e \
+    --hash=sha256:8fcd4b693ca1374eb7a5796581c90689f884f98f388740d94f0702fd30f8f78f \
+    --hash=sha256:91c6eb4f979b661a2dd850d9ac803842bb7b66d4926de84f09c787af82590f73 \
+    --hash=sha256:cd4f60ffc3eb15802c554a9c8581bf2117c4d3d06fbc57e0ba58f04cb1aaa47f \
+    --hash=sha256:d628de91e2be7a83128526636097d2dd890669a06143f826f6c591d79aeefbc4 \
+    --hash=sha256:d97ba8db0fb601ffe9ee996ebb97c698e427a2fd4514fefbe7b803111354f783 \
+    --hash=sha256:ec2fa192c035b8b68cc2b91049c561cd69543e2b8c4d157d9aa7727320bedcca
     # via
     #   ruff-lsp
     #   ruff-vscode (./pyproject.toml)
-ruff-lsp==0.0.24 \
-    --hash=sha256:71207b0a64f40577db3e9aef0b1331fcf4122f9b98bba66b905d41706d639e65 \
-    --hash=sha256:d617bf19893c3bd2ea3d71f79aeede196b91ca08831b53a727e24d4f63f29f3a
+ruff-lsp==0.0.25 \
+    --hash=sha256:ab9a2025b8630dea9dce1d9ee4b989ed682dc3b557116468752eb6f484589ba4 \
+    --hash=sha256:f061ded6cbbcd264a8edd0cc17d451ab0ff4a0b1857a8b92ec498547c89791f4
     # via ruff-vscode (./pyproject.toml)
 typeguard==2.13.3 \
     --hash=sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4 \
@@ -62,4 +66,9 @@ typing-extensions==4.5.0 \
     --hash=sha256:fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4
     # via
     #   cattrs
+    #   importlib-metadata
     #   ruff-lsp
+zipp==3.15.0 \
+    --hash=sha256:112929ad649da941c23de50f356a2b5570c954b65150642bccdd66bf194d224b \
+    --hash=sha256:48904fc76a60e542af151aded95726c1a5c34ed43ab4134b597665c86d7ad556
+    # via importlib-metadata

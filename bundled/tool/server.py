@@ -8,6 +8,7 @@ import sys
 
 BUNDLE_DIR = pathlib.Path(__file__).parent.parent
 
+
 # Update sys.path before importing any bundled libraries.
 def update_sys_path(path_to_add: str) -> None:
     """Add given path to `sys.path`."""
