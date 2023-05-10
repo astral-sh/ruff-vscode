@@ -154,9 +154,3 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 - To automatically format the codebase, run: `just fmt`.
 - To run lint and type checks, run: `just check`.
 - To run tests, run: `just test`.
-
-### Development
-
-- `nox --session fmt`
-- `nox --session check`
-- `nox --session test`
