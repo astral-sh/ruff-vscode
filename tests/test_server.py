@@ -67,6 +67,7 @@ class TestServer(unittest.TestCase):
                             "data": {
                                 "fix": {
                                     "message": "Remove unused import: `sys`",
+                                    "applicability": "Unspecified",
                                     "edits": [
                                         {
                                             "content": "",
@@ -97,6 +98,7 @@ class TestServer(unittest.TestCase):
                     ],
                 }
 
+            self.maxDiff = None
             self.assertEqual(actual, expected)
 
     def test_no_initialization_options(self):
@@ -153,6 +155,7 @@ class TestServer(unittest.TestCase):
                             "data": {
                                 "fix": {
                                     "message": "Remove unused import: `sys`",
+                                    "applicability": "Unspecified",
                                     "edits": [
                                         {
                                             "content": "",
@@ -183,4 +186,5 @@ class TestServer(unittest.TestCase):
                     ],
                 }
 
+            self.maxDiff = None
             self.assertEqual(actual, expected)
