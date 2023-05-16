@@ -14,6 +14,8 @@ import { loadServerDefaults } from './common/setup';
 import { getProjectRoot } from './common/utilities';
 import { createOutputChannel, onDidChangeConfiguration, registerCommand } from './common/vscodeapi';
 
+const issueTracker = 'https://github.com/charliermarsh/ruff/issues';
+
 let client: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -105,7 +107,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
             await client.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
                 await vscode.window.showErrorMessage(
-                    'Failed to apply Ruff fixes to the document. Please consider opening an issue with steps to reproduce.',
+                    `Failed to apply Ruff fixes to the document. Please consider opening an issue at ${issueTracker} with steps to reproduce.`,
                 );
             });
         }),
