@@ -160,6 +160,11 @@ and Python log messages in the debug console under "Python Server".
 
 ### Modifying the LSP
 
-- Clone the [ruff-lsp](https://github.com/charliermarsh/ruff-lsp) to e.g. `../ruff-lsp`
+- Clone [ruff-lsp](https://github.com/charliermarsh/ruff-lsp) to e.g. `../ruff-lsp`
 - Go to `../ruff-lsp` and run `pip install -t ../ruff-vscode/bundled/libs/ -e .`
-- If you want to use a custom ruff build, copy or link it to `bundles/libs/bin/ruff`
+
+### Custom ruff build
+
+- Clone [ruff](https://github.com/charliermarsh/ruff) to e.g. `/home/ferris/ruff`
+- `cargo build` in ruff
+- In the settings, add `/home/ferris/ruff/target/debug/ruff` to "Ruff: Path"
