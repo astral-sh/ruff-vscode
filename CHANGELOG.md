@@ -4,35 +4,35 @@ See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release 
 
 ## 2022.0.26 (22 December 2022)
 
-**Full Changelog**: https://github.com/charliermarsh/ruff-vscode/compare/2022.0.25...2022.0.26
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.0.25...2022.0.26
 
 ## 2022.0.25 (22 December 2022)
 
-* Migrate to ruff-lsp by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/75
-* Simplify some TypeScript code by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/77
-* Upgrade ruff-lsp to v0.0.8 by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/79
+* Migrate to ruff-lsp by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/75
+* Simplify some TypeScript code by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/77
+* Upgrade ruff-lsp to v0.0.8 by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/79
 
-**Full Changelog**: https://github.com/charliermarsh/ruff-vscode/compare/2022.0.24...2022.0.25
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.0.24...2022.0.25
 
 ## 2022.0.24 (21 December 2022)
 
-* Add docs on replacing Black et al by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/66
-* Skip JSON RPC abstraction for cross-interpreter calls by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/67
-* Remove mypy.ini by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/68
-* Clarify Black + Ruff compatibility in README by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/69
-* Show check summary when hovering on checkcode in noqa comment by @harupy in https://github.com/charliermarsh/ruff-vscode/pull/26
-* Bump Ruff version to 0.0.190 by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/74
+* Add docs on replacing Black et al by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/66
+* Skip JSON RPC abstraction for cross-interpreter calls by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/67
+* Remove mypy.ini by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/68
+* Clarify Black + Ruff compatibility in README by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/69
+* Show check summary when hovering on checkcode in noqa comment by @harupy in https://github.com/astral-sh/ruff-vscode/pull/26
+* Bump Ruff version to 0.0.190 by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/74
 
-**Full Changelog**: https://github.com/charliermarsh/ruff-vscode/compare/2022.0.23...2022.0.24
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.0.23...2022.0.24
 
 ## 2022.0.23 (17 December 2022)
 
-* Modify settings logic to match isort plugin by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/60
-* Remove severity from default settings by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/62
-* Bump Ruff version to 0.0.185 by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/63
-* Add `ruff-lsp` to README by @charliermarsh in https://github.com/charliermarsh/ruff-vscode/pull/64
+* Modify settings logic to match isort plugin by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/60
+* Remove severity from default settings by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/62
+* Bump Ruff version to 0.0.185 by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/63
+* Add `ruff-lsp` to README by @charliermarsh in https://github.com/astral-sh/ruff-vscode/pull/64
 
-**Full Changelog**: https://github.com/charliermarsh/ruff-vscode/compare/2022.0.22...2022.0.23
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.0.22...2022.0.23
 
 ## 2022.0.22 (14 December 2022)
 

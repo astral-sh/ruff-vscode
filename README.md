@@ -6,7 +6,7 @@ linter. Available on the [Visual Studio Marketplace](https://marketplace.visuals
 The extension ships with `ruff==0.0.267`.
 
 (Interested in using [Ruff](https://github.com/charliermarsh/ruff) with another editor? Check out
-[`ruff-lsp`](https://github.com/charliermarsh/ruff-lsp).)
+[`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
 
 ## Highlights
 
