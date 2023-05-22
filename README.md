@@ -154,3 +154,17 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 - To automatically format the codebase, run: `just fmt`.
 - To run lint and type checks, run: `just check`.
 - To run tests, run: `just test`.
+
+To run the extension, navigate to `src/extension.ts` and run (`F5`). You should see the LSP output
+and Python log messages in the debug console under "Python Server".
+
+### Modifying the LSP
+
+- Clone [ruff-lsp](https://github.com/charliermarsh/ruff-lsp) to e.g. `../ruff-lsp`
+- Go to `../ruff-lsp` and run `pip install -t ../ruff-vscode/bundled/libs/ -e .`
+
+### Custom ruff build
+
+- Clone [ruff](https://github.com/charliermarsh/ruff) to e.g. `/home/ferris/ruff`
+- `cargo build` in ruff
+- In the settings, add `/home/ferris/ruff/target/debug/ruff` to "Ruff: Path"
