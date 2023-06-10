@@ -19,6 +19,10 @@ noxfile.py
 .pytest_cache/**
 .pylintrc
 **/requirements.txt
+**/requirements-dev.txt
 **/requirements.in
 .idea/**
 .ruff_cache/**
+tests/**
+build/**
+justfile
