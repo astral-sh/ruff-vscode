@@ -37,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     traceVerbose(`Configuration: ${JSON.stringify(serverInfo)}`);
 
     const runServer = async () => {
-        if (clientPromise != null) {
+        if (clientPromise !== null) {
             traceLog(`Triggered ${serverName} restart while restart already in progress, queuing another restart`);
             if (!isNewRestartQueued) {
                 // Schedule a new restart after the current one, but also make it so that there is one restart queue at a time,
