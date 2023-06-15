@@ -1,200 +1,200 @@
 {
-    "name": "ruff",
-    "displayName": "Ruff",
-    "description": "A Visual Studio Code extension with support for the Ruff linter.",
-    "version": "2023.21.0-dev",
-    "serverInfo": {
-        "name": "Ruff",
-        "module": "ruff"
-    },
-    "publisher": "charliermarsh",
-    "license": "MIT",
-    "homepage": "https://github.com/astral-sh/vscode-ruff",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/astral-sh/vscode-ruff.git"
-    },
-    "bugs": {
-        "url": "https://github.com/astral-sh/vscode-ruff/issues"
-    },
-    "icon": "icon.png",
-    "galleryBanner": {
-        "color": "#1e415e",
-        "theme": "dark"
-    },
-    "keywords": [
-        "python",
-        "linting",
-        "ruff"
-    ],
-    "engines": {
-        "vscode": "^1.72.0"
-    },
-    "categories": [
-        "Programming Languages",
-        "Linters"
-    ],
-    "extensionDependencies": [
-        "ms-python.python"
-    ],
-    "activationEvents": [
-        "onLanguage:python",
-        "workspaceContains:*.py",
-        "onCommand:ruff.restart"
-    ],
-    "main": "./dist/extension.js",
-    "scripts": {
-        "compile": "webpack",
-        "compile-tests": "tsc -p . --outDir out",
-        "fmt": "prettier -w '*.json' 'src/**/*.ts' '.github/**/*.yaml'",
-        "lint": "eslint src --ext ts",
-        "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
-        "pretest": "npm run compile-tests && npm run compile && npm run lint",
-        "test": "node ./out/test/runTest.js",
-        "typecheck": "tsc --noEmit",
-        "vsce-package": "vsce package -o ruff.vsix",
-        "vscode:prepublish": "npm run package",
-        "watch": "webpack --watch",
-        "watch-tests": "tsc -p . -w --outDir out"
-    },
-    "contributes": {
-        "configuration": {
-            "properties": {
-                "ruff.logLevel": {
-                    "default": "error",
-                    "description": "The log level the extension logs at, defaults to 'error'",
-                    "enum": [
-                        "debug",
-                        "error",
-                        "info",
-                        "off",
-                        "warn"
-                    ],
-                    "scope": "window",
-                    "type": "string"
-                },
-                "ruff.args": {
-                    "default": [],
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "ruff.path": {
-                    "default": [],
-                    "description": "When set to a path to the `ruff` binary, extension will use that.",
-                    "scope": "resource",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "ruff.importStrategy": {
-                    "default": "fromEnvironment",
-                    "description": "Defines where `ruff` is imported from. This setting may be ignored if `ruff.path` is set.",
-                    "enum": [
-                        "fromEnvironment",
-                        "useBundled"
-                    ],
-                    "enumDescriptions": [
-                        "Use `ruff` from environment, fallback to bundled version only if `ruff` not available in the environment.",
-                        "Always use the bundled version of `ruff`."
-                    ],
-                    "scope": "window",
-                    "type": "string"
-                },
-                "ruff.interpreter": {
-                    "default": [],
-                    "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
-                    "scope": "window",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "ruff.showNotifications": {
-                    "default": "off",
-                    "description": "Controls when notifications are shown by this extension.",
-                    "enum": [
-                        "off",
-                        "onError",
-                        "onWarning",
-                        "always"
-                    ],
-                    "enumDescriptions": [
-                        "All notifications are turned off, any errors or warning are still available in the logs.",
-                        "Notifications are shown only in the case of an error.",
-                        "Notifications are shown for errors and warnings.",
-                        "Notifications are show for anything that the server chooses to show."
-                    ],
-                    "scope": "machine",
-                    "type": "string"
-                },
-                "ruff.organizeImports": {
-                    "default": true,
-                    "description": "Whether to register Ruff as capable of handling `source.organizeImports` actions.",
-                    "scope": "window",
-                    "type": "boolean"
-                },
-                "ruff.fixAll": {
-                    "default": true,
-                    "description": "Whether to register Ruff as capable of handling `source.fixAll` actions.",
-                    "scope": "window",
-                    "type": "boolean"
-                },
-                "ruff.trace.server": {
-                    "type": "string",
-                    "enum": [
-                        "off",
-                        "messages",
-                        "verbose"
-                    ],
-                    "default": "off",
-                    "markdownDescription": "Traces the communication between VSCode and the ruff-lsp."
-                }
-            }
+  "name": "ruff",
+  "displayName": "Ruff",
+  "description": "A Visual Studio Code extension with support for the Ruff linter.",
+  "version": "2023.21.0-dev",
+  "serverInfo": {
+    "name": "Ruff",
+    "module": "ruff"
+  },
+  "publisher": "charliermarsh",
+  "license": "MIT",
+  "homepage": "https://github.com/astral-sh/vscode-ruff",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/astral-sh/vscode-ruff.git"
+  },
+  "bugs": {
+    "url": "https://github.com/astral-sh/vscode-ruff/issues"
+  },
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1e415e",
+    "theme": "dark"
+  },
+  "keywords": [
+    "python",
+    "linting",
+    "ruff"
+  ],
+  "engines": {
+    "vscode": "^1.72.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "extensionDependencies": [
+    "ms-python.python"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "workspaceContains:*.py",
+    "onCommand:ruff.restart"
+  ],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "compile": "webpack",
+    "compile-tests": "tsc -p . --outDir out",
+    "fmt": "prettier -w '*.json' 'src/**/*.ts' '.github/**/*.yaml'",
+    "lint": "eslint src --ext ts",
+    "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js",
+    "typecheck": "tsc --noEmit",
+    "vsce-package": "vsce package -o ruff.vsix",
+    "vscode:prepublish": "npm run package",
+    "watch": "webpack --watch",
+    "watch-tests": "tsc -p . -w --outDir out"
+  },
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "ruff.logLevel": {
+          "default": "error",
+          "description": "The log level the extension logs at, defaults to 'error'",
+          "enum": [
+            "debug",
+            "error",
+            "info",
+            "off",
+            "warn"
+          ],
+          "scope": "window",
+          "type": "string"
         },
-        "commands": [
-            {
-                "title": "Fix all auto-fixable problems",
-                "category": "Ruff",
-                "command": "ruff.executeAutofix"
-            },
-            {
-                "title": "Format imports",
-                "category": "Ruff",
-                "command": "ruff.executeOrganizeImports"
-            },
-            {
-                "title": "Restart Server",
-                "category": "Ruff",
-                "command": "ruff.restart"
-            }
-        ]
+        "ruff.args": {
+          "default": [],
+          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
+        "ruff.path": {
+          "default": [],
+          "description": "When set to a path to the `ruff` binary, extension will use that.",
+          "scope": "resource",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ruff.importStrategy": {
+          "default": "fromEnvironment",
+          "description": "Defines where `ruff` is imported from. This setting may be ignored if `ruff.path` is set.",
+          "enum": [
+            "fromEnvironment",
+            "useBundled"
+          ],
+          "enumDescriptions": [
+            "Use `ruff` from environment, fallback to bundled version only if `ruff` not available in the environment.",
+            "Always use the bundled version of `ruff`."
+          ],
+          "scope": "window",
+          "type": "string"
+        },
+        "ruff.interpreter": {
+          "default": [],
+          "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
+          "scope": "window",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ruff.showNotifications": {
+          "default": "off",
+          "description": "Controls when notifications are shown by this extension.",
+          "enum": [
+            "off",
+            "onError",
+            "onWarning",
+            "always"
+          ],
+          "enumDescriptions": [
+            "All notifications are turned off, any errors or warning are still available in the logs.",
+            "Notifications are shown only in the case of an error.",
+            "Notifications are shown for errors and warnings.",
+            "Notifications are show for anything that the server chooses to show."
+          ],
+          "scope": "machine",
+          "type": "string"
+        },
+        "ruff.organizeImports": {
+          "default": true,
+          "description": "Whether to register Ruff as capable of handling `source.organizeImports` actions.",
+          "scope": "window",
+          "type": "boolean"
+        },
+        "ruff.fixAll": {
+          "default": true,
+          "description": "Whether to register Ruff as capable of handling `source.fixAll` actions.",
+          "scope": "window",
+          "type": "boolean"
+        },
+        "ruff.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "markdownDescription": "Traces the communication between VSCode and the ruff-lsp."
+        }
+      }
     },
-    "dependencies": {
-        "fs-extra": "^11.1.0",
-        "ovsx": "^0.7.1",
-        "vscode-languageclient": "7.0.0"
-    },
-    "devDependencies": {
-        "@types/fs-extra": "^9.0.13",
-        "@types/glob": "^8.0.0",
-        "@types/node": "16.x",
-        "@types/vscode": "1.71.0",
-        "@typescript-eslint/eslint-plugin": "^5.47.0",
-        "@typescript-eslint/parser": "^5.47.0",
-        "@vscode/test-electron": "^2.2.1",
-        "eslint": "^8.30.0",
-        "eslint-plugin-prettier": "^4.2.1",
-        "glob": "^8.0.3",
-        "prettier": "^2.8.1",
-        "ts-loader": "^9.4.2",
-        "typescript": "^4.9.4",
-        "vsce": "^2.15.0",
-        "webpack": "^5.75.0",
-        "webpack-cli": "^5.0.1"
-    }
+    "commands": [
+      {
+        "title": "Fix all auto-fixable problems",
+        "category": "Ruff",
+        "command": "ruff.executeAutofix"
+      },
+      {
+        "title": "Format imports",
+        "category": "Ruff",
+        "command": "ruff.executeOrganizeImports"
+      },
+      {
+        "title": "Restart Server",
+        "category": "Ruff",
+        "command": "ruff.restart"
+      }
+    ]
+  },
+  "dependencies": {
+    "fs-extra": "^11.1.0",
+    "ovsx": "^0.7.1",
+    "vscode-languageclient": "7.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
+    "@types/glob": "^8.0.0",
+    "@types/node": "16.x",
+    "@types/vscode": "1.71.0",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
+    "@typescript-eslint/parser": "^5.47.0",
+    "@vscode/test-electron": "^2.2.1",
+    "eslint": "^8.30.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "glob": "^8.0.3",
+    "prettier": "^2.8.1",
+    "ts-loader": "^9.4.2",
+    "typescript": "^4.9.4",
+    "vsce": "^2.15.0",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  }
 }
