@@ -44,8 +44,7 @@
   ],
   "main": "./dist/extension.js",
   "scripts": {
-    "compile": "webpack",
-    "fmt": "prettier -w '*.json' 'src/**/*.ts' '.github/**/*.yaml'",
+    "format": "prettier -w .",
     "lint": "eslint src --ext ts",
     "typecheck": "tsc --noEmit",
     "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
