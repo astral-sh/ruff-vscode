@@ -46,7 +46,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 try {
                     await clientPromise;
                 } catch {
-                    // We don't care whether this failed, we'll restart afterwards again anyway
+                    // We don't care whether this failed, we'll restart afterward anyway.
                 }
             } else {
                 // In this case, we're currently restarting and a new restart is also queued, so we just do nothing and
