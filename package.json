@@ -45,17 +45,12 @@
   "main": "./dist/extension.js",
   "scripts": {
     "compile": "webpack",
-    "compile-tests": "tsc -p . --outDir out",
     "fmt": "prettier -w '*.json' 'src/**/*.ts' '.github/**/*.yaml'",
     "lint": "eslint src --ext ts",
-    "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "test": "node ./out/test/runTest.js",
     "typecheck": "tsc --noEmit",
+    "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
     "vsce-package": "vsce package -o ruff.vsix",
-    "vscode:prepublish": "npm run package",
-    "watch": "webpack --watch",
-    "watch-tests": "tsc -p . -w --outDir out"
+    "vscode:prepublish": "npm run package"
   },
   "contributes": {
     "configuration": {
@@ -186,7 +181,6 @@
     "@types/vscode": "1.71.0",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
-    "@vscode/test-electron": "^2.2.1",
     "eslint": "^8.30.0",
     "eslint-plugin-prettier": "^4.2.1",
     "glob": "^8.0.3",
