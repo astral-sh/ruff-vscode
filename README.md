@@ -32,16 +32,16 @@ per workspace in Visual Studio Code.
 
 ## Settings
 
-| Settings         | Default      | Description                                                                                                                                                                                                |
-|------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| args             | `[]`         | Custom arguments passed to `ruff`. E.g `"args": ["--config=/path/to/pyproject.toml"]`.                                                                                                                     |
-| logLevel         | `error`      | Sets the tracing level for the extension.                                                                                                                                                                  |
-| path             | `[]`         | Setting to provide custom `ruff` executables, to try in order. E.g. `["/path/to/ruff"]`.                                                                                                                   |
-| interpreter      | `[]`         | Path to a Python interpreter to use to run the linter server.                                                                                                                                              |
+| Settings         | Default           | Description                                                                                                                                                                                                |
+| ---------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| args             | `[]`              | Custom arguments passed to `ruff`. E.g `"args": ["--config=/path/to/pyproject.toml"]`.                                                                                                                     |
+| logLevel         | `error`           | Sets the tracing level for the extension.                                                                                                                                                                  |
+| path             | `[]`              | Setting to provide custom `ruff` executables, to try in order. E.g. `["/path/to/ruff"]`.                                                                                                                   |
+| interpreter      | `[]`              | Path to a Python interpreter to use to run the linter server.                                                                                                                                              |
 | importStrategy   | `fromEnvironment` | Strategy for loading the `ruff` executable. `fromEnvironment` picks up Ruff from the environment, falling back to the bundled version if needed. `useBundled` uses the version bundled with the extension. |
-| showNotification | `off`        | Whether a notification should be shown.                                                                                                                                                                    |
-| organizeImports  | `true`       | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                                          |
-| fixAll           | `true`       | Whether to register Ruff as capable of handling `source.fixAll` actions.                                                                                                                                   |
+| showNotification | `off`             | Whether a notification should be shown.                                                                                                                                                                    |
+| organizeImports  | `true`            | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                                          |
+| fixAll           | `true`            | Whether to register Ruff as capable of handling `source.fixAll` actions.                                                                                                                                   |
 
 ### Example configurations
 
@@ -50,11 +50,11 @@ You can configure Ruff to autofix violations on-save by enabling the `source.fix
 
 ```json
 {
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.fixAll": true
-        }
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
     }
+  }
 }
 ```
 
@@ -63,11 +63,11 @@ You can configure Ruff to organize imports on-save by enabling the `source.organ
 
 ```json
 {
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-        }
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
     }
+  }
 }
 ```
 
@@ -76,13 +76,13 @@ on-save using Ruff, then re-format with Black, via the following `settings.json`
 
 ```json
 {
-    "[python]": {
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-            "source.fixAll": true
-        }
-    },
-    "python.formatting.provider": "black"
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
+    }
+  },
+  "python.formatting.provider": "black"
 }
 ```
 
@@ -92,13 +92,13 @@ Code extension, you can disable Ruff's import-sorting capabilities via the follo
 
 ```json
 {
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.fixAll": true,
-            "source.organizeImports": true
-        }
-    },
-    "ruff.organizeImports": false
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+      "source.organizeImports": true
+    }
+  },
+  "ruff.organizeImports": false
 }
 ```
 
@@ -107,12 +107,12 @@ use Ruff's scoped `source.fixAll` and `source.organizeImports` actions via the f
 
 ```json
 {
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.fixAll.ruff": true,
-            "source.organizeImports.ruff": true
-        }
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": true,
+      "source.organizeImports.ruff": true
     }
+  }
 }
 ```
 
@@ -121,12 +121,12 @@ If you'd like to run Ruff in lieu of another formatter altogether, be sure to un
 
 ```json
 {
-    "[python]": {
-        "editor.defaultFormatter": null,
-        "editor.codeActionsOnSave": {
-            "source.fixAll": true
-        }
+  "[python]": {
+    "editor.defaultFormatter": null,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
     }
+  }
 }
 ```
 

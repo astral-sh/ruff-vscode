@@ -12,7 +12,7 @@ jobs:
   # We have to do this ahead-of-time, and store it as a job output,
   # to ensure that we use the same Build ID across all build jobs.
   build-id:
-    name: 'Build ID'
+    name: "Build ID"
     runs-on: ubuntu-latest
     outputs:
       RELEASE_BUILD_ID: ${{ steps.release-build-id-generator.outputs.BUILD_ID }}
@@ -24,7 +24,7 @@ jobs:
           fetch-depth: ${{ env.FETCH_DEPTH }}
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Generate Build ID (release)
         if: "startsWith(github.ref, 'refs/tags/')"
         id: release-build-id-generator
@@ -70,7 +70,7 @@ jobs:
             code-target: darwin-arm64
 
     name: Build (${{ matrix.target }})
-    needs: ['build-id']
+    needs: ["build-id"]
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
 
@@ -83,7 +83,7 @@ jobs:
       # Install Python dependencies (including Ruff's native binary).
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - run: python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
         if: ${{ !startsWith(matrix.os, 'ubuntu') || startsWith(matrix.target, 'x86_64') }}
       - uses: uraimo/run-on-arch-action@v2
@@ -134,8 +134,8 @@ jobs:
 
   # Phase 3: Publish the built extension to the Marketplace.
   publish:
-    name: 'Publish'
-    needs: ['build']
+    name: "Publish"
+    needs: ["build"]
     runs-on: ubuntu-latest
     steps:
       - name: Install Nodejs
