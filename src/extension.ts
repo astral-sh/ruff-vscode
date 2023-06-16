@@ -17,8 +17,8 @@ import { createOutputChannel, onDidChangeConfiguration, registerCommand } from "
 const issueTracker = "https://github.com/charliermarsh/ruff/issues";
 
 let client: LanguageClient | undefined;
-let clientPromise: Promise<LanguageClient | undefined> | undefined = undefined;
-let isNewRestartQueued = false;
+let restartInProgress = false;
+let restartQueued = false;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // This is required to get server name and module. This should be
@@ -37,31 +37,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   traceVerbose(`Configuration: ${JSON.stringify(serverInfo)}`);
 
   const runServer = async () => {
-    if (clientPromise != null) {
-      traceLog(
-        `Triggered ${serverName} restart while restart already in progress, queuing another restart`,
-      );
-      if (!isNewRestartQueued) {
-        // Schedule a new restart after the current one, but also make it so that there is one restart queue at a time,
-        // this restart will have the latest settings anyway.
-        isNewRestartQueued = true;
-        try {
-          await clientPromise;
-        } catch {
-          // We don't care whether this failed, we'll restart afterward anyway.
-        }
-      } else {
-        // In this case, we're currently restarting and a new restart is also queued, so we just do nothing and
-        // let the other restart handle this
+    if (restartInProgress) {
+      if (!restartQueued) {
+        // Schedule a new restart after the current restart.
         traceLog(
-          `Triggered ${serverName} restart while restart already in progress and another already queued, doing nothing`,
+          `Triggered ${serverName} restart while restart is in progress; queuing a restart.`,
         );
-        return;
+        restartQueued = true;
       }
+      return;
     }
-    clientPromise = restartServer(serverId, serverName, outputChannel, client);
-    isNewRestartQueued = false;
-    await clientPromise;
+
+    restartInProgress = true;
+    client = await restartServer(serverId, serverName, outputChannel, client);
+
+    restartInProgress = false;
+
+    if (restartQueued) {
+      restartQueued = false;
+      await runServer();
+    }
   };
 
   context.subscriptions.push(

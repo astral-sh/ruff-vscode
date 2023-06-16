@@ -112,11 +112,11 @@ export async function restartServer(
   serverId: string,
   serverName: string,
   outputChannel: OutputChannel,
-  lsClient?: LanguageClient,
+  client?: LanguageClient,
 ): Promise<LanguageClient | undefined> {
-  if (lsClient) {
+  if (client) {
     traceInfo(`Server: Stop requested`);
-    await lsClient.stop();
+    await client.stop();
     _disposables.forEach((d) => d.dispose());
     _disposables = [];
   }
@@ -132,7 +132,7 @@ export async function restartServer(
     return undefined;
   }
 
-  const newLSClient = await createServer(
+  const newClient = await createServer(
     resourceSettings.interpreter,
     serverId,
     serverName,
@@ -144,10 +144,10 @@ export async function restartServer(
     resourceSettings,
   );
 
-  newLSClient.trace = traceLevelToLSTrace(resourceSettings.logLevel);
+  newClient.trace = traceLevelToLSTrace(resourceSettings.logLevel);
   traceInfo(`Server: Start requested.`);
   _disposables.push(
-    newLSClient.onDidChangeState((e) => {
+    newClient.onDidChangeState((e) => {
       switch (e.newState) {
         case State.Stopped:
           traceVerbose(`Server State: Stopped`);
@@ -160,7 +160,7 @@ export async function restartServer(
           break;
       }
     }),
-    newLSClient.start(),
+    newClient.start(),
   );
-  return newLSClient;
+  return newClient;
 }
