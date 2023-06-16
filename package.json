@@ -48,6 +48,7 @@
     "lint": "eslint src --ext ts",
     "typecheck": "tsc --noEmit",
     "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
+    "watch": "webpack --watch",
     "vsce-package": "vsce package -o ruff.vsix",
     "vscode:prepublish": "npm run package"
   },
