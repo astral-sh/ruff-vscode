@@ -1,5 +1,11 @@
 # Ruff extension for Visual Studio Code
 
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![image](https://img.shields.io/pypi/v/ruff/0.0.272.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/l/ruff/0.0.272.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/pyversions/ruff/0.0.272.svg)](https://pypi.python.org/pypi/ruff)
+[![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
+
 A Visual Studio Code extension with support for the [Ruff](https://github.com/charliermarsh/ruff)
 linter. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
@@ -160,11 +166,21 @@ and Python log messages in the debug console under "Python Server".
 
 ### Modifying the LSP
 
-- Clone [ruff-lsp](https://github.com/charliermarsh/ruff-lsp) to e.g. `../ruff-lsp`
-- Go to `../ruff-lsp` and run `pip install -t ../ruff-vscode/bundled/libs/ -e .`
+- Clone [ruff-lsp](https://github.com/charliermarsh/ruff-lsp) to, e.g., `../ruff-lsp`.
+- In `../ruff-lsp`, run: `pip install -t ../ruff-vscode/bundled/libs/ -e .`.
 
-### Custom ruff build
+### Using a custom version of ruff
 
-- Clone [ruff](https://github.com/charliermarsh/ruff) to e.g. `/home/ferris/ruff`
-- `cargo build` in ruff
-- In the settings, add `/home/ferris/ruff/target/debug/ruff` to "Ruff: Path"
+- Clone [ruff](https://github.com/charliermarsh/ruff) to, e.g., `/home/ferris/ruff`.
+- Run `cargo build` in the Ruff repository.
+- Set "Ruff: Path" to `/home/ferris/ruff/target/debug/ruff` in the VS Code settings.
+
+## License
+
+MIT
+
+<div align="center">
+  <a target="_blank" href="https://astral.sh" style="background:none">
+    <img src="https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/svg/Astral.svg">
+  </a>
+</div>
