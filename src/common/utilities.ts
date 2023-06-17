@@ -1,4 +1,6 @@
-import { LogLevel, WorkspaceFolder } from "vscode";
+import * as fs from "fs-extra";
+import * as path from "path";
+import { LogLevel, Uri, WorkspaceFolder } from "vscode";
 import { Trace } from "vscode-jsonrpc/node";
 import { getWorkspaceFolders } from "./vscodeapi";
 
@@ -32,19 +34,31 @@ export function getLSClientTraceLevel(channelLogLevel: LogLevel, globalLogLevel:
   return level;
 }
 
-export function getProjectRoot(): WorkspaceFolder | null {
+export async function getProjectRoot(): Promise<WorkspaceFolder> {
   const workspaces: readonly WorkspaceFolder[] = getWorkspaceFolders();
   if (workspaces.length === 0) {
-    return null;
+    return {
+      uri: Uri.file(process.cwd()),
+      name: path.basename(process.cwd()),
+      index: 0,
+    };
   } else if (workspaces.length === 1) {
     return workspaces[0];
   } else {
-    let root = workspaces[0].uri.fsPath;
     let rootWorkspace = workspaces[0];
-    for (const workspace of workspaces) {
-      if (root.length > workspace.uri.fsPath.length) {
-        root = workspace.uri.fsPath;
-        rootWorkspace = workspace;
+    let root = undefined;
+    for (const w of workspaces) {
+      if (await fs.pathExists(w.uri.fsPath)) {
+        root = w.uri.fsPath;
+        rootWorkspace = w;
+        break;
+      }
+    }
+
+    for (const w of workspaces) {
+      if (root && root.length > w.uri.fsPath.length && (await fs.pathExists(w.uri.fsPath))) {
+        root = w.uri.fsPath;
+        rootWorkspace = w;
       }
     }
     return rootWorkspace;

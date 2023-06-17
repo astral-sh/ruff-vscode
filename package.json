@@ -55,19 +55,6 @@
   "contributes": {
     "configuration": {
       "properties": {
-        "ruff.logLevel": {
-          "default": "error",
-          "description": "Sets the tracing level for the extension: `error`, `warn`, `info`, or `debug`.",
-          "enum": [
-            "debug",
-            "error",
-            "info",
-            "off",
-            "warn"
-          ],
-          "scope": "window",
-          "type": "string"
-        },
         "ruff.args": {
           "default": [],
           "description": "Additional command-line arguments to pass to `ruff`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
@@ -123,24 +110,6 @@
           },
           "type": "array"
         },
-        "ruff.showNotifications": {
-          "default": "off",
-          "description": "Controls when notifications are shown by this extension.",
-          "enum": [
-            "off",
-            "onError",
-            "onWarning",
-            "always"
-          ],
-          "enumDescriptions": [
-            "All notifications are turned off, any errors or warning are still available in the logs.",
-            "Notifications are shown only in the case of an error.",
-            "Notifications are shown for errors and warnings.",
-            "Notifications are show for anything that the server chooses to show."
-          ],
-          "scope": "machine",
-          "type": "string"
-        },
         "ruff.enable": {
           "default": true,
           "description": "Whether to enable the Ruff extension.",
@@ -168,6 +137,24 @@
           ],
           "default": "off",
           "markdownDescription": "Traces the communication between VSCode and the ruff-lsp."
+        },
+        "ruff.showNotifications": {
+          "default": "off",
+          "description": "Controls when notifications are shown by this extension.",
+          "enum": [
+            "off",
+            "onError",
+            "onWarning",
+            "always"
+          ],
+          "enumDescriptions": [
+            "All notifications are turned off, any errors or warning are still available in the logs.",
+            "Notifications are shown only in the case of an error.",
+            "Notifications are shown for errors and warnings.",
+            "Notifications are show for anything that the server chooses to show."
+          ],
+          "scope": "machine",
+          "type": "string"
         }
       }
     },
@@ -190,7 +177,7 @@
     ]
   },
   "dependencies": {
-    "fs-extra": "^11.1.0",
+    "fs-extra": "^11.1.1",
     "ovsx": "^0.7.1",
     "vscode-languageclient": "^8.1.0"
   },

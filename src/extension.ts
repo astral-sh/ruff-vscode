@@ -1,12 +1,19 @@
 import * as vscode from "vscode";
 import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import { registerLogger, traceInfo, traceLog, traceVerbose, traceWarn } from "./common/log/logging";
-import { OutputChannelLogger } from "./common/log/outputChannelLogger";
 import {
+  registerLogger,
+  traceError,
+  traceInfo,
+  traceLog,
+  traceVerbose,
+  traceWarn,
+} from "./common/log/logging";
+import {
+  checkVersion,
   getInterpreterDetails,
   initializePython,
   onDidChangePythonInterpreter,
-  runPythonExtensionCommand,
+  resolveInterpreter,
 } from "./common/python";
 import { restartServer } from "./common/server";
 import {
@@ -15,7 +22,7 @@ import {
   ISettings,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
-import { getProjectRoot } from "./common/utilities";
+import { getLSClientTraceLevel } from "./common/utilities";
 import {
   createOutputChannel,
   getConfiguration,
@@ -24,8 +31,29 @@ import {
 } from "./common/vscodeapi";
 
 const issueTracker = "https://github.com/charliermarsh/ruff/issues";
+// const runServer = async () => {
+//   // if (restartInProgress) {
+//   //   if (!restartQueued) {
+//   //     // Schedule a new restart after the current restart.
+//   //     traceLog(`Triggered ${serverName} restart while restart is in progress; queuing a restart.`);
+//   //     restartQueued = true;
+//   //   }
+//   //   return;
+//   // }
+//   //
+//   // restartInProgress = true;
+//   // client = await restartServer(serverId, serverName, outputChannel, client);
+//   //
+//   // restartInProgress = false;
+//   //
+//   // if (restartQueued) {
+//   //   restartQueued = false;
+//   //   await runServer();
+//   // }
+// // };
 
-let client: LanguageClient | undefined;
+let lsClient: LanguageClient | undefined;
+// let client: LanguageClient | undefined;
 let restartInProgress = false;
 let restartQueued = false;
 
@@ -38,7 +66,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Setup logging
   const outputChannel = createOutputChannel(serverName);
-  context.subscriptions.push(outputChannel);
+  context.subscriptions.push(outputChannel, registerLogger(outputChannel));
 
   const changeLogLevel = async (c: vscode.LogLevel, g: vscode.LogLevel) => {
     const level = getLSClientTraceLevel(c, g);
@@ -53,11 +81,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await changeLogLevel(outputChannel.logLevel, e);
     }),
   );
-  context.subscriptions.push(registerLogger(new OutputChannelLogger(outputChannel)));
 
-  traceLog(`Name: ${serverName}`);
+  // Log Server information
+  traceLog(`Name: ${serverInfo.name}`);
   traceLog(`Module: ${serverInfo.module}`);
-  traceVerbose(`Configuration: ${JSON.stringify(serverInfo)}`);
+  traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
   const { enable } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
@@ -76,6 +104,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return;
   }
 
+  if (restartInProgress) {
+    if (!restartQueued) {
+      // Schedule a new restart after the current restart.
+      traceLog(`Triggered ${serverName} restart while restart is in progress; queuing a restart.`);
+      restartQueued = true;
+    }
+    return;
+  }
+
   const runServer = async () => {
     if (restartInProgress) {
       if (!restartQueued) {
@@ -89,40 +126,65 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     restartInProgress = true;
-    client = await restartServer(serverId, serverName, outputChannel, client);
+
+    const interpreter = getInterpreterFromSetting(serverId);
+    if (
+      interpreter &&
+      interpreter.length > 0 &&
+      checkVersion(await resolveInterpreter(interpreter))
+    ) {
+      traceVerbose(
+        `Using interpreter from ${serverInfo.module}.interpreter: ${interpreter.join(" ")}`,
+      );
+      lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+
+      restartInProgress = false;
+      if (restartQueued) {
+        restartQueued = false;
+        await runServer();
+      }
+
+      return;
+    }
+
+    const interpreterDetails = await getInterpreterDetails();
+    if (interpreterDetails.path) {
+      traceVerbose(`Using interpreter from Python extension: ${interpreterDetails.path.join(" ")}`);
+      lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+
+      restartInProgress = false;
+      if (restartQueued) {
+        restartQueued = false;
+        await runServer();
+      }
+
+      return;
+    }
 
     restartInProgress = false;
 
-    if (restartQueued) {
-      restartQueued = false;
-      await runServer();
-    }
+    traceError(
+      "Python interpreter missing:\r\n" +
+        "[Option 1] Select python interpreter using the ms-python.python.\r\n" +
+        `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
+        "Please use Python 3.7 or greater.",
+    );
   };
 
   context.subscriptions.push(
     onDidChangePythonInterpreter(async () => {
       await runServer();
     }),
-  );
-
-  context.subscriptions.push(
-    registerCommand(`${serverId}.restart`, async () => {
-      const interpreter = getInterpreterFromSetting(serverId);
-      const interpreterDetails = await getInterpreterDetails();
-      if (interpreter?.length || interpreterDetails.path) {
+    onDidChangeConfiguration(async (e: vscode.ConfigurationChangeEvent) => {
+      if (checkIfConfigurationChanged(e, serverId)) {
         await runServer();
-      } else {
-        const workspaceFolder = getProjectRoot();
-        if (workspaceFolder) {
-          await runPythonExtensionCommand("python.triggerEnvSelection", workspaceFolder.uri);
-        }
       }
     }),
-  );
-
-  context.subscriptions.push(
+    registerCommand(`${serverId}.restart`, async () => {
+      await runServer();
+    }),
     registerCommand(`${serverId}.executeAutofix`, async () => {
-      if (!client) {
+      if (!lsClient) {
         return;
       }
 
@@ -140,15 +202,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         arguments: [textDocument],
       };
 
-      await client.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
         await vscode.window.showErrorMessage(
           "Failed to apply Ruff fixes to the document. Please consider opening an issue with steps to reproduce.",
         );
       });
     }),
-
     registerCommand(`${serverId}.executeOrganizeImports`, async () => {
-      if (!client) {
+      if (!lsClient) {
         return;
       }
 
@@ -166,19 +227,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         arguments: [textDocument],
       };
 
-      await client.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
         await vscode.window.showErrorMessage(
           `Failed to apply Ruff fixes to the document. Please consider opening an issue at ${issueTracker} with steps to reproduce.`,
         );
       });
-    }),
-  );
-
-  context.subscriptions.push(
-    onDidChangeConfiguration(async (e: vscode.ConfigurationChangeEvent) => {
-      if (checkIfConfigurationChanged(e, serverId)) {
-        await runServer();
-      }
     }),
   );
 
@@ -195,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 export async function deactivate(): Promise<void> {
-  if (client) {
-    await client.stop();
+  if (lsClient) {
+    await lsClient.stop();
   }
 }
