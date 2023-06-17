@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import { registerLogger, traceLog, traceVerbose } from "./common/log/logging";
+import { registerLogger, traceInfo, traceLog, traceVerbose, traceWarn } from "./common/log/logging";
 import { OutputChannelLogger } from "./common/log/outputChannelLogger";
 import {
   getInterpreterDetails,
@@ -9,10 +9,19 @@ import {
   runPythonExtensionCommand,
 } from "./common/python";
 import { restartServer } from "./common/server";
-import { checkIfConfigurationChanged, getInterpreterFromSetting } from "./common/settings";
+import {
+  checkIfConfigurationChanged,
+  getInterpreterFromSetting,
+  ISettings,
+} from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
 import { getProjectRoot } from "./common/utilities";
-import { createOutputChannel, onDidChangeConfiguration, registerCommand } from "./common/vscodeapi";
+import {
+  createOutputChannel,
+  getConfiguration,
+  onDidChangeConfiguration,
+  registerCommand,
+} from "./common/vscodeapi";
 
 const issueTracker = "https://github.com/charliermarsh/ruff/issues";
 
@@ -35,6 +44,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   traceLog(`Name: ${serverName}`);
   traceLog(`Module: ${serverInfo.module}`);
   traceVerbose(`Configuration: ${JSON.stringify(serverInfo)}`);
+
+  const { enable } = getConfiguration(serverId) as unknown as ISettings;
+  if (!enable) {
+    traceLog(
+      "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
+    );
+    context.subscriptions.push(
+      onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration("ruff.enable")) {
+          traceLog(
+            "To enable or disable Ruff after changing the `enable` setting, you must restart VS Code.",
+          );
+        }
+      }),
+    );
+    return;
+  }
 
   const runServer = async () => {
     if (restartInProgress) {
