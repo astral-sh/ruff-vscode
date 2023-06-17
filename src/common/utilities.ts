@@ -1,23 +1,35 @@
-import { WorkspaceFolder } from "vscode";
+import { LogLevel, WorkspaceFolder } from "vscode";
 import { Trace } from "vscode-jsonrpc/node";
 import { getWorkspaceFolders } from "./vscodeapi";
 
-export function getTimeForLogging(): string {
-  const date = new Date();
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds()}`;
-}
-
-export function traceLevelToLSTrace(level: string): Trace {
-  switch (level) {
-    case "error":
-    case "warn":
-    case "info":
+function logLevelToTrace(logLevel: LogLevel): Trace {
+  switch (logLevel) {
+    case LogLevel.Error:
+    case LogLevel.Warning:
+    case LogLevel.Info:
       return Trace.Messages;
-    case "debug":
+
+    case LogLevel.Debug:
+    case LogLevel.Trace:
       return Trace.Verbose;
+
+    case LogLevel.Off:
     default:
       return Trace.Off;
   }
+}
+
+export function getLSClientTraceLevel(channelLogLevel: LogLevel, globalLogLevel: LogLevel): Trace {
+  if (channelLogLevel === LogLevel.Off) {
+    return logLevelToTrace(globalLogLevel);
+  }
+  if (globalLogLevel === LogLevel.Off) {
+    return logLevelToTrace(channelLogLevel);
+  }
+  const level = logLevelToTrace(
+    channelLogLevel <= globalLogLevel ? channelLogLevel : globalLogLevel,
+  );
+  return level;
 }
 
 export function getProjectRoot(): WorkspaceFolder | null {

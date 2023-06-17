@@ -1,6 +1,5 @@
-import { ConfigurationChangeEvent, ConfigurationScope, Uri, WorkspaceFolder } from "vscode";
+import { ConfigurationChangeEvent, Uri } from "vscode";
 import { getInterpreterDetails } from "./python";
-import { LoggingLevelSettingType } from "./log/types";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
@@ -9,7 +8,6 @@ type Run = "onType" | "onSave";
 
 export interface ISettings {
   workspace: string;
-  logLevel: LoggingLevelSettingType;
   args: string[];
   path: string[];
   interpreter: string[];
@@ -53,7 +51,6 @@ export async function getWorkspaceSettings(
   }
 
   return {
-    logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? "error",
     args: config.get<string[]>(`args`) ?? [],
     path: config.get<string[]>(`path`) ?? [],
     interpreter: interpreter ?? [],
@@ -72,7 +69,6 @@ export async function getGlobalSettings(namespace: string): Promise<Omit<ISettin
   let interpreter: string[] | undefined = getInterpreterFromSetting(namespace);
 
   return {
-    logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? "error",
     args: config.get<string[]>(`args`) ?? [],
     path: config.get<string[]>(`path`) ?? [],
     interpreter: interpreter ?? [],
@@ -90,7 +86,6 @@ export function checkIfConfigurationChanged(
   namespace: string,
 ): boolean {
   const settings = [
-    `${namespace}.trace`,
     `${namespace}.args`,
     `${namespace}.path`,
     `${namespace}.interpreter`,

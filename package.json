@@ -28,7 +28,7 @@
     "ruff"
   ],
   "engines": {
-    "vscode": "^1.72.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Programming Languages",
@@ -192,23 +192,24 @@
   "dependencies": {
     "fs-extra": "^11.1.0",
     "ovsx": "^0.7.1",
-    "vscode-languageclient": "7.0.0"
+    "vscode-languageclient": "^8.1.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "^9.0.13",
-    "@types/glob": "^8.0.0",
-    "@types/node": "16.x",
-    "@types/vscode": "1.71.0",
-    "@typescript-eslint/eslint-plugin": "^5.47.0",
-    "@typescript-eslint/parser": "^5.47.0",
+    "@types/fs-extra": "^11.0.1",
+    "@types/glob": "^8.1.0",
+    "@types/node": "14.x",
+    "@types/vscode": "1.75.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
+    "@vscode/vsce": "^2.19.0",
     "eslint": "^8.30.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "glob": "^8.0.3",
-    "prettier": "^2.8.1",
+    "glob": "^10.2.2",
+    "prettier": "^2.8.8",
     "ts-loader": "^9.4.2",
-    "typescript": "^4.9.4",
+    "typescript": "^5.0.4",
     "vsce": "^2.15.0",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1"
+    "webpack": "^5.82.0",
+    "webpack-cli": "^5.0.2"
   }
 }

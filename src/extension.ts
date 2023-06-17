@@ -39,6 +39,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // Setup logging
   const outputChannel = createOutputChannel(serverName);
   context.subscriptions.push(outputChannel);
+
+  const changeLogLevel = async (c: vscode.LogLevel, g: vscode.LogLevel) => {
+    const level = getLSClientTraceLevel(c, g);
+    await lsClient?.setTrace(level);
+  };
+
+  context.subscriptions.push(
+    outputChannel.onDidChangeLogLevel(async (e) => {
+      await changeLogLevel(e, vscode.env.logLevel);
+    }),
+    vscode.env.onDidChangeLogLevel(async (e) => {
+      await changeLogLevel(outputChannel.logLevel, e);
+    }),
+  );
   context.subscriptions.push(registerLogger(new OutputChannelLogger(outputChannel)));
 
   traceLog(`Name: ${serverName}`);
@@ -178,4 +192,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await runServer();
     }
   });
+}
+
+export async function deactivate(): Promise<void> {
+  if (client) {
+    await client.stop();
+  }
 }
