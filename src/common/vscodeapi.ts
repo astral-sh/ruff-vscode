@@ -1,18 +1,17 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   commands,
   ConfigurationScope,
   Disposable,
-  OutputChannel,
+  LogOutputChannel,
+  Uri,
   window,
   workspace,
   WorkspaceConfiguration,
   WorkspaceFolder,
 } from "vscode";
 
-export function createOutputChannel(name: string): OutputChannel {
-  return window.createOutputChannel(name);
+export function createOutputChannel(name: string): LogOutputChannel {
+  return window.createOutputChannel(name, { log: true });
 }
 
 export function getConfiguration(
@@ -40,4 +39,8 @@ export function isVirtualWorkspace(): boolean {
 
 export function getWorkspaceFolders(): readonly WorkspaceFolder[] {
   return workspace.workspaceFolders ?? [];
+}
+
+export function getWorkspaceFolder(uri: Uri): WorkspaceFolder | undefined {
+  return workspace.getWorkspaceFolder(uri);
 }
