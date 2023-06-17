@@ -26,12 +26,11 @@ export interface ISettings {
   fixAll: boolean;
 }
 
-export function getExtensionSettings(
-  namespace: string,
-  includeInterpreter?: boolean,
-): Promise<ISettings[]> {
+export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
   return Promise.all(
-    getWorkspaceFolders().map((w) => getWorkspaceSettings(namespace, w, includeInterpreter)),
+    getWorkspaceFolders().map((workspaceFolder) =>
+      getWorkspaceSettings(namespace, workspaceFolder),
+    ),
   );
 }
 
@@ -65,16 +64,12 @@ export function getInterpreterFromSetting(namespace: string, scope?: Configurati
 export async function getWorkspaceSettings(
   namespace: string,
   workspace: WorkspaceFolder,
-  includeInterpreter?: boolean,
 ): Promise<ISettings> {
   const config = getConfiguration(namespace, workspace.uri);
 
-  let interpreter: string[] = [];
-  if (includeInterpreter) {
-    interpreter = getInterpreterFromSetting(namespace, workspace) ?? [];
-    if (interpreter.length === 0) {
-      interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
-    }
+  let interpreter: string[] = getInterpreterFromSetting(namespace, workspace) ?? [];
+  if (interpreter.length === 0) {
+    interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
   }
 
   return {
@@ -97,26 +92,14 @@ function getGlobalValue<T>(config: WorkspaceConfiguration, key: string, defaultV
   return inspect?.globalValue ?? inspect?.defaultValue ?? defaultValue;
 }
 
-export async function getGlobalSettings(
-  namespace: string,
-  includeInterpreter?: boolean,
-): Promise<ISettings> {
+export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
-
-  let interpreter: string[] = [];
-  if (includeInterpreter) {
-    interpreter = getGlobalValue<string[]>(config, "interpreter", []);
-    if (interpreter === undefined || interpreter.length === 0) {
-      interpreter = (await getInterpreterDetails()).path ?? [];
-    }
-  }
-
   return {
     cwd: process.cwd(),
     workspace: process.cwd(),
     args: getGlobalValue<string[]>(config, "args", []),
     path: getGlobalValue<string[]>(config, "path", []),
-    interpreter: interpreter,
+    interpreter: [],
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     run: getGlobalValue<Run>(config, `run`, "onType"),
     enable: getGlobalValue<boolean>(config, `enable`, true),

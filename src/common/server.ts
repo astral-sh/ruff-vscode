@@ -90,11 +90,11 @@ export async function restartServer(
     _disposables = [];
   }
   const projectRoot = await getProjectRoot();
-  const workspaceSetting = await getWorkspaceSettings(serverId, projectRoot, true);
+  const workspaceSetting = await getWorkspaceSettings(serverId, projectRoot);
 
   const newLSClient = await createServer(workspaceSetting, serverId, serverName, outputChannel, {
-    settings: await getExtensionSettings(serverId, true),
-    globalSettings: await getGlobalSettings(serverId, false),
+    settings: await getExtensionSettings(serverId),
+    globalSettings: await getGlobalSettings(serverId),
   });
   traceInfo(`Server: Start requested.`);
   _disposables.push(
