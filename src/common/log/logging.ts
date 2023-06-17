@@ -1,70 +1,57 @@
-import { createWriteStream } from "fs-extra";
-import { Disposable } from "vscode";
-import { FileLogger } from "./fileLogger";
-import { Arguments, ILogging, LoggingLevelSettingType, LogLevel } from "./types";
+import * as util from "util";
+import { Disposable, LogOutputChannel } from "vscode";
 
-let loggers: ILogging[] = [];
+type Arguments = unknown[];
+class OutputChannelLogger {
+  constructor(private readonly channel: LogOutputChannel) {}
 
-export function registerLogger(logger: ILogging): Disposable {
-  loggers.push(logger);
+  public traceLog(...data: Arguments): void {
+    this.channel.appendLine(util.format(...data));
+  }
+
+  public traceError(...data: Arguments): void {
+    this.channel.error(util.format(...data));
+  }
+
+  public traceWarn(...data: Arguments): void {
+    this.channel.warn(util.format(...data));
+  }
+
+  public traceInfo(...data: Arguments): void {
+    this.channel.info(util.format(...data));
+  }
+
+  public traceVerbose(...data: Arguments): void {
+    this.channel.debug(util.format(...data));
+  }
+}
+
+let channel: OutputChannelLogger | undefined;
+export function registerLogger(logChannel: LogOutputChannel): Disposable {
+  channel = new OutputChannelLogger(logChannel);
   return {
     dispose: () => {
-      loggers = loggers.filter((l) => l !== logger);
+      channel = undefined;
     },
   };
 }
 
-const logLevelMap: Map<string | undefined, LogLevel> = new Map([
-  ["error", LogLevel.error],
-  ["warn", LogLevel.warn],
-  ["info", LogLevel.info],
-  ["debug", LogLevel.debug],
-  ["none", LogLevel.off],
-  ["off", LogLevel.off],
-  [undefined, LogLevel.error],
-]);
-
-let globalLoggingLevel: LogLevel;
-
-export function setLoggingLevel(level?: LoggingLevelSettingType): void {
-  globalLoggingLevel = logLevelMap.get(level) ?? LogLevel.error;
-}
-
-export function initializeFileLogging(filePath: string, disposables: Disposable[]): unknown {
-  try {
-    const fileLogger = new FileLogger(createWriteStream(filePath));
-    disposables.push(fileLogger);
-    disposables.push(registerLogger(fileLogger));
-    return undefined;
-  } catch (ex) {
-    return ex;
-  }
-}
-
 export function traceLog(...args: Arguments): void {
-  loggers.forEach((l) => l.traceLog(...args));
+  channel?.traceLog(...args);
 }
 
 export function traceError(...args: Arguments): void {
-  if (globalLoggingLevel >= LogLevel.error) {
-    loggers.forEach((l) => l.traceError(...args));
-  }
+  channel?.traceError(...args);
 }
 
 export function traceWarn(...args: Arguments): void {
-  if (globalLoggingLevel >= LogLevel.warn) {
-    loggers.forEach((l) => l.traceWarn(...args));
-  }
+  channel?.traceWarn(...args);
 }
 
 export function traceInfo(...args: Arguments): void {
-  if (globalLoggingLevel >= LogLevel.info) {
-    loggers.forEach((l) => l.traceInfo(...args));
-  }
+  channel?.traceInfo(...args);
 }
 
 export function traceVerbose(...args: Arguments): void {
-  if (globalLoggingLevel >= LogLevel.debug) {
-    loggers.forEach((l) => l.traceVerbose(...args));
-  }
+  channel?.traceVerbose(...args);
 }

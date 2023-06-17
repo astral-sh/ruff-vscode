@@ -1,5 +1,5 @@
-import * as path from "path";
 import * as fs from "fs-extra";
+import * as path from "path";
 import { EXTENSION_ROOT_DIR } from "./constants";
 
 export interface IServerInfo {

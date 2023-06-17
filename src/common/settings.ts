@@ -1,6 +1,11 @@
-import { ConfigurationChangeEvent, ConfigurationScope, Uri, WorkspaceFolder } from "vscode";
+import {
+  ConfigurationChangeEvent,
+  ConfigurationScope,
+  Uri,
+  WorkspaceConfiguration,
+  WorkspaceFolder,
+} from "vscode";
 import { getInterpreterDetails } from "./python";
-import { LoggingLevelSettingType } from "./log/types";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
@@ -8,8 +13,8 @@ type ImportStrategy = "fromEnvironment" | "useBundled";
 type Run = "onType" | "onSave";
 
 export interface ISettings {
+  cwd: string;
   workspace: string;
-  logLevel: LoggingLevelSettingType;
   args: string[];
   path: string[];
   interpreter: string[];
@@ -21,67 +26,86 @@ export interface ISettings {
   fixAll: boolean;
 }
 
-export async function getExtensionSettings(namespace: string): Promise<ISettings[]> {
-  const settings: ISettings[] = [];
-  const workspaces = getWorkspaceFolders();
-
-  for (const workspace of workspaces) {
-    const workspaceSetting = await getWorkspaceSettings(namespace, workspace.uri);
-    settings.push({
-      workspace: workspace.uri.toString(),
-      ...workspaceSetting,
-    });
-  }
-
-  return settings;
+export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
+  return Promise.all(
+    getWorkspaceFolders().map((workspaceFolder) =>
+      getWorkspaceSettings(namespace, workspaceFolder),
+    ),
+  );
 }
 
-export function getInterpreterFromSetting(namespace: string): string[] | undefined {
-  const config = getConfiguration(namespace);
+function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[] {
+  const substitutions = new Map<string, string>();
+  const home = process.env.HOME || process.env.USERPROFILE;
+  if (home) {
+    substitutions.set("${userHome}", home);
+  }
+  if (workspace) {
+    substitutions.set("${workspaceFolder}", workspace.uri.fsPath);
+  }
+  substitutions.set("${cwd}", process.cwd());
+  getWorkspaceFolders().forEach((w) => {
+    substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
+  });
+
+  return value.map((s) => {
+    for (const [key, value] of substitutions) {
+      s = s.replace(key, value);
+    }
+    return s;
+  });
+}
+
+export function getInterpreterFromSetting(namespace: string, scope?: ConfigurationScope) {
+  const config = getConfiguration(namespace, scope);
   return config.get<string[]>("interpreter");
 }
 
 export async function getWorkspaceSettings(
   namespace: string,
-  resource?: Uri,
-): Promise<Omit<ISettings, "workspace">> {
-  const config = getConfiguration(namespace, resource);
+  workspace: WorkspaceFolder,
+): Promise<ISettings> {
+  const config = getConfiguration(namespace, workspace.uri);
 
-  let interpreter: string[] | undefined = getInterpreterFromSetting(namespace);
-  if (interpreter === undefined || interpreter.length === 0) {
-    interpreter = (await getInterpreterDetails(resource)).path;
+  let interpreter: string[] = getInterpreterFromSetting(namespace, workspace) ?? [];
+  if (interpreter.length === 0) {
+    interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
   }
 
   return {
-    logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? "error",
-    args: config.get<string[]>(`args`) ?? [],
-    path: config.get<string[]>(`path`) ?? [],
-    interpreter: interpreter ?? [],
+    cwd: workspace.uri.fsPath,
+    workspace: workspace.uri.toString(),
+    args: resolveVariables(config.get<string[]>(`args`) ?? [], workspace),
+    path: resolveVariables(config.get<string[]>(`path`) ?? [], workspace),
+    interpreter: resolveVariables(interpreter, workspace),
     importStrategy: config.get<ImportStrategy>(`importStrategy`) ?? "fromEnvironment",
     run: config.get<Run>(`run`) ?? "onType",
     enable: config.get<boolean>(`enable`) ?? true,
-    showNotifications: config.get<string>(`showNotifications`) ?? "off",
     organizeImports: config.get<boolean>(`organizeImports`) ?? true,
     fixAll: config.get<boolean>(`fixAll`) ?? true,
+    showNotifications: config.get<string>(`showNotifications`) ?? "off",
   };
 }
 
-export async function getGlobalSettings(namespace: string): Promise<Omit<ISettings, "workspace">> {
+function getGlobalValue<T>(config: WorkspaceConfiguration, key: string, defaultValue: T): T {
+  const inspect = config.inspect<T>(key);
+  return inspect?.globalValue ?? inspect?.defaultValue ?? defaultValue;
+}
+
+export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
-
-  let interpreter: string[] | undefined = getInterpreterFromSetting(namespace);
-
   return {
-    logLevel: config.get<LoggingLevelSettingType>(`logLevel`) ?? "error",
-    args: config.get<string[]>(`args`) ?? [],
-    path: config.get<string[]>(`path`) ?? [],
-    interpreter: interpreter ?? [],
-    importStrategy: config.get<ImportStrategy>(`importStrategy`) ?? "fromEnvironment",
-    run: config.get<Run>(`run`) ?? "onType",
-    enable: config.get<boolean>(`enable`) ?? true,
-    showNotifications: config.get<string>(`showNotifications`) ?? "off",
-    organizeImports: config.get<boolean>(`organizeImports`) ?? true,
-    fixAll: config.get<boolean>(`fixAll`) ?? true,
+    cwd: process.cwd(),
+    workspace: process.cwd(),
+    args: getGlobalValue<string[]>(config, "args", []),
+    path: getGlobalValue<string[]>(config, "path", []),
+    interpreter: [],
+    importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
+    run: getGlobalValue<Run>(config, `run`, "onType"),
+    enable: getGlobalValue<boolean>(config, `enable`, true),
+    organizeImports: getGlobalValue<boolean>(config, `organizeImports`, true),
+    fixAll: getGlobalValue<boolean>(config, `fixAll`, true),
+    showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
   };
 }
 
@@ -90,16 +114,15 @@ export function checkIfConfigurationChanged(
   namespace: string,
 ): boolean {
   const settings = [
-    `${namespace}.trace`,
     `${namespace}.args`,
     `${namespace}.path`,
     `${namespace}.interpreter`,
     `${namespace}.importStrategy`,
     `${namespace}.run`,
     `${namespace}.enable`,
-    `${namespace}.showNotifications`,
     `${namespace}.organizeImports`,
     `${namespace}.fixAll`,
+    `${namespace}.showNotifications`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }
