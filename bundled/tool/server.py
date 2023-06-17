@@ -13,14 +13,15 @@ BUNDLE_DIR = pathlib.Path(__file__).parent.parent
 logger = logging.getLogger(__name__)
 
 
-# Update sys.path before importing any bundled libraries.
 def update_sys_path(path_to_add: str) -> None:
     """Add given path to `sys.path`."""
-    if path_to_add not in sys.path and os.path.isdir(path_to_add):
-        # site adds the directory at the end if it is not yet present, we want it to
-        # be front
+    if os.path.isdir(path_to_add):
+        # The `site` module adds the directory at the end, if not yet present; we want
+        # it to be at the beginning, so that it takes precedence over any other
+        # installed versions.
         sys.path.insert(0, path_to_add)
-        # Allow dev installs into bundled/libs
+
+        # Allow development versions of libraries to be imported.
         site.addsitedir(path_to_add)
 
 
