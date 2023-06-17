@@ -183,6 +183,6 @@ MIT
 
 <div align="center">
   <a target="_blank" href="https://astral.sh" style="background:none">
-    <img src="https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/svg/Astral.svg">
+    <img height="24px" src="https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/png/Astral.png">
   </a>
 </div>
