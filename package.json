@@ -100,6 +100,20 @@
           "scope": "window",
           "type": "string"
         },
+        "ruff.run": {
+          "default": "onType",
+          "description": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "enum": [
+            "onType",
+            "onSave"
+          ],
+          "enumDescriptions": [
+            "Run Ruff on every keystroke.",
+            "Run Ruff on save."
+          ],
+          "scope": "window",
+          "type": "string"
+        },
         "ruff.interpreter": {
           "default": [],
           "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
