@@ -3,13 +3,18 @@ import { getInterpreterDetails } from "./python";
 import { LoggingLevelSettingType } from "./log/types";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 
+type ImportStrategy = "fromEnvironment" | "useBundled";
+
+type Run = "onType" | "onSave";
+
 export interface ISettings {
   workspace: string;
   logLevel: LoggingLevelSettingType;
   args: string[];
   path: string[];
   interpreter: string[];
-  importStrategy: string;
+  importStrategy: ImportStrategy;
+  run: Run;
   showNotifications: string;
   organizeImports: boolean;
   fixAll: boolean;
@@ -51,7 +56,8 @@ export async function getWorkspaceSettings(
     args: config.get<string[]>(`args`) ?? [],
     path: config.get<string[]>(`path`) ?? [],
     interpreter: interpreter ?? [],
-    importStrategy: config.get<string>(`importStrategy`) ?? "fromEnvironment",
+    importStrategy: config.get<ImportStrategy>(`importStrategy`) ?? "fromEnvironment",
+    run: config.get<Run>(`run`) ?? "onType",
     showNotifications: config.get<string>(`showNotifications`) ?? "off",
     organizeImports: config.get<boolean>(`organizeImports`) ?? true,
     fixAll: config.get<boolean>(`fixAll`) ?? true,
@@ -68,7 +74,8 @@ export async function getGlobalSettings(namespace: string): Promise<Omit<ISettin
     args: config.get<string[]>(`args`) ?? [],
     path: config.get<string[]>(`path`) ?? [],
     interpreter: interpreter ?? [],
-    importStrategy: config.get<string>(`importStrategy`) ?? "fromEnvironment",
+    importStrategy: config.get<ImportStrategy>(`importStrategy`) ?? "fromEnvironment",
+    run: config.get<Run>(`run`) ?? "onType",
     showNotifications: config.get<string>(`showNotifications`) ?? "off",
     organizeImports: config.get<boolean>(`organizeImports`) ?? true,
     fixAll: config.get<boolean>(`fixAll`) ?? true,
@@ -85,6 +92,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.path`,
     `${namespace}.interpreter`,
     `${namespace}.importStrategy`,
+    `${namespace}.run`,
     `${namespace}.showNotifications`,
     `${namespace}.organizeImports`,
     `${namespace}.fixAll`,

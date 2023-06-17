@@ -75,9 +75,6 @@ export async function createServer(
   const cwd = getProjectRoot()?.uri.fsPath;
   const newEnv = { ...process.env };
 
-  // Set import strategy.
-  newEnv.LS_IMPORT_STRATEGY = settings.importStrategy;
-
   // Set notification type.
   newEnv.LS_SHOW_NOTIFICATION = settings.showNotifications;
 
