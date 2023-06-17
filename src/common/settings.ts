@@ -15,6 +15,7 @@ export interface ISettings {
   interpreter: string[];
   importStrategy: ImportStrategy;
   run: Run;
+  enable: boolean;
   showNotifications: string;
   organizeImports: boolean;
   fixAll: boolean;
@@ -58,6 +59,7 @@ export async function getWorkspaceSettings(
     interpreter: interpreter ?? [],
     importStrategy: config.get<ImportStrategy>(`importStrategy`) ?? "fromEnvironment",
     run: config.get<Run>(`run`) ?? "onType",
+    enable: config.get<boolean>(`enable`) ?? true,
     showNotifications: config.get<string>(`showNotifications`) ?? "off",
     organizeImports: config.get<boolean>(`organizeImports`) ?? true,
     fixAll: config.get<boolean>(`fixAll`) ?? true,
@@ -76,6 +78,7 @@ export async function getGlobalSettings(namespace: string): Promise<Omit<ISettin
     interpreter: interpreter ?? [],
     importStrategy: config.get<ImportStrategy>(`importStrategy`) ?? "fromEnvironment",
     run: config.get<Run>(`run`) ?? "onType",
+    enable: config.get<boolean>(`enable`) ?? true,
     showNotifications: config.get<string>(`showNotifications`) ?? "off",
     organizeImports: config.get<boolean>(`organizeImports`) ?? true,
     fixAll: config.get<boolean>(`fixAll`) ?? true,
@@ -93,6 +96,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.interpreter`,
     `${namespace}.importStrategy`,
     `${namespace}.run`,
+    `${namespace}.enable`,
     `${namespace}.showNotifications`,
     `${namespace}.organizeImports`,
     `${namespace}.fixAll`,

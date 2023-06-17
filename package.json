@@ -141,6 +141,12 @@
           "scope": "machine",
           "type": "string"
         },
+        "ruff.enable": {
+          "default": true,
+          "description": "Whether to enable the Ruff extension.",
+          "scope": "window",
+          "type": "boolean"
+        },
         "ruff.organizeImports": {
           "default": true,
           "description": "Whether to register Ruff as capable of handling `source.organizeImports` actions.",

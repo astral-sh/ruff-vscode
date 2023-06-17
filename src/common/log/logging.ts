@@ -4,6 +4,7 @@ import { FileLogger } from "./fileLogger";
 import { Arguments, ILogging, LoggingLevelSettingType, LogLevel } from "./types";
 
 let loggers: ILogging[] = [];
+
 export function registerLogger(logger: ILogging): Disposable {
   loggers.push(logger);
   return {
@@ -24,6 +25,7 @@ const logLevelMap: Map<string | undefined, LogLevel> = new Map([
 ]);
 
 let globalLoggingLevel: LogLevel;
+
 export function setLoggingLevel(level?: LoggingLevelSettingType): void {
   globalLoggingLevel = logLevelMap.get(level) ?? LogLevel.error;
 }

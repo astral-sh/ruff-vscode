@@ -25,7 +25,6 @@ def update_sys_path(path_to_add: str) -> None:
 
 
 def main():
-    import ruff_lsp
     from ruff_lsp import server
 
     logging.config.dictConfig(
@@ -52,8 +51,6 @@ def main():
             },
         }
     )
-
-    logger.info(f"ruff path: {ruff_lsp.__file__}, sys.path: {sys.path}")
 
     if not hasattr(server, "set_bundle"):
         raise RuntimeError("ruff-vscode needs at least ruff-lsp v0.0.6")
