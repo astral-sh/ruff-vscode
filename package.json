@@ -9,13 +9,13 @@
   },
   "publisher": "charliermarsh",
   "license": "MIT",
-  "homepage": "https://github.com/astral-sh/vscode-ruff",
+  "homepage": "https://github.com/astral-sh/ruff-vscode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/astral-sh/vscode-ruff.git"
+    "url": "https://github.com/astral-sh/ruff-vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/astral-sh/vscode-ruff/issues"
+    "url": "https://github.com/astral-sh/ruff-vscode/issues"
   },
   "icon": "icon.png",
   "galleryBanner": {
