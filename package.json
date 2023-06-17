@@ -57,7 +57,7 @@
       "properties": {
         "ruff.logLevel": {
           "default": "error",
-          "description": "The log level the extension logs at, defaults to 'error'",
+          "description": "Sets the tracing level for the extension: `error`, `warn`, `info`, or `debug`.",
           "enum": [
             "debug",
             "error",
@@ -70,7 +70,7 @@
         },
         "ruff.args": {
           "default": [],
-          "description": "Arguments passed in. Each argument is a separate item in the array.",
+          "description": "Additional command-line arguments to pass to `ruff`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
           "items": {
             "type": "string"
           },
@@ -79,7 +79,7 @@
         },
         "ruff.path": {
           "default": [],
-          "description": "When set to a path to the `ruff` binary, extension will use that.",
+          "description": "Path to a custom `ruff` executable, e.g., `[\"/path/to/ruff\"]`.",
           "scope": "resource",
           "items": {
             "type": "string"
@@ -88,13 +88,13 @@
         },
         "ruff.importStrategy": {
           "default": "fromEnvironment",
-          "description": "Defines where `ruff` is imported from. This setting may be ignored if `ruff.path` is set.",
+          "description": "Strategy for loading the `ruff` executable. `fromEnvironment` picks up Ruff from the environment, falling back to the bundled version if needed. `useBundled` uses the version bundled with the extension.",
           "enum": [
             "fromEnvironment",
             "useBundled"
           ],
           "enumDescriptions": [
-            "Use `ruff` from environment, fallback to bundled version only if `ruff` not available in the environment.",
+            "Use `ruff` from environment, falling back to the bundled version if `ruff` is not found.",
             "Always use the bundled version of `ruff`."
           ],
           "scope": "window",
@@ -116,7 +116,7 @@
         },
         "ruff.interpreter": {
           "default": [],
-          "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
+          "description": "Path to a Python interpreter to use to run the linter server.",
           "scope": "window",
           "items": {
             "type": "string"
