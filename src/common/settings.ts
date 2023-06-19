@@ -21,7 +21,6 @@ export interface ISettings {
   importStrategy: ImportStrategy;
   run: Run;
   enable: boolean;
-  showNotifications: string;
   organizeImports: boolean;
   fixAll: boolean;
 }
@@ -83,7 +82,6 @@ export async function getWorkspaceSettings(
     enable: config.get<boolean>(`enable`) ?? true,
     organizeImports: config.get<boolean>(`organizeImports`) ?? true,
     fixAll: config.get<boolean>(`fixAll`) ?? true,
-    showNotifications: config.get<string>(`showNotifications`) ?? "off",
   };
 }
 
@@ -105,7 +103,6 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     enable: getGlobalValue<boolean>(config, `enable`, true),
     organizeImports: getGlobalValue<boolean>(config, `organizeImports`, true),
     fixAll: getGlobalValue<boolean>(config, `fixAll`, true),
-    showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
   };
 }
 
@@ -122,7 +119,6 @@ export function checkIfConfigurationChanged(
     `${namespace}.enable`,
     `${namespace}.organizeImports`,
     `${namespace}.fixAll`,
-    `${namespace}.showNotifications`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }

@@ -137,24 +137,6 @@
           ],
           "default": "off",
           "markdownDescription": "Traces the communication between VSCode and the ruff-lsp."
-        },
-        "ruff.showNotifications": {
-          "default": "off",
-          "description": "Controls when notifications are shown by this extension.",
-          "enum": [
-            "off",
-            "onError",
-            "onWarning",
-            "always"
-          ],
-          "enumDescriptions": [
-            "All notifications are turned off, any errors or warning are still available in the logs.",
-            "Notifications are shown only in the case of an error.",
-            "Notifications are shown for errors and warnings.",
-            "Notifications are show for anything that the server chooses to show."
-          ],
-          "scope": "machine",
-          "type": "string"
         }
       }
     },
