@@ -12,6 +12,15 @@ type ImportStrategy = "fromEnvironment" | "useBundled";
 
 type Run = "onType" | "onSave";
 
+type CodeAction = {
+  disableRuleComment?: {
+    enable?: boolean;
+  };
+  fixViolation?: {
+    enable?: boolean;
+  };
+};
+
 export interface ISettings {
   cwd: string;
   workspace: string;
@@ -20,6 +29,7 @@ export interface ISettings {
   interpreter: string[];
   importStrategy: ImportStrategy;
   run: Run;
+  codeAction: CodeAction;
   enable: boolean;
   showNotifications: string;
   organizeImports: boolean;
@@ -75,15 +85,16 @@ export async function getWorkspaceSettings(
   return {
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
-    args: resolveVariables(config.get<string[]>(`args`) ?? [], workspace),
-    path: resolveVariables(config.get<string[]>(`path`) ?? [], workspace),
+    args: resolveVariables(config.get<string[]>("args") ?? [], workspace),
+    path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     interpreter: resolveVariables(interpreter, workspace),
-    importStrategy: config.get<ImportStrategy>(`importStrategy`) ?? "fromEnvironment",
-    run: config.get<Run>(`run`) ?? "onType",
-    enable: config.get<boolean>(`enable`) ?? true,
-    organizeImports: config.get<boolean>(`organizeImports`) ?? true,
-    fixAll: config.get<boolean>(`fixAll`) ?? true,
-    showNotifications: config.get<string>(`showNotifications`) ?? "off",
+    importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
+    run: config.get<Run>("run") ?? "onType",
+    codeAction: config.get<CodeAction>("codeAction") ?? {},
+    enable: config.get<boolean>("enable") ?? true,
+    organizeImports: config.get<boolean>("organizeImports") ?? true,
+    fixAll: config.get<boolean>("fixAll") ?? true,
+    showNotifications: config.get<string>("showNotifications") ?? "off",
   };
 }
 
@@ -101,10 +112,11 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     path: getGlobalValue<string[]>(config, "path", []),
     interpreter: [],
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
-    run: getGlobalValue<Run>(config, `run`, "onType"),
-    enable: getGlobalValue<boolean>(config, `enable`, true),
-    organizeImports: getGlobalValue<boolean>(config, `organizeImports`, true),
-    fixAll: getGlobalValue<boolean>(config, `fixAll`, true),
+    run: getGlobalValue<Run>(config, "run", "onType"),
+    codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
+    enable: getGlobalValue<boolean>(config, "enable", true),
+    organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
+    fixAll: getGlobalValue<boolean>(config, "fixAll", true),
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
   };
 }
@@ -115,13 +127,14 @@ export function checkIfConfigurationChanged(
 ): boolean {
   const settings = [
     `${namespace}.args`,
-    `${namespace}.path`,
-    `${namespace}.interpreter`,
-    `${namespace}.importStrategy`,
-    `${namespace}.run`,
+    `${namespace}.codeAction`,
     `${namespace}.enable`,
-    `${namespace}.organizeImports`,
     `${namespace}.fixAll`,
+    `${namespace}.importStrategy`,
+    `${namespace}.interpreter`,
+    `${namespace}.organizeImports`,
+    `${namespace}.path`,
+    `${namespace}.run`,
     `${namespace}.showNotifications`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));

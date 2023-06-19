@@ -2,7 +2,7 @@
   "name": "ruff",
   "displayName": "Ruff",
   "description": "A Visual Studio Code extension with support for the Ruff linter.",
-  "version": "2023.24.0",
+  "version": "2023.25.0-dev",
   "serverInfo": {
     "name": "Ruff",
     "module": "ruff"
@@ -127,6 +127,38 @@
           "description": "Whether to register Ruff as capable of handling `source.fixAll` actions.",
           "scope": "window",
           "type": "boolean"
+        },
+        "ruff.codeAction.fixViolation": {
+          "scope": "resource",
+          "type": "object",
+          "default": {
+            "enable": true
+          },
+          "properties": {
+            "enable": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable the Quick Fix."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Whether to display Quick Fix actions to autofix violations."
+        },
+        "ruff.codeAction.disableRuleComment": {
+          "scope": "resource",
+          "type": "object",
+          "default": {
+            "enable": true
+          },
+          "properties": {
+            "enable": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable the Quick Fix."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Whether to display Quick Fix actions to disable rules via `noqa` suppression comments."
         },
         "ruff.trace.server": {
           "type": "string",
