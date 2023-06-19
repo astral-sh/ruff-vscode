@@ -57,7 +57,7 @@
       "properties": {
         "ruff.args": {
           "default": [],
-          "description": "Additional command-line arguments to pass to `ruff`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDescription": "Additional command-line arguments to pass to `ruff`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
           "items": {
             "type": "string"
           },
@@ -66,7 +66,7 @@
         },
         "ruff.path": {
           "default": [],
-          "description": "Path to a custom `ruff` executable, e.g., `[\"/path/to/ruff\"]`.",
+          "markdownDescription": "Path to a custom `ruff` executable, e.g., `[\"/path/to/ruff\"]`.",
           "scope": "resource",
           "items": {
             "type": "string"
@@ -75,7 +75,7 @@
         },
         "ruff.importStrategy": {
           "default": "fromEnvironment",
-          "description": "Strategy for loading the `ruff` executable. `fromEnvironment` picks up Ruff from the environment, falling back to the bundled version if needed. `useBundled` uses the version bundled with the extension.",
+          "markdownDescription": "Strategy for loading the `ruff` executable. `fromEnvironment` picks up Ruff from the environment, falling back to the bundled version if needed. `useBundled` uses the version bundled with the extension.",
           "enum": [
             "fromEnvironment",
             "useBundled"
@@ -89,7 +89,7 @@
         },
         "ruff.run": {
           "default": "onType",
-          "description": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
           "enum": [
             "onType",
             "onSave"
@@ -103,7 +103,7 @@
         },
         "ruff.interpreter": {
           "default": [],
-          "description": "Path to a Python interpreter to use to run the linter server.",
+          "markdownDescription": "Path to a Python interpreter to use to run the linter server.",
           "scope": "window",
           "items": {
             "type": "string"
@@ -112,19 +112,19 @@
         },
         "ruff.enable": {
           "default": true,
-          "description": "Whether to enable the Ruff extension.",
+          "markdownDescription": "Whether to enable the Ruff extension.",
           "scope": "window",
           "type": "boolean"
         },
         "ruff.organizeImports": {
           "default": true,
-          "description": "Whether to register Ruff as capable of handling `source.organizeImports` actions.",
+          "markdownDescription": "Whether to register Ruff as capable of handling `source.organizeImports` actions.",
           "scope": "window",
           "type": "boolean"
         },
         "ruff.fixAll": {
           "default": true,
-          "description": "Whether to register Ruff as capable of handling `source.fixAll` actions.",
+          "markdownDescription": "Whether to register Ruff as capable of handling `source.fixAll` actions.",
           "scope": "window",
           "type": "boolean"
         },
@@ -138,11 +138,11 @@
             "enable": {
               "type": "boolean",
               "default": true,
-              "description": "Enable the Quick Fix."
+              "markdownDescription": "Enable the Quick Fix."
             }
           },
           "additionalProperties": false,
-          "description": "Whether to display Quick Fix actions to autofix violations."
+          "markdownDescription": "Whether to display Quick Fix actions to autofix violations."
         },
         "ruff.codeAction.disableRuleComment": {
           "scope": "resource",
@@ -154,11 +154,11 @@
             "enable": {
               "type": "boolean",
               "default": true,
-              "description": "Enable the Quick Fix."
+              "markdownDescription": "Enable the Quick Fix."
             }
           },
           "additionalProperties": false,
-          "description": "Whether to display Quick Fix actions to disable rules via `noqa` suppression comments."
+          "markdownDescription": "Whether to display Quick Fix actions to disable rules via `noqa` suppression comments."
         },
         "ruff.trace.server": {
           "type": "string",
@@ -172,7 +172,7 @@
         },
         "ruff.showNotifications": {
           "default": "off",
-          "description": "Controls when notifications are shown by this extension.",
+          "markdownDescription": "Controls when notifications are shown by this extension.",
           "enum": [
             "off",
             "onError",
