@@ -57,45 +57,51 @@ class TestServer(unittest.TestCase):
                 done.wait(TIMEOUT_SECONDS)
 
                 expected = {
-                    "uri": uri,
                     "diagnostics": [
                         {
-                            "range": {
-                                "start": {"line": 0, "character": 7},
-                                "end": {"line": 0, "character": 10},
+                            "code": "F401",
+                            "codeDescription": {
+                                "href": "https://beta.ruff.rs/docs/rules/unused-import"
                             },
                             "data": {
                                 "fix": {
-                                    "message": "Remove unused import: `sys`",
                                     "applicability": "Automatic",
                                     "edits": [
                                         {
                                             "content": "",
-                                            "location": {"row": 1, "column": 0},
-                                            "end_location": {"row": 2, "column": 0},
+                                            "end_location": {"column": 0, "row": 2},
+                                            "location": {"column": 0, "row": 1},
                                         }
                                     ],
+                                    "message": "Remove unused import: `sys`",
                                 },
                                 "noqa_row": 1,
                             },
                             "message": "`sys` imported but unused",
+                            "range": {
+                                "end": {"character": 10, "line": 0},
+                                "start": {"character": 7, "line": 0},
+                            },
                             "severity": 2,
-                            "code": "F401",
                             "source": "Ruff",
                             "tags": [1],
                         },
                         {
-                            "range": {
-                                "start": {"line": 2, "character": 6},
-                                "end": {"line": 2, "character": 7},
+                            "code": "F821",
+                            "codeDescription": {
+                                "href": "https://beta.ruff.rs/docs/rules/undefined-name"
                             },
                             "data": {"fix": None, "noqa_row": 3},
                             "message": "Undefined name `x`",
+                            "range": {
+                                "end": {"character": 7, "line": 2},
+                                "start": {"character": 6, "line": 2},
+                            },
                             "severity": 1,
-                            "code": "F821",
                             "source": "Ruff",
                         },
                     ],
+                    "uri": uri,
                 }
 
             self.maxDiff = None
@@ -145,45 +151,51 @@ class TestServer(unittest.TestCase):
                 done.wait(TIMEOUT_SECONDS)
 
                 expected = {
-                    "uri": uri,
                     "diagnostics": [
                         {
-                            "range": {
-                                "start": {"line": 0, "character": 7},
-                                "end": {"line": 0, "character": 10},
+                            "code": "F401",
+                            "codeDescription": {
+                                "href": "https://beta.ruff.rs/docs/rules/unused-import"
                             },
                             "data": {
                                 "fix": {
-                                    "message": "Remove unused import: `sys`",
                                     "applicability": "Automatic",
                                     "edits": [
                                         {
                                             "content": "",
-                                            "location": {"row": 1, "column": 0},
-                                            "end_location": {"row": 2, "column": 0},
+                                            "end_location": {"column": 0, "row": 2},
+                                            "location": {"column": 0, "row": 1},
                                         }
                                     ],
+                                    "message": "Remove unused import: `sys`",
                                 },
                                 "noqa_row": 1,
                             },
                             "message": "`sys` imported but unused",
+                            "range": {
+                                "end": {"character": 10, "line": 0},
+                                "start": {"character": 7, "line": 0},
+                            },
                             "severity": 2,
-                            "code": "F401",
                             "source": "Ruff",
                             "tags": [1],
                         },
                         {
-                            "range": {
-                                "start": {"line": 2, "character": 6},
-                                "end": {"line": 2, "character": 7},
+                            "code": "F821",
+                            "codeDescription": {
+                                "href": "https://beta.ruff.rs/docs/rules/undefined-name"
                             },
                             "data": {"fix": None, "noqa_row": 3},
                             "message": "Undefined name `x`",
+                            "range": {
+                                "end": {"character": 7, "line": 2},
+                                "start": {"character": 6, "line": 2},
+                            },
                             "severity": 1,
-                            "code": "F821",
                             "source": "Ruff",
                         },
                     ],
+                    "uri": uri,
                 }
 
             self.maxDiff = None
