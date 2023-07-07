@@ -24,8 +24,7 @@ pip-compile --generate-hashes --resolver=backtracking --upgrade --extra dev -o .
 npm install --package-lock-only
 
 # Commit the change.
-git add .
-git commit -m "Bump Ruff version to $TO"
+git commit -am "Bump Ruff version to $TO"
 
 # Push.
 git push origin HEAD
