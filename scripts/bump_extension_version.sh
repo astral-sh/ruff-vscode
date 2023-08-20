@@ -2,7 +2,7 @@
 # Bump the extension version.
 #
 # Usage:
-#   ./scripts/bump_extension_version.sh 2023.30.0 2023.32.0
+#   ./scripts/bump_extension_version.sh 2023.33.0-dev 2023.34.0
 ###
 
 set -euxo pipefail
