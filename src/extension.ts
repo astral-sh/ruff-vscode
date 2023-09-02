@@ -1,13 +1,6 @@
 import * as vscode from "vscode";
 import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import {
-  registerLogger,
-  traceError,
-  traceInfo,
-  traceLog,
-  traceVerbose,
-  traceWarn,
-} from "./common/log/logging";
+import { registerLogger, traceError, traceLog, traceVerbose } from "./common/log/logging";
 import {
   checkVersion,
   getInterpreterDetails,
@@ -31,29 +24,8 @@ import {
 } from "./common/vscodeapi";
 
 const issueTracker = "https://github.com/charliermarsh/ruff/issues";
-// const runServer = async () => {
-//   // if (restartInProgress) {
-//   //   if (!restartQueued) {
-//   //     // Schedule a new restart after the current restart.
-//   //     traceLog(`Triggered ${serverName} restart while restart is in progress; queuing a restart.`);
-//   //     restartQueued = true;
-//   //   }
-//   //   return;
-//   // }
-//   //
-//   // restartInProgress = true;
-//   // client = await restartServer(serverId, serverName, outputChannel, client);
-//   //
-//   // restartInProgress = false;
-//   //
-//   // if (restartQueued) {
-//   //   restartQueued = false;
-//   //   await runServer();
-//   // }
-// // };
 
 let lsClient: LanguageClient | undefined;
-// let client: LanguageClient | undefined;
 let restartInProgress = false;
 let restartQueued = false;
 
