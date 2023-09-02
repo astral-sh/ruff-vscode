@@ -15,13 +15,12 @@ maintainers = [
 requires-python = ">=3.7"
 license = "MIT"
 dependencies = [
-  "ruff-lsp==0.0.37",
-  "ruff==0.0.285",
+  "ruff-lsp==0.0.38",
+  "ruff==0.0.287",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "black==23.3.0",
   "mypy==1.2.0",
   "python-lsp-jsonrpc==1.0.0",
 ]
