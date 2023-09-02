@@ -193,6 +193,12 @@
           ],
           "scope": "machine",
           "type": "string"
+        },
+        "ruff.enableExperimentalFormatter": {
+          "default": false,
+          "markdownDescription": "Controls whether Ruff registers as capable of code formatting. The Ruff formatter is in an alpha state during which formatting may change at any time.",
+          "scope": "machine",
+          "type": "boolean"
         }
       }
     },

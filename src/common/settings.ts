@@ -31,6 +31,7 @@ export interface ISettings {
   run: Run;
   codeAction: CodeAction;
   enable: boolean;
+  enableExperimentalFormatter: boolean;
   showNotifications: string;
   organizeImports: boolean;
   fixAll: boolean;
@@ -95,6 +96,7 @@ export async function getWorkspaceSettings(
     organizeImports: config.get<boolean>("organizeImports") ?? true,
     fixAll: config.get<boolean>("fixAll") ?? true,
     showNotifications: config.get<string>("showNotifications") ?? "off",
+    enableExperimentalFormatter: config.get<boolean>("enableExperimentalFormatter") ?? false,
   };
 }
 
@@ -118,6 +120,11 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
+    enableExperimentalFormatter: getGlobalValue<boolean>(
+      config,
+      "enableExperimentalFormatter",
+      false,
+    ),
   };
 }
 
@@ -136,6 +143,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.path`,
     `${namespace}.run`,
     `${namespace}.showNotifications`,
+    `${namespace}.enableExperimentalFormatter`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }
