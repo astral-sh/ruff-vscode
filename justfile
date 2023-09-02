@@ -18,14 +18,14 @@ test: setup
 
 check:
   ruff ./bundled/tool ./build ./tests
-  black --check ./bundled/tool ./build ./tests
+  ruff format --check ./bundled/tool ./build ./tests
   mypy ./bundled/tool ./build ./tests
   npm run lint
   npm run tsc
 
 fmt:
   ruff --fix ./bundled/tool ./build ./tests
-  black --check ./bundled/tool ./build ./tests
+  ruff format ./bundled/tool ./build ./tests
   npm run fmt
 
 build-package: setup
