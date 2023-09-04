@@ -44,6 +44,11 @@ async function createServer(
   // Set notification type
   newEnv.LS_SHOW_NOTIFICATION = settings.showNotifications;
 
+  // Set experimental formatter capabilities
+  if (settings.enableExperimentalFormatter) {
+    newEnv.RUFF_EXPERIMENTAL_FORMATTER = "1";
+  }
+
   const args =
     newEnv.USE_DEBUGPY === "False" || !isDebugScript
       ? settings.interpreter.slice(1).concat([SERVER_SCRIPT_PATH])
