@@ -23,7 +23,7 @@ import {
   registerCommand,
 } from "./common/vscodeapi";
 
-const issueTracker = "https://github.com/charliermarsh/ruff/issues";
+const issueTracker = "https://github.com/astral-sh/ruff/issues";
 
 let lsClient: LanguageClient | undefined;
 let restartInProgress = false;
