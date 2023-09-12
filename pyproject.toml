@@ -16,7 +16,7 @@ requires-python = ">=3.7"
 license = "MIT"
 dependencies = [
   "ruff-lsp==0.0.39",
-  "ruff==0.0.288",
+  "ruff==0.0.289",
 ]
 
 [project.optional-dependencies]
