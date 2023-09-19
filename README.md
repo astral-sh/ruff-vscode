@@ -1,17 +1,17 @@
 # Ruff extension for Visual Studio Code
 
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![image](https://img.shields.io/pypi/v/ruff/0.0.289.svg)](https://pypi.python.org/pypi/ruff)
 [![image](https://img.shields.io/pypi/l/ruff/0.0.289.svg)](https://pypi.python.org/pypi/ruff)
 [![image](https://img.shields.io/pypi/pyversions/ruff/0.0.289.svg)](https://pypi.python.org/pypi/ruff)
 [![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
 
-A Visual Studio Code extension with support for the [Ruff](https://github.com/charliermarsh/ruff)
+A Visual Studio Code extension with support for the [Ruff](https://github.com/astral-sh/ruff)
 linter. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
 The extension ships with `ruff==0.0.289`.
 
-(Interested in using [Ruff](https://github.com/charliermarsh/ruff) with another editor? Check out
+(Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
 
 ## Highlights
@@ -80,8 +80,10 @@ You can configure Ruff to organize imports on-save by enabling the `source.organ
 }
 ```
 
-If you're using the VS Code Python extension, you can configure VS Code to autofix violations
-on-save using Ruff, then re-format with Black, via the following `settings.json`:
+If you're using the [VS Code Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python),
+you can configure VS Code to autofix violations on-save using Ruff,
+then re-format with [the Black extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter),
+via the following `settings.json`:
 
 ```json
 {
@@ -89,9 +91,9 @@ on-save using Ruff, then re-format with Black, via the following `settings.json`
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.fixAll": true
-    }
-  },
-  "python.formatting.provider": "black"
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  }
 }
 ```
 
@@ -169,12 +171,12 @@ and Python log messages in the debug console under "Python Server".
 
 ### Modifying the LSP
 
-- Clone [ruff-lsp](https://github.com/charliermarsh/ruff-lsp) to, e.g., `../ruff-lsp`.
+- Clone [ruff-lsp](https://github.com/astral-sh/ruff-lsp) to, e.g., `../ruff-lsp`.
 - In `../ruff-lsp`, run: `pip install -t ../ruff-vscode/bundled/libs/ -e .`.
 
 ### Using a custom version of ruff
 
-- Clone [ruff](https://github.com/charliermarsh/ruff) to, e.g., `/home/ferris/ruff`.
+- Clone [ruff](https://github.com/astral-sh/ruff) to, e.g., `/home/ferris/ruff`.
 - Run `cargo build` in the Ruff repository.
 - Set "Ruff: Path" to `/home/ferris/ruff/target/debug/ruff` in the VS Code settings.
 
@@ -184,6 +186,6 @@ MIT
 
 <div align="center">
   <a target="_blank" href="https://astral.sh" style="background:none">
-    <img height="24px" src="https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/png/Astral.png">
+    <img height="24px" src="https://raw.githubusercontent.com/astral-sh/ruff/main/assets/png/Astral.png">
   </a>
 </div>
