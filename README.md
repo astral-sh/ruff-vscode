@@ -141,6 +141,23 @@ If you'd like to run Ruff in lieu of another formatter altogether, be sure to un
 }
 ```
 
+If you'd like to configure Ruff with more customized settings, 
+you can use `ruff.args` in `settings.json` while picking the right [rules](https://docs.astral.sh/ruff/rules/) 
+and [args](https://docs.astral.sh/ruff/configuration/#command-line-interface):
+
+```json
+{
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.fixAll": "always",
+      }
+    },
+    "ruff.args": ["--select=E,W,F,I001,PL", "--ignore=E203", "--per-file-ignores=**/__init__.py:F401"]
+}
+```
+
 ## Commands
 
 | Command                             | Description                      |
