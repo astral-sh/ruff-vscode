@@ -180,6 +180,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
       });
     }),
+    registerCommand(`${serverId}.executeFormat`, async () => {
+      if (!lsClient) {
+        return;
+      }
+
+      const textEditor = vscode.window.activeTextEditor;
+      if (!textEditor) {
+        return;
+      }
+
+      const textDocument = {
+        uri: textEditor.document.uri.toString(),
+        version: textEditor.document.version,
+      };
+      const params = {
+        command: `${serverId}.applyFormat`,
+        arguments: [textDocument],
+      };
+
+      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+        await vscode.window.showErrorMessage(
+          "Failed to apply Ruff formatting to the document. Please consider opening an issue with steps to reproduce.",
+        );
+      });
+    }),
     registerCommand(`${serverId}.executeOrganizeImports`, async () => {
       if (!lsClient) {
         return;
