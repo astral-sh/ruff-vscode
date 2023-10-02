@@ -15,6 +15,7 @@ maintainers = [
 requires-python = ">=3.7"
 license = "MIT"
 dependencies = [
+  "packaging>=23.1",
   "ruff-lsp==0.0.39",
   "ruff==0.0.291",
 ]

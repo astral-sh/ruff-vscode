@@ -65,6 +65,7 @@
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
           "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.args` instead.",
+          "deprecationMessage": "Deprecated: Please use ruff.lint.arg instead.",
           "items": {
             "type": "string"
           },
@@ -84,6 +85,7 @@
           "default": "onType",
           "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
           "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.run` instead.",
+          "deprecationMessage": "Deprecated: Please use ruff.lint.run instead.",
           "enum": [
             "onType",
             "onSave"

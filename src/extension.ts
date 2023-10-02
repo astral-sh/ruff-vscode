@@ -59,19 +59,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   traceLog(`Module: ${serverInfo.module}`);
   traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
+  context.subscriptions.push(
+    onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration("ruff.enable")) {
+        vscode.window.showWarningMessage(
+          "To enable or disable Ruff after changing the `enable` setting, you must restart VS Code.",
+        );
+      }
+    }),
+  );
+
   const { enable } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
     traceLog(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
-    );
-    context.subscriptions.push(
-      onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration("ruff.enable")) {
-          traceLog(
-            "To enable or disable Ruff after changing the `enable` setting, you must restart VS Code.",
-          );
-        }
-      }),
     );
     return;
   }
