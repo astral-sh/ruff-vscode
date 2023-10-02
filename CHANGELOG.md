@@ -2,15 +2,89 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
-## 2023.39.0-dev
+## 2023.40.0
 
-### Deprecations
-
-The `ruff.args` and `ruff.run` settings have been renamed to `ruff.lint.args` and `ruff.lint.run`,
-respectively (see: https://github.com/astral-sh/ruff-vscode/pull/293).
+- **Deprecation**: `ruff.args` has been renamed to `ruff.lint.args` (see: https://github.com/astral-sh/ruff-vscode/pull/293).
+- **Deprecation**: `ruff.run` has been renamed to `ruff.lint.run` (see: https://github.com/astral-sh/ruff-vscode/pull/293).
 
 The extension will continue to respect the deprecated variants (`ruff.args` and `ruff.run`), but
 they will be removed in a future release.
+
+## 2023.38.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.36.0...2023.38.0
+
+## 2023.36.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.34.0...2023.36.0
+
+## 2023.34.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.32.0...2023.34.0
+
+## 2023.32.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.30.0...2023.32.0
+
+## 2023.30.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.28.0...2023.30.0
+
+## 2023.28.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.26.0...2023.28.0
+
+## 2023.26.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.24.0...2023.26.0
+
+## 2023.24.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.22.0...2023.24.0
+
+## 2023.22.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.20.0...2023.22.0
+
+## 2023.20.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.18.0...2023.20.0
+
+## 2023.18.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.16.0...2023.18.0
+
+## 2023.16.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.14.0...2023.16.0
+
+## 2023.14.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.12.0...2023.14.0
+
+## 2023.12.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.10.0...2023.12.0
+
+## 2023.10.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.8.0...2023.10.0
+
+## 2023.8.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.6.0...2023.8.0
+
+## 2023.6.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.4.0...2023.6.0
+
+## 2023.4.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.2.0...2023.4.0
+
+## 2023.2.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.2.0...2023.2.0
 
 ## 2022.0.26 (22 December 2022)
 
