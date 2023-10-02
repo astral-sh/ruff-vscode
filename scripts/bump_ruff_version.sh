@@ -2,7 +2,7 @@
 # Bump the extension version.
 #
 # Usage:
-#   ./scripts/bump_ruff_version.sh 0.0.274 0.0.291
+#   ./scripts/bump_ruff_version.sh 0.0.274 0.0.292
 ###
 
 set -euxo pipefail

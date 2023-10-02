@@ -2,6 +2,16 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.39.0-dev
+
+### Deprecations
+
+The `ruff.args` and `ruff.run` settings have been renamed to `ruff.lint.args` and `ruff.lint.run`,
+respectively (see: https://github.com/astral-sh/ruff-vscode/pull/293).
+
+The extension will continue to respect the deprecated variants (`ruff.args` and `ruff.run`), but
+they will be removed in a future release.
+
 ## 2022.0.26 (22 December 2022)
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.0.25...2022.0.26
