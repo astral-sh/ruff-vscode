@@ -21,20 +21,28 @@ type CodeAction = {
   };
 };
 
+type Lint = {
+  args?: string[];
+  run?: Run;
+};
+
 export interface ISettings {
   cwd: string;
   workspace: string;
-  args: string[];
   path: string[];
   interpreter: string[];
   importStrategy: ImportStrategy;
-  run: Run;
   codeAction: CodeAction;
   enable: boolean;
   enableExperimentalFormatter: boolean;
   showNotifications: string;
   organizeImports: boolean;
   fixAll: boolean;
+  lint: Lint;
+
+  // Deprecated settings (prefer `lint.args`, etc.).
+  args: string[];
+  run: Run;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -86,17 +94,20 @@ export async function getWorkspaceSettings(
   return {
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
-    args: resolveVariables(config.get<string[]>("args") ?? [], workspace),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     interpreter: resolveVariables(interpreter, workspace),
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
-    run: config.get<Run>("run") ?? "onType",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
+    lint: config.get<Lint>("lint") ?? {},
     enable: config.get<boolean>("enable") ?? true,
     organizeImports: config.get<boolean>("organizeImports") ?? true,
     fixAll: config.get<boolean>("fixAll") ?? true,
     showNotifications: config.get<string>("showNotifications") ?? "off",
     enableExperimentalFormatter: config.get<boolean>("enableExperimentalFormatter") ?? false,
+
+    // Deprecated settings (prefer `lint.args`, etc.).
+    args: resolveVariables(config.get<string[]>("args") ?? [], workspace),
+    run: config.get<Run>("run") ?? "onType",
   };
 }
 
@@ -110,12 +121,11 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   return {
     cwd: process.cwd(),
     workspace: process.cwd(),
-    args: getGlobalValue<string[]>(config, "args", []),
     path: getGlobalValue<string[]>(config, "path", []),
     interpreter: [],
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
-    run: getGlobalValue<Run>(config, "run", "onType"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
+    lint: getGlobalValue<Lint>(config, "lint", {}),
     enable: getGlobalValue<boolean>(config, "enable", true),
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
@@ -125,6 +135,10 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
       "enableExperimentalFormatter",
       false,
     ),
+
+    // Deprecated settings (prefer `lint.args`, etc.).
+    args: getGlobalValue<string[]>(config, "args", []),
+    run: getGlobalValue<Run>(config, "run", "onType"),
   };
 }
 
@@ -133,17 +147,20 @@ export function checkIfConfigurationChanged(
   namespace: string,
 ): boolean {
   const settings = [
-    `${namespace}.args`,
     `${namespace}.codeAction`,
+    `${namespace}.enableExperimentalFormatter`,
     `${namespace}.enable`,
     `${namespace}.fixAll`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
+    `${namespace}.lint`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
-    `${namespace}.run`,
     `${namespace}.showNotifications`,
-    `${namespace}.enableExperimentalFormatter`,
+
+    // Deprecated settings (prefer `lint.args`, etc.).
+    `${namespace}.args`,
+    `${namespace}.run`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }

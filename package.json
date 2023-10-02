@@ -63,12 +63,51 @@
       "properties": {
         "ruff.args": {
           "default": [],
-          "markdownDescription": "Additional command-line arguments to pass to `ruff`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.args` instead.",
           "items": {
             "type": "string"
           },
           "scope": "resource",
           "type": "array"
+        },
+        "ruff.lint.args": {
+          "default": [],
+          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
+        "ruff.run": {
+          "default": "onType",
+          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.run` instead.",
+          "enum": [
+            "onType",
+            "onSave"
+          ],
+          "enumDescriptions": [
+            "Run Ruff on every keystroke.",
+            "Run Ruff on save."
+          ],
+          "scope": "window",
+          "type": "string"
+        },
+        "ruff.lint.run": {
+          "default": "onType",
+          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "enum": [
+            "onType",
+            "onSave"
+          ],
+          "enumDescriptions": [
+            "Run Ruff on every keystroke.",
+            "Run Ruff on save."
+          ],
+          "scope": "window",
+          "type": "string"
         },
         "ruff.path": {
           "default": [],
@@ -93,23 +132,9 @@
           "scope": "window",
           "type": "string"
         },
-        "ruff.run": {
-          "default": "onType",
-          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
-          "enum": [
-            "onType",
-            "onSave"
-          ],
-          "enumDescriptions": [
-            "Run Ruff on every keystroke.",
-            "Run Ruff on save."
-          ],
-          "scope": "window",
-          "type": "string"
-        },
         "ruff.interpreter": {
           "default": [],
-          "markdownDescription": "Path to a Python interpreter to use to run the linter server.",
+          "markdownDescription": "Path to a Python interpreter to use to run the LSP server.",
           "scope": "window",
           "items": {
             "type": "string"
