@@ -27,6 +27,10 @@ type Lint = {
   run?: Run;
 };
 
+type Format = {
+  args?: string[];
+};
+
 export interface ISettings {
   cwd: string;
   workspace: string;
@@ -40,6 +44,7 @@ export interface ISettings {
   organizeImports: boolean;
   fixAll: boolean;
   lint: Lint;
+  format: Format;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -102,6 +107,9 @@ export async function getWorkspaceSettings(
         workspace,
       ),
     },
+    format: {
+      args: resolveVariables(config.get<string[]>("format.args") ?? [], workspace),
+    },
     enable: config.get<boolean>("enable") ?? true,
     organizeImports: config.get<boolean>("organizeImports") ?? true,
     fixAll: config.get<boolean>("fixAll") ?? true,
@@ -128,6 +136,9 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
       run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
       args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
     },
+    format: {
+      args: getGlobalValue<string[]>(config, "format.args", []),
+    },
     enable: getGlobalValue<boolean>(config, "enable", true),
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
@@ -153,6 +164,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.interpreter`,
     `${namespace}.lint.run`,
     `${namespace}.lint.args`,
+    `${namespace}.format.args`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
     `${namespace}.showNotifications`,

@@ -111,6 +111,15 @@
           "scope": "window",
           "type": "string"
         },
+        "ruff.format.args": {
+          "default": [],
+          "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
         "ruff.path": {
           "default": [],
           "markdownDescription": "Path to a custom `ruff` executable, e.g., `[\"/path/to/ruff\"]`.",
