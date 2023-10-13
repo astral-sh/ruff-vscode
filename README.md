@@ -36,6 +36,16 @@ Python file.
 If you want to disable Ruff, you can [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension)
 per workspace in Visual Studio Code.
 
+## Fix safety
+
+Ruff's automatic fixes are labeled as "safe" and "unsafe". By default, the "Fix all" action will not apply unsafe
+fixes. However, unsafe fixes can be applied manually with the "Quick fix" action. Application of unsafe fixes when
+using "Fix all" can be enabled by setting `unsafe-fixes = true` in your Ruff configuration file or adding 
+`--unsafe-fixes` flag to the "Lint args" setting.
+
+See the [Ruff fix docs](https://docs.astral.sh/ruff/configuration/#fix-safety) for more details on how fix
+safety works.
+
 ## Settings
 
 | Settings                             | Default           | Description                                                                                                                                                                                                                                                 |
