@@ -2,7 +2,7 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
-## 2023.40.0
+## 2023.42.0
 
 - **Deprecation**: `ruff.args` has been renamed to `ruff.lint.args` (see: https://github.com/astral-sh/ruff-vscode/pull/293).
 - **Deprecation**: `ruff.run` has been renamed to `ruff.lint.run` (see: https://github.com/astral-sh/ruff-vscode/pull/293).
