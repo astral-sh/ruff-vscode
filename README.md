@@ -161,7 +161,7 @@ If you'd like to run Ruff in lieu of another formatter altogether, be sure to un
 ## Requirements
 
 This extension requires a version of the VSCode Python extension that supports Python 3.7+. Ruff
-itself is compatible with Python 3.7 to 3.11.
+itself is compatible with Python 3.7 to 3.12.
 
 ## Development
 
