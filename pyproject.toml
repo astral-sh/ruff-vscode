@@ -17,7 +17,7 @@ license = "MIT"
 dependencies = [
   "packaging>=23.1",
   "ruff-lsp==0.0.41",
-  "ruff==0.0.292",
+  "ruff==0.1.0",
 ]
 
 [project.optional-dependencies]
