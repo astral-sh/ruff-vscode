@@ -2,6 +2,18 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.42.0
+
+This release is required for compatibility with [Ruff v0.1.0+](https://github.com/astral-sh/ruff/releases/v0.1.0)
+which includes breaking changes.
+
+Ruff fixes are now labeled as "safe" or "unsafe". By default, the "Fix all" action will no longer apply unsafe
+fixes. However, unsafe fixes can be applied manually with the "Quick fix" action. Application of unsafe fixes when
+using "Fix all" can be enabled by setting `unsafe-fixes = true` in your Ruff configuration file or adding 
+`--unsafe-fixes` flag to the "Lint args" setting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.40.0...2023.42.0
+
 ## 2023.40.0
 
 - **Deprecation**: `ruff.args` has been renamed to `ruff.lint.args` (see: https://github.com/astral-sh/ruff-vscode/pull/293).
@@ -9,6 +21,8 @@ See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release 
 
 The extension will continue to respect the deprecated variants (`ruff.args` and `ruff.run`), but
 they will be removed in a future release.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.38.0...2023.40.0
 
 ## 2023.38.0
 
