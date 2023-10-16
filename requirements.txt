@@ -36,9 +36,9 @@ packaging==23.2 \
     # via
     #   ruff-lsp
     #   ruff-vscode (./pyproject.toml)
-pygls==1.0.2 \
-    --hash=sha256:6d278d29fa6559b0f7a448263c85cb64ec6e9369548b02f1a7944060848b21f9 \
-    --hash=sha256:888ed63d1f650b4fc64d603d73d37545386ec533c0caac921aed80f80ea946a4
+pygls==1.1.1 \
+    --hash=sha256:330704551a335b443bf1cdfb0507f121608591095898d451f0007eeb1510067c \
+    --hash=sha256:b1b4ddd6f800a5573f61f0ec2cd3bc7a859d171f48142b46e1de35a1357c00fe
     # via ruff-lsp
 ruff==0.0.292 \
     --hash=sha256:02f29db018c9d474270c704e6c6b13b18ed0ecac82761e4fcf0faa3728430c96 \
@@ -61,9 +61,9 @@ ruff==0.0.292 \
     # via
     #   ruff-lsp
     #   ruff-vscode (./pyproject.toml)
-ruff-lsp==0.0.40 \
-    --hash=sha256:15e7b4a500a11cca34040348a689830ea5739dc2edb0ad51a05deec293bfacf7 \
-    --hash=sha256:8be548244252cef9ad5f6379fbe944d78ba24c09de28c390220d4a98168a6908
+ruff-lsp==0.0.41 \
+    --hash=sha256:62dc0ea43a26d5c518174ed01f1128499f9a45804343b160951c78dac5cfb5a6 \
+    --hash=sha256:76d235279e067995971ddfc840fa4950d479adb793cb511fc5a75c362beec0d6
     # via ruff-vscode (./pyproject.toml)
 typeguard==3.0.2 \
     --hash=sha256:bbe993854385284ab42fd5bd3bee6f6556577ce8b50696d6cb956d704f286c8e \
