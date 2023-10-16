@@ -65,7 +65,7 @@ class TestServer(unittest.TestCase):
                             },
                             "data": {
                                 "fix": {
-                                    "applicability": "Automatic",
+                                    "applicability": "safe",
                                     "edits": [
                                         {
                                             "content": "",
@@ -159,7 +159,7 @@ class TestServer(unittest.TestCase):
                             },
                             "data": {
                                 "fix": {
-                                    "applicability": "Automatic",
+                                    "applicability": "safe",
                                     "edits": [
                                         {
                                             "content": "",
