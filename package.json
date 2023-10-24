@@ -232,7 +232,9 @@
         },
         "ruff.enableExperimentalFormatter": {
           "default": false,
-          "markdownDescription": "Controls whether Ruff registers as capable of code formatting. The Ruff formatter is in an alpha state during which formatting may change at any time.",
+          "markdownDescription": "Controls whether Ruff registers as capable of code formatting.",
+          "markdownDeprecationMessage": "**Deprecated**: Formatter capabilities are now always enabled.",
+          "deprecationMessage": "Deprecated: Formatter capabilities are now always enabled.",
           "scope": "window",
           "type": "boolean"
         }
