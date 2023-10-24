@@ -2,6 +2,25 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.44.0
+
+This release includes full support for using Ruff as a Python formatter via Ruff's `ruff format`
+command.
+
+You can configure Ruff to format Python code by marking it as your default formatter in VS Code's
+`settings.json`:
+
+```json
+{
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
+```
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.42.0...2023.44.0
+
 ## 2023.42.0
 
 This release is required for compatibility with [Ruff v0.1.0+](https://github.com/astral-sh/ruff/releases/v0.1.0)
@@ -9,7 +28,7 @@ which includes breaking changes.
 
 Ruff fixes are now labeled as "safe" or "unsafe". By default, the "Fix all" action will no longer apply unsafe
 fixes. However, unsafe fixes can be applied manually with the "Quick fix" action. Application of unsafe fixes when
-using "Fix all" can be enabled by setting `unsafe-fixes = true` in your Ruff configuration file or adding 
+using "Fix all" can be enabled by setting `unsafe-fixes = true` in your Ruff configuration file or adding
 `--unsafe-fixes` flag to the "Lint args" setting.
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.40.0...2023.42.0
