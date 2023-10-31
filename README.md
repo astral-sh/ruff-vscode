@@ -125,6 +125,10 @@ following `settings.json`:
 }
 ```
 
+_Note: if you're using Ruff to organize imports in VS Code and _also_ expect to run Ruff from the
+command line, you'll want to enable Ruff's isort rules by by adding `"I"` to your
+[`extend-select`](https://docs.astral.sh/ruff/settings/#extend-select)._
+
 If you're using the [VS Code Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python),
 you can configure VS Code to fix violations on-save using Ruff, then re-format with [the Black extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter),
 via the following `settings.json`:
