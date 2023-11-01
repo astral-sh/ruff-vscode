@@ -290,5 +290,34 @@
     "printWidth": 100,
     "tabWidth": 2,
     "trailingComma": "all"
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error",
+      "@typescript-eslint/naming-convention": "warn",
+      "@typescript-eslint/semi": "warn",
+      "curly": "warn",
+      "eqeqeq": [
+        "warn",
+        "smart"
+      ],
+      "no-throw-literal": "warn",
+      "semi": "off"
+    },
+    "ignorePatterns": [
+      "out",
+      "dist",
+      "**/*.d.ts"
+    ]
   }
 }
