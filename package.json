@@ -285,5 +285,10 @@
     "vsce": "^2.15.0",
     "webpack": "^5.82.0",
     "webpack-cli": "^5.0.2"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 2,
+    "trailingComma": "all"
   }
 }
