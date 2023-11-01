@@ -319,5 +319,17 @@
       "dist",
       "**/*.d.ts"
     ]
-  }
+  },
+  "eslintIgnore": [
+    "**/.nox/",
+    "**/.pytest_cache/",
+    "**/.ruff_cache/",
+    "**/.venv/",
+    "**/__pycache__/",
+    "**/dist/",
+    "**/node_modules/",
+    "*.vsix",
+    "*.pyc",
+    "/bundled/libs/"
+  ]
 }
