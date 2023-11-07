@@ -38,7 +38,7 @@ The extension ships with `ruff==0.1.2`.
 ## Usage
 
 Once installed in Visual Studio Code, `ruff` will automatically execute when you open or edit a
-Python file.
+Python or Jupyter Notebook file.
 
 If you want to disable Ruff, you can [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension)
 per workspace in Visual Studio Code.
@@ -52,6 +52,17 @@ using "Fix all" can be enabled by setting `unsafe-fixes = true` in your Ruff con
 
 See the [Ruff fix docs](https://docs.astral.sh/ruff/configuration/#fix-safety) for more details on how fix
 safety works.
+
+## Jupyter Notebook Support
+
+The extension has support for Jupyter Notebooks via the [Notebook Document Synchronization] capabilities of the Language
+Server Protocol which were added in 3.17. This has been implemented in `ruff-lsp` as of version `v0.0.43` which provides
+full support for all of the existing capabilities available to Python files in Jupyter Notebooks, including diagnostics,
+code actions, and formatting.
+
+This requires Ruff version `v0.1.3` or later.
+
+[Notebook Document Synchronization]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#notebookDocument_synchronization
 
 ## Settings
 
@@ -83,6 +94,17 @@ You can configure Ruff to format Python code on-save by enabling the `editor.for
 }
 ```
 
+And, for Jupyter Notebooks:
+
+```json
+{
+  "notebook.formatOnSave.enabled": true,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
+```
+
 You can configure Ruff to fix lint violations on-save by enabling the `source.fixAll` action in
 `settings.json`:
 
@@ -96,6 +118,16 @@ You can configure Ruff to fix lint violations on-save by enabling the `source.fi
 }
 ```
 
+And, for Jupyter Notebooks:
+
+```json
+{
+  "notebook.codeActionsOnSave": {
+    "source.fixAll": true
+  }
+}
+```
+
 Similarly, you can configure Ruff to organize imports on-save by enabling the
 `source.organizeImports` action in `settings.json`:
 
@@ -105,6 +137,16 @@ Similarly, you can configure Ruff to organize imports on-save by enabling the
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
     }
+  }
+}
+```
+
+And, for Jupyter Notebooks:
+
+```json
+{
+  "notebook.codeActionsOnSave": {
+    "source.organizeImports": true
   }
 }
 ```
@@ -125,9 +167,29 @@ following `settings.json`:
 }
 ```
 
+And, for Jupyter Notebooks:
+
+```json
+{
+  "notebook.formatOnSave.enabled": true,
+  "notebook.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
+```
+
 _Note: if you're using Ruff to organize imports in VS Code and _also_ expect to run Ruff from the
 command line, you'll want to enable Ruff's isort rules by by adding `"I"` to your
 [`extend-select`](https://docs.astral.sh/ruff/settings/#extend-select)._
+
+_Note: All of the above mentioned Notebook configurations will run the action for each cell individually.
+This is the way VS Code handles Notebook actions and is unrelated to `ruff-lsp`. If you'd prefer to run
+them on the entire notebook at once, prefer to use the `Ruff` prefixed commands such as
+`Ruff: Organize Imports` and `Ruff: Fix all auto-fixable problems`._
 
 If you're using the [VS Code Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python),
 you can configure VS Code to fix violations on-save using Ruff, then re-format with [the Black extension](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter),
@@ -193,6 +255,8 @@ to unset the `editor.defaultFormatter` in `settings.json`:
 | Command                             | Description                      |
 | ----------------------------------- | -------------------------------- |
 | Ruff: Fix all auto-fixable problems | Fix all auto-fixable problems.   |
+| Ruff: Format Imports                | Organize imports.                |
+| Ruff: Format Document               | Format the entire document.      |
 | Ruff: Restart Server                | Force restart the linter server. |
 
 ## Requirements
