@@ -12,7 +12,7 @@ Python linter and code formatter, written in Rust. Available on the [Visual Stud
 Ruff can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupgrade, and more,
 all while executing tens or hundreds of times faster than any individual tool.
 
-The extension ships with `ruff==0.1.2`.
+The extension ships with `ruff==0.1.5`.
 
 (Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
@@ -182,8 +182,8 @@ And, for Jupyter Notebooks:
 }
 ```
 
-_Note: if you're using Ruff to organize imports in VS Code and _also_ expect to run Ruff from the
-command line, you'll want to enable Ruff's isort rules by by adding `"I"` to your
+_Note: if you're using Ruff to organize imports in VS Code and also expect to run Ruff from the
+command line, you'll want to enable Ruff's isort rules by adding `"I"` to your
 [`extend-select`](https://docs.astral.sh/ruff/settings/#extend-select)._
 
 _Note: All of the above mentioned Notebook configurations will run the action for each cell individually.
