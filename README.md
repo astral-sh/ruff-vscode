@@ -56,7 +56,7 @@ safety works.
 ## Jupyter Notebook Support
 
 The extension has support for Jupyter Notebooks via the [Notebook Document Synchronization] capabilities of the Language
-Server Protocol which were added in 3.17. This has been implemented in `ruff-lsp` as of version `v0.0.43` which provides
+Server Protocol which were added in 3.17. This has been implemented in `ruff-lsp` as of version `v0.0.44` which provides
 full support for all of the existing capabilities available to Python files in Jupyter Notebooks, including diagnostics,
 code actions, and formatting.
 
