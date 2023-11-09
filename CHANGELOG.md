@@ -2,6 +2,25 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.46.0
+
+This release includes full support for using Ruff with Jupyter Notebooks in VS Code. For example:
+
+```json
+{
+  "notebook.formatOnSave.enabled": true,
+  "notebook.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
+```
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.44.0...2023.46.0
+
 ## 2023.44.0
 
 This release includes full support for using Ruff as a Python formatter via Ruff's `ruff format`
