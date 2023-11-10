@@ -2,6 +2,12 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.50.0
+
+This release fixes a bug in which Ruff overwrite excluded files during formatting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.48.0...2023.50.0
+
 ## 2023.48.0
 
 This release fixes a bug in which syntax errors caused files to clear when formatting.
