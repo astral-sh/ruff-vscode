@@ -2,7 +2,7 @@
   "name": "ruff",
   "displayName": "Ruff",
   "description": "A Visual Studio Code extension with support for the Ruff linter.",
-  "version": "2023.46.0",
+  "version": "2023.48.0",
   "serverInfo": {
     "name": "Ruff",
     "module": "ruff"
