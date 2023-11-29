@@ -15,6 +15,7 @@ import {
   ISettings,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
+import { registerLanguageStatusItem, updateStatus } from "./common/status";
 import { getLSClientTraceLevel } from "./common/utilities";
 import {
   createOutputChannel,
@@ -136,9 +137,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = false;
 
+    updateStatus(
+      vscode.l10n.t("Please select a Python interpreter."),
+      vscode.LanguageStatusSeverity.Error,
+    );
     traceError(
       "Python interpreter missing:\r\n" +
-        "[Option 1] Select python interpreter using the ms-python.python.\r\n" +
+        "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
         `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
         "Please use Python 3.7 or greater.",
     );
@@ -152,6 +157,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (checkIfConfigurationChanged(e, serverId)) {
         await runServer();
       }
+    }),
+    registerCommand(`${serverId}.showLogs`, async () => {
+      outputChannel.show();
     }),
     registerCommand(`${serverId}.restart`, async () => {
       await runServer();
@@ -231,6 +239,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
       });
     }),
+    registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),
   );
 
   setImmediate(async () => {
