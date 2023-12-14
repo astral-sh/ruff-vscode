@@ -2,6 +2,13 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.56.0
+
+This release fixes a bug in which the bundled version of Ruff was incompatible with ARM
+Mac devices.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.54.0...2023.56.0
+
 ## 2023.54.0
 
 This release fixes a bug in which Ruff overwrite files when invalid settings were provided

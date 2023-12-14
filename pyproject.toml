@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ruff-vscode"
-version = "2023.55.0-dev"
+version = "2023.56.0"
 description = "A Visual Studio Code extension with support for the Ruff linter."
 authors = [
   { name = "Charlie Marsh", email = "charlie.r.marsh@gmail.com" },
