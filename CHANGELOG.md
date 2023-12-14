@@ -2,6 +2,13 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.54.0
+
+This release fixes a bug in which Ruff overwrite files when invalid settings were provided
+via `ruff.lint.args` or `ruff.format.args`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.52.0...2023.54.0
+
 ## 2023.52.0
 
 This release upgrades the bundled Ruff version to v0.1.8.
