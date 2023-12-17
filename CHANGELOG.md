@@ -2,6 +2,12 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.58.0
+
+This release avoids surfacing errors when formatting files with syntax errors.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.56.0...2023.58.0
+
 ## 2023.56.0
 
 This release fixes a bug in which the bundled version of Ruff was incompatible with ARM
