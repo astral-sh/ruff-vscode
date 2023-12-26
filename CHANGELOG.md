@@ -2,6 +2,12 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2023.60.0
+
+This release upgrades the bundled Ruff version to v0.1.9.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.58.0...2023.60.0
+
 ## 2023.58.0
 
 This release avoids surfacing errors when formatting files with syntax errors.
