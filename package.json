@@ -2,7 +2,7 @@
   "name": "ruff",
   "displayName": "Ruff",
   "description": "A Visual Studio Code extension with support for the Ruff linter.",
-  "version": "2023.39.0-dev",
+  "version": "2024.0.0",
   "serverInfo": {
     "name": "Ruff",
     "module": "ruff"
@@ -46,6 +46,7 @@
   "activationEvents": [
     "onLanguage:python",
     "workspaceContains:*.py",
+    "workspaceContains:*.ipynb",
     "onCommand:ruff.restart"
   ],
   "main": "./dist/extension.js",
@@ -63,7 +64,57 @@
       "properties": {
         "ruff.args": {
           "default": [],
-          "markdownDescription": "Additional command-line arguments to pass to `ruff`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.args` instead.",
+          "deprecationMessage": "Deprecated: Please use ruff.lint.args instead.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
+        "ruff.lint.args": {
+          "default": [],
+          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
+        "ruff.run": {
+          "default": "onType",
+          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.run` instead.",
+          "deprecationMessage": "Deprecated: Please use ruff.lint.run instead.",
+          "enum": [
+            "onType",
+            "onSave"
+          ],
+          "enumDescriptions": [
+            "Run Ruff on every keystroke.",
+            "Run Ruff on save."
+          ],
+          "scope": "window",
+          "type": "string"
+        },
+        "ruff.lint.run": {
+          "default": "onType",
+          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "enum": [
+            "onType",
+            "onSave"
+          ],
+          "enumDescriptions": [
+            "Run Ruff on every keystroke.",
+            "Run Ruff on save."
+          ],
+          "scope": "window",
+          "type": "string"
+        },
+        "ruff.format.args": {
+          "default": [],
+          "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
           "items": {
             "type": "string"
           },
@@ -93,23 +144,9 @@
           "scope": "window",
           "type": "string"
         },
-        "ruff.run": {
-          "default": "onType",
-          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
-          "enum": [
-            "onType",
-            "onSave"
-          ],
-          "enumDescriptions": [
-            "Run Ruff on every keystroke.",
-            "Run Ruff on save."
-          ],
-          "scope": "window",
-          "type": "string"
-        },
         "ruff.interpreter": {
           "default": [],
-          "markdownDescription": "Path to a Python interpreter to use to run the linter server.",
+          "markdownDescription": "Path to a Python interpreter to use to run the LSP server.",
           "scope": "window",
           "items": {
             "type": "string"
@@ -191,13 +228,15 @@
             "Notifications are shown for errors and warnings.",
             "Notifications are show for anything that the server chooses to show."
           ],
-          "scope": "machine",
+          "scope": "window",
           "type": "string"
         },
         "ruff.enableExperimentalFormatter": {
           "default": false,
-          "markdownDescription": "Controls whether Ruff registers as capable of code formatting. The Ruff formatter is in an alpha state during which formatting may change at any time.",
-          "scope": "machine",
+          "markdownDescription": "Controls whether Ruff registers as capable of code formatting.",
+          "markdownDeprecationMessage": "**Deprecated**: Formatter capabilities are now always enabled.",
+          "deprecationMessage": "Deprecated: Formatter capabilities are now always enabled.",
+          "scope": "window",
           "type": "boolean"
         }
       }
@@ -207,6 +246,11 @@
         "title": "Fix all auto-fixable problems",
         "category": "Ruff",
         "command": "ruff.executeAutofix"
+      },
+      {
+        "title": "Format document",
+        "category": "Ruff",
+        "command": "ruff.executeFormat"
       },
       {
         "title": "Format imports",
@@ -242,5 +286,51 @@
     "vsce": "^2.15.0",
     "webpack": "^5.82.0",
     "webpack-cli": "^5.0.2"
-  }
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 2,
+    "trailingComma": "all"
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error",
+      "@typescript-eslint/naming-convention": "warn",
+      "@typescript-eslint/semi": "warn",
+      "curly": "warn",
+      "eqeqeq": [
+        "warn",
+        "smart"
+      ],
+      "no-throw-literal": "warn",
+      "semi": "off"
+    },
+    "ignorePatterns": [
+      "out",
+      "dist",
+      "**/*.d.ts"
+    ]
+  },
+  "eslintIgnore": [
+    "**/.nox/",
+    "**/.pytest_cache/",
+    "**/.ruff_cache/",
+    "**/.venv/",
+    "**/__pycache__/",
+    "**/dist/",
+    "**/node_modules/",
+    "*.vsix",
+    "*.pyc",
+    "/bundled/libs/"
+  ]
 }

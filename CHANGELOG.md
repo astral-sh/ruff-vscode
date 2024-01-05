@@ -2,6 +2,193 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.0.0
+
+This release upgrades the bundled Ruff version to v0.1.11 and adds support for Notebook-wide
+code actions on save via the `notebook.codeActionsOnSave` setting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.60.0...2024.0.0
+
+## 2023.60.0
+
+This release upgrades the bundled Ruff version to v0.1.9.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.58.0...2023.60.0
+
+## 2023.58.0
+
+This release avoids surfacing errors when formatting files with syntax errors.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.56.0...2023.58.0
+
+## 2023.56.0
+
+This release fixes a bug in which the bundled version of Ruff was incompatible with ARM
+Mac devices.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.54.0...2023.56.0
+
+## 2023.54.0
+
+This release fixes a bug in which Ruff overwrite files when invalid settings were provided
+via `ruff.lint.args` or `ruff.format.args`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.52.0...2023.54.0
+
+## 2023.52.0
+
+This release upgrades the bundled Ruff version to v0.1.8.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.50.0...2023.52.0
+
+## 2023.50.0
+
+This release fixes a bug in which Ruff overwrite excluded files during formatting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.48.0...2023.50.0
+
+## 2023.48.0
+
+This release fixes a bug in which syntax errors caused files to clear when formatting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.46.0...2023.48.0
+
+## 2023.46.0
+
+This release includes full support for using Ruff with Jupyter Notebooks in VS Code. For example:
+
+```json
+{
+  "notebook.formatOnSave.enabled": true,
+  "notebook.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
+```
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.44.0...2023.46.0
+
+## 2023.44.0
+
+This release includes full support for using Ruff as a Python formatter via Ruff's `ruff format`
+command.
+
+You can configure Ruff to format Python code by marking it as your default formatter in VS Code's
+`settings.json`:
+
+```json
+{
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
+```
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.42.0...2023.44.0
+
+## 2023.42.0
+
+This release is required for compatibility with [Ruff v0.1.0+](https://github.com/astral-sh/ruff/releases/v0.1.0)
+which includes breaking changes.
+
+Ruff fixes are now labeled as "safe" or "unsafe". By default, the "Fix all" action will no longer apply unsafe
+fixes. However, unsafe fixes can be applied manually with the "Quick fix" action. Application of unsafe fixes when
+using "Fix all" can be enabled by setting `unsafe-fixes = true` in your Ruff configuration file or adding
+`--unsafe-fixes` flag to the "Lint args" setting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.40.0...2023.42.0
+
+## 2023.40.0
+
+- **Deprecation**: `ruff.args` has been renamed to `ruff.lint.args` (see: https://github.com/astral-sh/ruff-vscode/pull/293).
+- **Deprecation**: `ruff.run` has been renamed to `ruff.lint.run` (see: https://github.com/astral-sh/ruff-vscode/pull/293).
+
+The extension will continue to respect the deprecated variants (`ruff.args` and `ruff.run`), but
+they will be removed in a future release.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.38.0...2023.40.0
+
+## 2023.38.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.36.0...2023.38.0
+
+## 2023.36.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.34.0...2023.36.0
+
+## 2023.34.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.32.0...2023.34.0
+
+## 2023.32.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.30.0...2023.32.0
+
+## 2023.30.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.28.0...2023.30.0
+
+## 2023.28.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.26.0...2023.28.0
+
+## 2023.26.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.24.0...2023.26.0
+
+## 2023.24.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.22.0...2023.24.0
+
+## 2023.22.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.20.0...2023.22.0
+
+## 2023.20.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.18.0...2023.20.0
+
+## 2023.18.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.16.0...2023.18.0
+
+## 2023.16.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.14.0...2023.16.0
+
+## 2023.14.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.12.0...2023.14.0
+
+## 2023.12.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.10.0...2023.12.0
+
+## 2023.10.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.8.0...2023.10.0
+
+## 2023.8.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.6.0...2023.8.0
+
+## 2023.6.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.4.0...2023.6.0
+
+## 2023.4.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.2.0...2023.4.0
+
+## 2023.2.0
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.2.0...2023.2.0
+
 ## 2022.0.26 (22 December 2022)
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2022.0.25...2022.0.26

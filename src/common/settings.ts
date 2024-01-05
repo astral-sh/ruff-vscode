@@ -5,6 +5,7 @@ import {
   WorkspaceConfiguration,
   WorkspaceFolder,
 } from "vscode";
+import { traceError } from "./log/logging";
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 
@@ -21,20 +22,28 @@ type CodeAction = {
   };
 };
 
+type Lint = {
+  args?: string[];
+  run?: Run;
+};
+
+type Format = {
+  args?: string[];
+};
+
 export interface ISettings {
   cwd: string;
   workspace: string;
-  args: string[];
   path: string[];
   interpreter: string[];
   importStrategy: ImportStrategy;
-  run: Run;
   codeAction: CodeAction;
   enable: boolean;
-  enableExperimentalFormatter: boolean;
   showNotifications: string;
   organizeImports: boolean;
   fixAll: boolean;
+  lint: Lint;
+  format: Format;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -86,17 +95,24 @@ export async function getWorkspaceSettings(
   return {
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
-    args: resolveVariables(config.get<string[]>("args") ?? [], workspace),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     interpreter: resolveVariables(interpreter, workspace),
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
-    run: config.get<Run>("run") ?? "onType",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
+    lint: {
+      run: getPreferredWorkspaceSetting<Run>("lint.run", "run", config) ?? "onType",
+      args: resolveVariables(
+        getPreferredWorkspaceSetting<string[]>("lint.args", "args", config) ?? [],
+        workspace,
+      ),
+    },
+    format: {
+      args: resolveVariables(config.get<string[]>("format.args") ?? [], workspace),
+    },
     enable: config.get<boolean>("enable") ?? true,
     organizeImports: config.get<boolean>("organizeImports") ?? true,
     fixAll: config.get<boolean>("fixAll") ?? true,
     showNotifications: config.get<string>("showNotifications") ?? "off",
-    enableExperimentalFormatter: config.get<boolean>("enableExperimentalFormatter") ?? false,
   };
 }
 
@@ -110,21 +126,21 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   return {
     cwd: process.cwd(),
     workspace: process.cwd(),
-    args: getGlobalValue<string[]>(config, "args", []),
     path: getGlobalValue<string[]>(config, "path", []),
     interpreter: [],
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
-    run: getGlobalValue<Run>(config, "run", "onType"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
+    lint: {
+      run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
+      args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
+    },
+    format: {
+      args: getGlobalValue<string[]>(config, "format.args", []),
+    },
     enable: getGlobalValue<boolean>(config, "enable", true),
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
-    enableExperimentalFormatter: getGlobalValue<boolean>(
-      config,
-      "enableExperimentalFormatter",
-      false,
-    ),
   };
 }
 
@@ -133,17 +149,82 @@ export function checkIfConfigurationChanged(
   namespace: string,
 ): boolean {
   const settings = [
-    `${namespace}.args`,
     `${namespace}.codeAction`,
     `${namespace}.enable`,
     `${namespace}.fixAll`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
+    `${namespace}.lint.run`,
+    `${namespace}.lint.args`,
+    `${namespace}.format.args`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
-    `${namespace}.run`,
     `${namespace}.showNotifications`,
-    `${namespace}.enableExperimentalFormatter`,
+    // Deprecated settings (prefer `lint.args`, etc.).
+    `${namespace}.args`,
+    `${namespace}.run`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
+}
+
+/**
+ * Get the preferred value for a workspace setting.
+ */
+function getPreferredWorkspaceSetting<T>(
+  section: string,
+  deprecated: string,
+  config: WorkspaceConfiguration,
+): T | undefined {
+  // If a value was explicitly provided for the new setting, respect it.
+  const newSetting = config.inspect<T>(section);
+  if (
+    newSetting?.globalValue !== undefined ||
+    newSetting?.workspaceValue !== undefined ||
+    newSetting?.workspaceFolderValue !== undefined ||
+    newSetting?.defaultLanguageValue !== undefined ||
+    newSetting?.globalLanguageValue !== undefined ||
+    newSetting?.workspaceLanguageValue !== undefined ||
+    newSetting?.workspaceFolderLanguageValue !== undefined
+  ) {
+    return config.get<T>(section);
+  }
+
+  // If a value was explicitly provided for the deprecated setting, respect it.
+  const deprecatedSetting = config.inspect<T>(deprecated);
+  if (
+    deprecatedSetting?.globalValue !== undefined ||
+    deprecatedSetting?.workspaceValue !== undefined ||
+    deprecatedSetting?.workspaceFolderValue !== undefined ||
+    deprecatedSetting?.defaultLanguageValue !== undefined ||
+    deprecatedSetting?.globalLanguageValue !== undefined ||
+    deprecatedSetting?.workspaceLanguageValue !== undefined ||
+    deprecatedSetting?.workspaceFolderLanguageValue !== undefined
+  ) {
+    return config.get<T>(deprecated);
+  }
+
+  return newSetting?.defaultValue;
+}
+
+/**
+ * Get the preferred value for a global setting.
+ */
+function getPreferredGlobalSetting<T>(
+  section: string,
+  deprecated: string,
+  config: WorkspaceConfiguration,
+): T | undefined {
+  // If a value was explicitly provided for the new setting, respect it.
+  const newSettings = config.inspect<T>(section);
+  if (newSettings?.globalValue !== undefined) {
+    return newSettings.globalValue;
+  }
+
+  // If a value was explicitly provided for the deprecated setting, respect it.
+  const deprecatedSetting = config.inspect<T>(deprecated);
+  if (deprecatedSetting?.globalValue !== undefined) {
+    return deprecatedSetting.globalValue;
+  }
+
+  return newSettings?.defaultValue;
 }

@@ -20,6 +20,7 @@
 justfile
 requirements-dev.txt
 requirements.txt
+scripts/
 src/
 tests/
 tsconfig.json

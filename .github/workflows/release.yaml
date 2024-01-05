@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: ${{ env.FETCH_DEPTH }}
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Generate Build ID (release)
@@ -62,10 +62,10 @@ jobs:
             target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
             arch: armv7
-          - os: macos-11
+          - os: macos-latest
             target: x86_64-apple-darwin
             code-target: darwin-x64
-          - os: macos-11
+          - os: macos-latest-xlarge
             target: aarch64-apple-darwin
             code-target: darwin-arm64
 
@@ -81,11 +81,19 @@ jobs:
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
       # Install Python dependencies (including Ruff's native binary).
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - run: python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
-        if: ${{ !startsWith(matrix.os, 'ubuntu') || startsWith(matrix.target, 'x86_64') }}
+
+      # ARM builds on macOS, which should select Ruff's universal binary.
+      - run: arch -arm64 python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
+        if: ${{ startsWith(matrix.os, 'macos') && startsWith(matrix.target, 'aarch64') }}
+
+      # x86_64 builds on macOS, which should select Ruff's x86_64 binary.
+      - run: arch -x86_64 python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
+        if: ${{ startsWith(matrix.os, 'macos') && startsWith(matrix.target, 'x86_64') }}
+
+      # ARM builds on Ubuntu, which should select Ruff's ARM binary.
       - uses: uraimo/run-on-arch-action@v2
         if: ${{ startsWith(matrix.os, 'ubuntu') && !startsWith(matrix.target, 'x86_64') }}
         with:
@@ -97,6 +105,10 @@ jobs:
             pip3 install -U pip
           run: |
             python3 -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
+
+      # Every other architecture, which should defer to `pip` without any special treatment.
+      - run: python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
+        if: ${{ !startsWith(matrix.os, 'macos') && (!startsWith(matrix.os, 'ubuntu') || startsWith(matrix.target, 'x86_64')) }}
 
       # Install Node.
       - name: Install Node.js

@@ -2,7 +2,8 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import { LogLevel, Uri, WorkspaceFolder } from "vscode";
 import { Trace } from "vscode-jsonrpc/node";
-import { getWorkspaceFolders } from "./vscodeapi";
+import { DocumentSelector } from "vscode-languageclient";
+import { getWorkspaceFolders, isVirtualWorkspace } from "./vscodeapi";
 
 function logLevelToTrace(logLevel: LogLevel): Trace {
   switch (logLevel) {
@@ -63,4 +64,15 @@ export async function getProjectRoot(): Promise<WorkspaceFolder> {
     }
     return rootWorkspace;
   }
+}
+
+export function getDocumentSelector(): DocumentSelector {
+  return isVirtualWorkspace()
+    ? [{ language: "python" }]
+    : [
+        { scheme: "file", language: "python" },
+        { scheme: "untitled", language: "python" },
+        { scheme: "vscode-notebook", language: "python" },
+        { scheme: "vscode-notebook-cell", language: "python" },
+      ];
 }

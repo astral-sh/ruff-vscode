@@ -61,11 +61,11 @@ class TestServer(unittest.TestCase):
                         {
                             "code": "F401",
                             "codeDescription": {
-                                "href": "https://beta.ruff.rs/docs/rules/unused-import"
+                                "href": "https://docs.astral.sh/ruff/rules/unused-import"
                             },
                             "data": {
                                 "fix": {
-                                    "applicability": "Automatic",
+                                    "applicability": "safe",
                                     "edits": [
                                         {
                                             "content": "",
@@ -76,6 +76,7 @@ class TestServer(unittest.TestCase):
                                     "message": "Remove unused import: `sys`",
                                 },
                                 "noqa_row": 1,
+                                "cell": None,
                             },
                             "message": "`sys` imported but unused",
                             "range": {
@@ -89,9 +90,9 @@ class TestServer(unittest.TestCase):
                         {
                             "code": "F821",
                             "codeDescription": {
-                                "href": "https://beta.ruff.rs/docs/rules/undefined-name"
+                                "href": "https://docs.astral.sh/ruff/rules/undefined-name"
                             },
-                            "data": {"fix": None, "noqa_row": 3},
+                            "data": {"fix": None, "noqa_row": 3, "cell": None},
                             "message": "Undefined name `x`",
                             "range": {
                                 "end": {"character": 7, "line": 2},
@@ -155,11 +156,11 @@ class TestServer(unittest.TestCase):
                         {
                             "code": "F401",
                             "codeDescription": {
-                                "href": "https://beta.ruff.rs/docs/rules/unused-import"
+                                "href": "https://docs.astral.sh/ruff/rules/unused-import"
                             },
                             "data": {
                                 "fix": {
-                                    "applicability": "Automatic",
+                                    "applicability": "safe",
                                     "edits": [
                                         {
                                             "content": "",
@@ -170,6 +171,7 @@ class TestServer(unittest.TestCase):
                                     "message": "Remove unused import: `sys`",
                                 },
                                 "noqa_row": 1,
+                                "cell": None,
                             },
                             "message": "`sys` imported but unused",
                             "range": {
@@ -183,9 +185,9 @@ class TestServer(unittest.TestCase):
                         {
                             "code": "F821",
                             "codeDescription": {
-                                "href": "https://beta.ruff.rs/docs/rules/undefined-name"
+                                "href": "https://docs.astral.sh/ruff/rules/undefined-name"
                             },
-                            "data": {"fix": None, "noqa_row": 3},
+                            "data": {"fix": None, "noqa_row": 3, "cell": None},
                             "message": "Undefined name `x`",
                             "range": {
                                 "end": {"character": 7, "line": 2},

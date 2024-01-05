@@ -15,6 +15,7 @@ import {
   ISettings,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
+import { registerLanguageStatusItem, updateStatus } from "./common/status";
 import { getLSClientTraceLevel } from "./common/utilities";
 import {
   createOutputChannel,
@@ -59,19 +60,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   traceLog(`Module: ${serverInfo.module}`);
   traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
+  context.subscriptions.push(
+    onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration("ruff.enable")) {
+        vscode.window.showWarningMessage(
+          "To enable or disable Ruff after changing the `enable` setting, you must restart VS Code.",
+        );
+      }
+    }),
+  );
+
   const { enable } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
     traceLog(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
-    );
-    context.subscriptions.push(
-      onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration("ruff.enable")) {
-          traceLog(
-            "To enable or disable Ruff after changing the `enable` setting, you must restart VS Code.",
-          );
-        }
-      }),
     );
     return;
   }
@@ -135,9 +137,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = false;
 
+    updateStatus(
+      vscode.l10n.t("Please select a Python interpreter."),
+      vscode.LanguageStatusSeverity.Error,
+    );
     traceError(
       "Python interpreter missing:\r\n" +
-        "[Option 1] Select python interpreter using the ms-python.python.\r\n" +
+        "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
         `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
         "Please use Python 3.7 or greater.",
     );
@@ -151,6 +157,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (checkIfConfigurationChanged(e, serverId)) {
         await runServer();
       }
+    }),
+    registerCommand(`${serverId}.showLogs`, async () => {
+      outputChannel.show();
     }),
     registerCommand(`${serverId}.restart`, async () => {
       await runServer();
@@ -180,6 +189,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
       });
     }),
+    registerCommand(`${serverId}.executeFormat`, async () => {
+      if (!lsClient) {
+        return;
+      }
+
+      const textEditor = vscode.window.activeTextEditor;
+      if (!textEditor) {
+        return;
+      }
+
+      const textDocument = {
+        uri: textEditor.document.uri.toString(),
+        version: textEditor.document.version,
+      };
+      const params = {
+        command: `${serverId}.applyFormat`,
+        arguments: [textDocument],
+      };
+
+      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+        await vscode.window.showErrorMessage(
+          "Failed to apply Ruff formatting to the document. Please consider opening an issue with steps to reproduce.",
+        );
+      });
+    }),
     registerCommand(`${serverId}.executeOrganizeImports`, async () => {
       if (!lsClient) {
         return;
@@ -205,6 +239,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
       });
     }),
+    registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),
   );
 
   setImmediate(async () => {

@@ -1,5 +1,5 @@
 import * as fsapi from "fs-extra";
-import { Disposable, env, LogOutputChannel } from "vscode";
+import { Disposable, env, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
 import { State } from "vscode-languageclient";
 import {
   LanguageClient,
@@ -16,6 +16,7 @@ import {
   getWorkspaceSettings,
   ISettings,
 } from "./settings";
+import { updateStatus } from "./status";
 import { getLSClientTraceLevel, getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
 
@@ -43,11 +44,6 @@ async function createServer(
 
   // Set notification type
   newEnv.LS_SHOW_NOTIFICATION = settings.showNotifications;
-
-  // Set experimental formatter capabilities
-  if (settings.enableExperimentalFormatter) {
-    newEnv.RUFF_EXPERIMENTAL_FORMATTER = "1";
-  }
 
   const args =
     newEnv.USE_DEBUGPY === "False" || !isDebugScript
@@ -94,6 +90,9 @@ export async function restartServer(
     _disposables.forEach((d) => d.dispose());
     _disposables = [];
   }
+
+  updateStatus(undefined, LanguageStatusSeverity.Information, true);
+
   const projectRoot = await getProjectRoot();
   const workspaceSetting = await getWorkspaceSettings(serverId, projectRoot);
 
@@ -113,6 +112,7 @@ export async function restartServer(
           break;
         case State.Running:
           traceVerbose(`Server State: Running`);
+          updateStatus(undefined, LanguageStatusSeverity.Information, false);
           break;
       }
     }),
@@ -120,6 +120,7 @@ export async function restartServer(
   try {
     await newLSClient.start();
   } catch (ex) {
+    updateStatus(l10n.t("Server failed to start."), LanguageStatusSeverity.Error);
     traceError(`Server: Start failed: ${ex}`);
     return undefined;
   }
