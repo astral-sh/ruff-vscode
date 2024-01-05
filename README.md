@@ -80,7 +80,7 @@ This requires Ruff version `v0.1.3` or later.
 | codeAction.disableRuleComment.enable | `true`            | Whether to display Quick Fix actions to disable rules via `noqa` suppression comments.                                                                                                                                                                            |
 | showNotification                     | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                                                                                         |
 
-### Example configurations
+### Configuring VS Code
 
 You can configure Ruff to format Python code on-save by enabling the `editor.formatOnSave` action in
 `settings.json`, and setting Ruff as your default formatter:
@@ -249,6 +249,38 @@ to unset the `editor.defaultFormatter` in `settings.json`:
   }
 }
 ```
+
+### Configuring Ruff
+
+The Ruff VS Code extension will respect any Ruff configuration as defined in your project's
+`pyproject.toml`, `ruff.toml`, or `.ruff.toml` file (see: [Configuring Ruff](https://docs.astral.sh/ruff/configuration/) in the Ruff documentation).
+In general, we recommend configuring Ruff via `pyproject.toml` or `ruff.toml` so that your
+configuration is shared between the VS Code extension and the command-line tool, and between all
+contributors to the project.
+
+However, to provide custom arguments to the Ruff CLI, you can use the `ruff.lint.args` and
+`ruff.format.args` settings in `settings.json`. For example, to enable the `pyupgrade` rule set in
+VS Code, add the following to `settings.json`:
+
+```json
+{
+  "ruff.lint.args": ["--extend-select=UP"]
+}
+```
+
+To override the VS Code extension's Ruff configuration entirely, and override any local
+`pyproject.toml` file or similar, you can pass a custom `--config` argument to the Ruff CLI, again
+using the `ruff.lint.args` and `ruff.format.args` options in `settings.json`:
+
+```json
+{
+  "ruff.lint.args": ["--config=/path/to/ruff.toml"],
+  "ruff.format.args": ["--config=/path/to/ruff.toml"]
+}
+```
+
+Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
+`pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
 
 ## Commands
 
