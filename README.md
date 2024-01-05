@@ -135,7 +135,7 @@ Similarly, you can configure Ruff to organize imports on-save by enabling the
 {
   "[python]": {
     "editor.codeActionsOnSave": {
-      "notebook.source.organizeImports": true
+      "source.organizeImports": true
     }
   }
 }
