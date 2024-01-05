@@ -2,6 +2,13 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.0.0
+
+This release upgrades the bundled Ruff version to v0.1.11 and adds support for Notebook-wide
+code actions on save via the `notebook.codeActionsOnSave` setting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2023.60.0...2024.0.0
+
 ## 2023.60.0
 
 This release upgrades the bundled Ruff version to v0.1.9.
