@@ -123,7 +123,7 @@ And, for Jupyter Notebooks:
 ```json
 {
   "notebook.codeActionsOnSave": {
-    "source.fixAll": true
+    "notebook.source.fixAll": true
   }
 }
 ```
@@ -135,7 +135,7 @@ Similarly, you can configure Ruff to organize imports on-save by enabling the
 {
   "[python]": {
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      "notebook.source.organizeImports": true
     }
   }
 }
@@ -146,7 +146,7 @@ And, for Jupyter Notebooks:
 ```json
 {
   "notebook.codeActionsOnSave": {
-    "source.organizeImports": true
+    "notebook.source.organizeImports": true
   }
 }
 ```
@@ -173,8 +173,8 @@ And, for Jupyter Notebooks:
 {
   "notebook.formatOnSave.enabled": true,
   "notebook.codeActionsOnSave": {
-    "source.fixAll": true,
-    "source.organizeImports": true
+    "notebook.source.fixAll": true,
+    "notebook.source.organizeImports": true
   },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
