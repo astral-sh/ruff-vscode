@@ -68,6 +68,17 @@ jobs:
           - os: macos-latest-xlarge
             target: aarch64-apple-darwin
             code-target: darwin-arm64
+          - os: ubuntu-20.04
+            target: x86_64-unknown-linux-musl
+            code-target: linux-x64
+          - os: ubuntu-20.04
+            target: aarch64-unknown-linux-musl
+            code-target: linux-arm64
+            arch: aarch64
+          - os: ubuntu-20.04
+            target: armv7-unknown-linux-musleabihf
+            code-target: linux-armhf
+            arch: armv7
 
     name: Build (${{ matrix.target }})
     needs: ["build-id"]
@@ -188,6 +199,18 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: dist-aarch64-pc-windows-msvc
+          path: dist
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist-x86_64-unknown-linux-musl
+          path: dist
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist-aarch64-unknown-linux-musl
+          path: dist
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist-arm7-unknown-linux-muslabihf
           path: dist
       - run: ls -al ./dist
 
