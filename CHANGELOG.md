@@ -2,6 +2,13 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.2.0
+
+This release upgrades the bundled Ruff version to v0.1.13 and adds Alpine Linux support
+to the extension.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.0.0...2024.2.0
+
 ## 2024.0.0
 
 This release upgrades the bundled Ruff version to v0.1.11 and adds support for Notebook-wide
