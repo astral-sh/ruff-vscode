@@ -12,7 +12,7 @@ Python linter and code formatter, written in Rust. Available on the [Visual Stud
 Ruff can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupgrade, and more,
 all while executing tens or hundreds of times faster than any individual tool.
 
-The extension ships with `ruff==0.1.11`.
+The extension ships with `ruff==0.1.13`.
 
 (Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
