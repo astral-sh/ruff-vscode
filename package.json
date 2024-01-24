@@ -112,6 +112,12 @@
           "scope": "window",
           "type": "string"
         },
+        "ruff.lint.enable": {
+          "default": true,
+          "markdownDescription": "Whether to enable linting. Set to `false` to use Ruff exclusively as a formatter.",
+          "scope": "window",
+          "type": "boolean"
+        },
         "ruff.format.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
