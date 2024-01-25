@@ -67,7 +67,7 @@ This requires Ruff version `v0.1.3` or later.
 ## Settings
 
 | Settings                             | Default           | Description                                                                                                                                                                                                                                                       |
-| ------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------------------|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | lint.args                            | `[]`              | Additional command-line arguments to pass to `ruff check`, e.g., `"args": ["--config=/path/to/pyproject.toml"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`. |
 | path                                 | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                                                                                                    |
 | interpreter                          | `[]`              | Path to a Python interpreter to use to run the linter server.                                                                                                                                                                                                     |
@@ -79,6 +79,7 @@ This requires Ruff version `v0.1.3` or later.
 | codeAction.fixViolation.enable       | `true`            | Whether to display Quick Fix actions to autofix violations.                                                                                                                                                                                                       |
 | codeAction.disableRuleComment.enable | `true`            | Whether to display Quick Fix actions to disable rules via `noqa` suppression comments.                                                                                                                                                                            |
 | showNotification                     | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                                                                                         |
+| ignoreStandardLibrary                | `true`            | Whether to ignore files that are inferred to be part of the Python standard library.                                                                                                                                                                              |
 
 ### Configuring VS Code
 
