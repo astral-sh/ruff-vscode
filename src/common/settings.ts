@@ -23,6 +23,7 @@ type CodeAction = {
 };
 
 type Lint = {
+  enable?: boolean;
   args?: string[];
   run?: Run;
 };
@@ -102,6 +103,7 @@ export async function getWorkspaceSettings(
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
     lint: {
+      enable: getPreferredWorkspaceSetting<boolean>("lint.enable", "enable", config) ?? true,
       run: getPreferredWorkspaceSetting<Run>("lint.run", "run", config) ?? "onType",
       args: resolveVariables(
         getPreferredWorkspaceSetting<string[]>("lint.args", "args", config) ?? [],
@@ -134,6 +136,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
     lint: {
+      enable: getPreferredGlobalSetting<boolean>("lint.enable", "enable", config) ?? true,
       run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
       args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
     },
@@ -158,6 +161,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
+    `${namespace}.lint.enable`,
     `${namespace}.lint.run`,
     `${namespace}.lint.args`,
     `${namespace}.format.args`,
