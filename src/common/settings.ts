@@ -35,6 +35,7 @@ export interface ISettings {
   cwd: string;
   workspace: string;
   path: string[];
+  ignoreStandardLibrary: boolean;
   interpreter: string[];
   importStrategy: ImportStrategy;
   codeAction: CodeAction;
@@ -96,6 +97,7 @@ export async function getWorkspaceSettings(
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
+    ignoreStandardLibrary: config.get<boolean>("ignoreStandardLibrary") ?? true,
     interpreter: resolveVariables(interpreter, workspace),
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
@@ -127,6 +129,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
+    ignoreStandardLibrary: getGlobalValue<boolean>(config, "ignoreStandardLibrary", true),
     interpreter: [],
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
@@ -152,6 +155,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.codeAction`,
     `${namespace}.enable`,
     `${namespace}.fixAll`,
+    `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
     `${namespace}.lint.run`,
