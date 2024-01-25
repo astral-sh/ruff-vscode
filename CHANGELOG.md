@@ -2,6 +2,17 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.4.0
+
+This release upgrades the bundled Ruff version to v0.1.14 and adds two additional settings
+to the extension:
+
+- `ruff.lint.enable`: Defaults to `true`. Set to `false` to use Ruff for formatting exclusively.
+- `ruff.ignoreStandardLibrary`: Defaults to `true`. Set to `false` to disable the extension's
+  standard library exclusion logic.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.2.0...2024.4.0
+
 ## 2024.2.0
 
 This release upgrades the bundled Ruff version to v0.1.13 and adds Alpine Linux support
