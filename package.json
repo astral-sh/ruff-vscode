@@ -209,7 +209,7 @@
           "additionalProperties": false,
           "markdownDescription": "Whether to display Quick Fix actions to disable rules via `noqa` suppression comments."
         },
-             "ruff.ignoreStandardLibrary": {
+        "ruff.ignoreStandardLibrary": {
           "default": true,
           "markdownDescription": "Whether to ignore files that are inferred to be part of the Python standard library.",
           "scope": "window",
