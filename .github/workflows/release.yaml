@@ -65,7 +65,7 @@ jobs:
           - os: macos-latest
             target: x86_64-apple-darwin
             code-target: darwin-x64
-          - os: macos-latest-xlarge
+          - os: macos-14
             target: aarch64-apple-darwin
             code-target: darwin-arm64
           - os: ubuntu-20.04
