@@ -2,6 +2,12 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.6.0
+
+This release upgrades the Ruff LSP in anticipation of Ruff's upcoming v0.2.0 release
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.4.0...2024.6.0
+
 ## 2024.4.0
 
 This release upgrades the bundled Ruff version to v0.1.14 and adds two additional settings
