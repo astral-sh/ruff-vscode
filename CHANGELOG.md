@@ -2,6 +2,13 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.10.0
+
+This release includes support for "Format Selection" (i.e., the ability to format specific lines
+within a source file) for Ruff v0.2.1 and later.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.8.0...2024.10.0
+
 ## 2024.8.0
 
 This release upgrades the bundled Ruff version to v0.2.0.
