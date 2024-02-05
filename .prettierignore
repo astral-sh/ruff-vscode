@@ -7,4 +7,5 @@
 **/node_modules/
 *.vsix
 *.pyc
+.mypy_cache/**
 /bundled/libs/
