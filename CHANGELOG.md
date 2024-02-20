@@ -2,6 +2,25 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.12.0
+
+This release upgrades the bundled Ruff version to v0.2.2.
+
+As of v0.2.2, Ruff now accepts configuration for arbitrary settings on command-line arguments via
+the `--config` flag, which in turn allows for configuration arbitrary settings within the VS Code
+extension.
+
+For example, to set Ruff's `lint.isort.combine-as-imports` setting to `false`, add the following to
+your `settings.json`:
+
+```json
+{
+  "ruff.lint.args": ["--config", "lint.isort.combine-as-imports=false"]
+}
+```
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.10.0...2024.12.0
+
 ## 2024.10.0
 
 This release includes support for "Format Selection" (i.e., the ability to format specific lines
