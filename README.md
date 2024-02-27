@@ -71,14 +71,14 @@ This requires Ruff version `v0.1.3` or later.
 | codeAction.disableRuleComment.enable | `true`            | Whether to display Quick Fix actions to disable rules via `noqa` suppression comments.                                                                                                                                                                            |
 | codeAction.fixViolation.enable       | `true`            | Whether to display Quick Fix actions to autofix violations.                                                                                                                                                                                                       |
 | enable                               | `true`            | Whether to enable the Ruff extension. Modifying this setting requires restarting VS Code to take effect.                                                                                                                                                          |
-| fixAll                               | `true`            | Whether to register Ruff as capable of handling `source.fixAll` actions.                                                                                                                                                                                          |
+| fixAll                               | `"explicit"`            | Whether to register Ruff as capable of handling `source.fixAll` actions.                                                                                                                                                                                          |
 | ignoreStandardLibrary                | `true`            | Whether to ignore files that are inferred to be part of the Python standard library.                                                                                                                                                                              |
 | importStrategy                       | `fromEnvironment` | Strategy for loading the `ruff` executable. `fromEnvironment` picks up Ruff from the environment, falling back to the bundled version if needed. `useBundled` uses the version bundled with the extension.                                                        |
 | interpreter                          | `[]`              | Path to a Python interpreter to use to run the linter server.                                                                                                                                                                                                     |
 | lint.args                            | `[]`              | Additional command-line arguments to pass to `ruff check`, e.g., `"args": ["--config=/path/to/pyproject.toml"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`. |
 | lint.enable                          | `true`            | Whether to enable linting. Set to `false` to use Ruff exclusively as a formatter.                                                                                                                                                                                 |
 | lint.run                             | `onType`          | Run Ruff on every keystroke (`onType`) or on save (`onSave`).                                                                                                                                                                                                     |
-| organizeImports                      | `true`            | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                                                                                                 |
+| organizeImports                      | `"explicit"`            | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                                                                                                 |
 | path                                 | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                                                                                                    |
 | showNotification                     | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                                                                                         |
 
@@ -114,7 +114,7 @@ You can configure Ruff to fix lint violations on-save by enabling the `source.fi
 {
   "[python]": {
     "editor.codeActionsOnSave": {
-      "source.fixAll": true
+      "source.fixAll": "explicit"
     }
   }
 }
@@ -125,7 +125,7 @@ And, for Jupyter Notebooks:
 ```json
 {
   "notebook.codeActionsOnSave": {
-    "notebook.source.fixAll": true
+    "notebook.source.fixAll": "explicit"
   }
 }
 ```
@@ -137,7 +137,7 @@ Similarly, you can configure Ruff to organize imports on-save by enabling the
 {
   "[python]": {
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      "source.organizeImports": "explicit"
     }
   }
 }
@@ -148,7 +148,7 @@ And, for Jupyter Notebooks:
 ```json
 {
   "notebook.codeActionsOnSave": {
-    "notebook.source.organizeImports": true
+    "notebook.source.organizeImports": "explicit"
   }
 }
 ```
@@ -161,8 +161,8 @@ following `settings.json`:
   "[python]": {
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll": true,
-      "source.organizeImports": true
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
   }
@@ -175,8 +175,8 @@ And, for Jupyter Notebooks:
 {
   "notebook.formatOnSave.enabled": true,
   "notebook.codeActionsOnSave": {
-    "notebook.source.fixAll": true,
-    "notebook.source.organizeImports": true
+    "notebook.source.fixAll": "explicit",
+    "notebook.source.organizeImports": "explicit"
   },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
@@ -202,7 +202,7 @@ via the following `settings.json`:
   "[python]": {
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll": true
+      "source.fixAll": "explicit"
     },
     "editor.defaultFormatter": "ms-python.black-formatter"
   }
@@ -216,8 +216,8 @@ you can disable Ruff's import-sorting capabilities via the following `settings.j
 {
   "[python]": {
     "editor.codeActionsOnSave": {
-      "source.fixAll": true,
-      "source.organizeImports": true
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
     }
   },
   "ruff.organizeImports": false
@@ -231,8 +231,8 @@ use Ruff's scoped `source.fixAll` and `source.organizeImports` actions via the f
 {
   "[python]": {
     "editor.codeActionsOnSave": {
-      "source.fixAll.ruff": true,
-      "source.organizeImports.ruff": true
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
     }
   }
 }
@@ -246,7 +246,7 @@ to unset the `editor.defaultFormatter` in `settings.json`:
   "[python]": {
     "editor.defaultFormatter": null,
     "editor.codeActionsOnSave": {
-      "source.fixAll": true
+      "source.fixAll": "explicit"
     }
   }
 }
