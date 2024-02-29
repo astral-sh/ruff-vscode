@@ -1,4 +1,5 @@
 """Utility functions for use with tests."""
+
 from __future__ import annotations
 
 import pathlib

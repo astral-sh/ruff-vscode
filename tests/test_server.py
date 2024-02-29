@@ -1,4 +1,5 @@
 """Test for linting over LSP."""
+
 from __future__ import annotations
 
 import os
