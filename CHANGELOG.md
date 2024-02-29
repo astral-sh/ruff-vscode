@@ -2,6 +2,12 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.14.0
+
+This release upgrades the bundled Ruff version to v0.3.0.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.12.0...2024.14.0
+
 ## 2024.12.0
 
 This release upgrades the bundled Ruff version to v0.2.2.
