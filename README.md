@@ -1,9 +1,9 @@
 # Ruff extension for Visual Studio Code
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![image](https://img.shields.io/pypi/v/ruff/0.2.2.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/l/ruff/0.2.2.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/pyversions/ruff/0.2.2.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/v/ruff/0.3.0.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/l/ruff/0.3.0.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/pyversions/ruff/0.3.0.svg)](https://pypi.python.org/pypi/ruff)
 [![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
 
 A Visual Studio Code extension for [Ruff](https://github.com/astral-sh/ruff), an extremely fast
@@ -12,7 +12,7 @@ Python linter and code formatter, written in Rust. Available on the [Visual Stud
 Ruff can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupgrade, and more,
 all while executing tens or hundreds of times faster than any individual tool.
 
-The extension ships with `ruff==0.2.2`.
+The extension ships with `ruff==0.3.0`.
 
 (Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
@@ -71,14 +71,14 @@ This requires Ruff version `v0.1.3` or later.
 | codeAction.disableRuleComment.enable | `true`            | Whether to display Quick Fix actions to disable rules via `noqa` suppression comments.                                                                                                                                                                            |
 | codeAction.fixViolation.enable       | `true`            | Whether to display Quick Fix actions to autofix violations.                                                                                                                                                                                                       |
 | enable                               | `true`            | Whether to enable the Ruff extension. Modifying this setting requires restarting VS Code to take effect.                                                                                                                                                          |
-| fixAll                               | `"explicit"`            | Whether to register Ruff as capable of handling `source.fixAll` actions.                                                                                                                                                                                          |
+| fixAll                               | `"explicit"`      | Whether to register Ruff as capable of handling `source.fixAll` actions.                                                                                                                                                                                          |
 | ignoreStandardLibrary                | `true`            | Whether to ignore files that are inferred to be part of the Python standard library.                                                                                                                                                                              |
 | importStrategy                       | `fromEnvironment` | Strategy for loading the `ruff` executable. `fromEnvironment` picks up Ruff from the environment, falling back to the bundled version if needed. `useBundled` uses the version bundled with the extension.                                                        |
 | interpreter                          | `[]`              | Path to a Python interpreter to use to run the linter server.                                                                                                                                                                                                     |
 | lint.args                            | `[]`              | Additional command-line arguments to pass to `ruff check`, e.g., `"args": ["--config=/path/to/pyproject.toml"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`. |
 | lint.enable                          | `true`            | Whether to enable linting. Set to `false` to use Ruff exclusively as a formatter.                                                                                                                                                                                 |
 | lint.run                             | `onType`          | Run Ruff on every keystroke (`onType`) or on save (`onSave`).                                                                                                                                                                                                     |
-| organizeImports                      | `"explicit"`            | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                                                                                                 |
+| organizeImports                      | `"explicit"`      | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                                                                                                 |
 | path                                 | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                                                                                                    |
 | showNotification                     | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                                                                                         |
 
@@ -327,14 +327,18 @@ and Python log messages in the debug console under "Python Server".
 
 ## Release
 
-- Bump the version in `package.json` (use even numbers for stable releases).
+- Bump the version in `package.json` and `pyproject.toml` (use even numbers for stable releases).
+- Bump the `ruff` and `ruff-lsp` versions in `pyproject.toml`.
+- Update the `ruff` version in the README.md
+  - in the Bade URLs
+  - in "The extension ships with `ruff==...`"
 - Make sure you use Python 3.7 installed and as your default Python.
 - Run `python -m venv .venv` to create a venv and activate it.
 - Run `python -m pip install pip-tools` to install `pip-tools`.
 - Run `rm requirements.txt requirements-dev.txt` and then `just lock` to update `ruff` and `ruff-lsp`.
 - Create a new PR and merge it.
 - Update the Changelog
-- [Create a new Release](https://github.com/astral-sh/ruff-vscode/releases/new), enter `x.x.x` (where `x.x.x` is the new version) into the *Choose a tag* selector. Click *Generate release notes*, curate the release notes and publish the release. 
+- [Create a new Release](https://github.com/astral-sh/ruff-vscode/releases/new), enter `x.x.x` (where `x.x.x` is the new version) into the _Choose a tag_ selector. Click _Generate release notes_, curate the release notes and publish the release.
 - The Release workflow publishes the extension to the VS Code marketplace.
 
 ## License
