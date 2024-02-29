@@ -325,6 +325,18 @@ and Python log messages in the debug console under "Python Server".
 - Run `cargo build` in the Ruff repository.
 - Set "Ruff: Path" to `/home/ferris/ruff/target/debug/ruff` in the VS Code settings.
 
+## Release
+
+- Bump the version in `package.json` (use even numbers for stable releases).
+- Make sure you use Python 3.7 installed and as your default Python.
+- Run `python -m venv .venv` to create a venv and activate it.
+- Run `python -m pip install pip-tools` to install `pip-tools`.
+- Run `rm requirements.txt requirements-dev.txt` and then `just lock` to update `ruff` and `ruff-lsp`.
+- Create a new PR and merge it.
+- Update the Changelog
+- [Create a new Release](https://github.com/astral-sh/ruff-vscode/releases/new), enter `x.x.x` (where `x.x.x` is the new version) into the *Choose a tag* selector. Click *Generate release notes*, curate the release notes and publish the release. 
+- The Release workflow publishes the extension to the VS Code marketplace.
+
 ## License
 
 MIT
