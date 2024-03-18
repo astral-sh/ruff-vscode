@@ -32,7 +32,8 @@
   },
   "categories": [
     "Programming Languages",
-    "Linters"
+    "Linters",
+    "Formatters"
   ],
   "extensionDependencies": [
     "ms-python.python"
