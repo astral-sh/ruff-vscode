@@ -80,7 +80,7 @@ This requires Ruff version `v0.1.3` or later.
 | lint.run                             | `onType`          | Run Ruff on every keystroke (`onType`) or on save (`onSave`).                                                                                                                                                                                                     |
 | organizeImports                      | `"explicit"`      | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                                                                                                 |
 | path                                 | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                                                                                                    |
-| showNotification                     | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                                                                                         |
+| showNotifications                    | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                                                                                         |
 
 ### Configuring VS Code
 
