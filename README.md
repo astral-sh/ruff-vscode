@@ -1,3 +1,17 @@
+## Ruff for VS Code - Pre-Release Information
+
+This is a pre-release edition of Ruff for VS Code that uses our new, Rust-based LSP - `ruff server`.
+
+At the moment, the pre-release has the following known limitations:
+
+- Extension settings are not yet supported, and many will not be needed after the transition to the new server is finished. For example, `lint.args` / `format.args` will be replaced in the future with specific configuration fields for the linter and formatter.
+- Commands like `Fix all` and `Quick Fix` have not yet been implemented. (code actions should still work, though)
+- Hierarchial configuration for individual files is not yet supported. At the moment, the language server uses the `ruff.toml` / `pyproject.toml` at the workspace root to configure the formatter and linter.
+- Jupyter Notebook files are not supported yet.
+- Using local Ruff binaries is not yet supported. At the moment, the extension will always use the bundled Ruff binary. (version `0.3.3`)
+
+To use the new Rust-based language server, you'll need to enable the "Experimental Server" setting and reload the extension. Please report any issues you have to the Github issue tracker.
+
 # Ruff extension for Visual Studio Code
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)

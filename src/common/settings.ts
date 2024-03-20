@@ -33,6 +33,7 @@ type Format = {
 };
 
 export interface ISettings {
+  experimentalServer: boolean;
   cwd: string;
   workspace: string;
   path: string[];
@@ -95,6 +96,7 @@ export async function getWorkspaceSettings(
   }
 
   return {
+    experimentalServer: config.get<boolean>("experimentalServer") ?? false,
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
@@ -128,6 +130,7 @@ function getGlobalValue<T>(config: WorkspaceConfiguration, key: string, defaultV
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
   return {
+    experimentalServer: getGlobalValue<boolean>(config, "experimentalServer", false),
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
@@ -138,7 +141,6 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     lint: {
       enable: getPreferredGlobalSetting<boolean>("lint.enable", "enable", config) ?? true,
       run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
-      args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
     },
     format: {
       args: getGlobalValue<string[]>(config, "format.args", []),
@@ -157,19 +159,16 @@ export function checkIfConfigurationChanged(
   const settings = [
     `${namespace}.codeAction`,
     `${namespace}.enable`,
+    `${namespace}.experimentalServer`,
     `${namespace}.fixAll`,
     `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
     `${namespace}.lint.enable`,
     `${namespace}.lint.run`,
-    `${namespace}.lint.args`,
-    `${namespace}.format.args`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
     `${namespace}.showNotifications`,
-    // Deprecated settings (prefer `lint.args`, etc.).
-    `${namespace}.args`,
     `${namespace}.run`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));

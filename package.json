@@ -2,7 +2,7 @@
   "name": "ruff",
   "displayName": "Ruff",
   "description": "A Visual Studio Code extension with support for the Ruff linter.",
-  "version": "2024.16.0",
+  "version": "2024.17.0",
   "serverInfo": {
     "name": "Ruff",
     "module": "ruff"
@@ -46,7 +46,6 @@
   "activationEvents": [
     "onLanguage:python",
     "workspaceContains:*.py",
-    "workspaceContains:*.ipynb",
     "onCommand:ruff.restart"
   ],
   "main": "./dist/extension.js",
@@ -62,6 +61,12 @@
   "contributes": {
     "configuration": {
       "properties": {
+        "ruff.experimentalServer": {
+          "default": false,
+          "markdownDescription": "Use the new, experimental Ruff language server. Some features and configuration options are not supported yet.",
+          "scope": "window",
+          "type": "boolean"
+        },
         "ruff.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
@@ -76,6 +81,8 @@
         "ruff.lint.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDeprecationMessage": "**Deprecated**: This will be replaced in the future with specific formatter settings.",
+          "deprecationMessage": "Deprecated: This will be replaced in the future with specific formatter settings.",
           "items": {
             "type": "string"
           },
@@ -121,6 +128,8 @@
         "ruff.format.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDeprecationMessage": "**Deprecated**: This will be replaced in the future with specific formatter settings.",
+          "deprecationMessage": "Deprecated: This will be replaced in the future with specific formatter settings.",
           "items": {
             "type": "string"
           },
