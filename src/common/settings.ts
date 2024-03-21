@@ -141,6 +141,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     lint: {
       enable: getPreferredGlobalSetting<boolean>("lint.enable", "enable", config) ?? true,
       run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
+      args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
     },
     format: {
       args: getGlobalValue<string[]>(config, "format.args", []),
@@ -169,7 +170,12 @@ export function checkIfConfigurationChanged(
     `${namespace}.organizeImports`,
     `${namespace}.path`,
     `${namespace}.showNotifications`,
+    // Deprecated settings (prefer `lint.args`, etc.).
+    `${namespace}.args`,
     `${namespace}.run`,
+    // Deprecated settings (will be replaced with specific config options in the future)
+    `${namespace}.lint.args`,
+    `${namespace}.format.args`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }
