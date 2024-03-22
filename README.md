@@ -290,7 +290,7 @@ To use the new Rust-based language server (`ruff server`), you'll need to enable
 
 At the moment, the experimental server has the following known limitations:
 
-- Extension settings are not yet supported, and many will not be needed after the transition to the new server is finished. For example, `lint.args` / `format.args` will be replaced in the future with specific configuration fields for the linter and formatter.
+- Most extension settings are not yet supported, and many will not be needed after the transition to the new server is finished. For example, `editor.codeActionsOnSave` does not work at the moment due to missing support for source-level code actions (see below). Additionally, `lint.args` / `format.args` will be replaced in the future with specific configuration fields for the linter and formatter.
 - Commands like `Fix all` and `Organize Imports` have not yet been implemented. (Quick Fixes should still work, though)
 - Hierarchial configuration for individual files is not yet supported. At the moment, the language server uses the `ruff.toml` / `pyproject.toml` at the workspace root to configure the formatter and linter.
 - Jupyter Notebook files are not supported yet.
