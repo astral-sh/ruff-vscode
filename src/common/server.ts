@@ -42,12 +42,11 @@ async function createExperimentalServer(
   const command = RUFF_BIN_PATH;
   const cwd = settings.cwd;
   const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
-  let env = { ...process.env };
 
   const serverOptions: ServerOptions = {
     command,
     args,
-    options: { cwd, env },
+    options: { cwd, env: process.env },
   };
 
   traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
