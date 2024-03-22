@@ -6,15 +6,15 @@ See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release 
 
 This pre-release introduces support for the new, experimental Ruff language server (`ruff server`). It also upgrades the bundled Ruff version to `v0.3.3`.
 
-The experimental server can be enabled and disabled with the `experimentalServer` setting. A restart is required after changing this setting.
+`ruff server` is still missing a lot of tests and stability guarantees - this pre-release is mostly for early testing. The server can be enabled and disabled with the `experimentalServer` setting. A restart is required after changing this setting.
 
-At the moment, the pre-release has the following known limitations:
+At the moment, the experimental server has the following known limitations:
 
 - Extension settings are not yet supported, and many will not be needed after the transition to the new server is finished. For example, `lint.args` / `format.args` will be replaced in the future with specific configuration fields for the linter and formatter.
-- Commands like `Fix all` and `Quick Fix` have not yet been implemented. (code actions should still work, though)
+- Commands like `Fix all` and `Organize Imports` have not yet been implemented. (Quick Fixes should still work, though)
 - Hierarchial configuration for individual files is not yet supported. At the moment, the language server uses the `ruff.toml` / `pyproject.toml` at the workspace root to configure the formatter and linter.
 - Jupyter Notebook files are not supported yet.
-- Using local Ruff binaries is not yet supported. At the moment, the extension will always use the bundled Ruff binary. (`v0.3.3`)
+- Using local Ruff binaries is not yet supported. At the moment, the extension will always use the bundled Ruff binary. (version `0.3.3`)
 
 These limitations will all be resolved in future versions.
 
