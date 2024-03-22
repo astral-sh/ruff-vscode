@@ -294,7 +294,7 @@ At the moment, the experimental server has the following known limitations:
 - Commands like `Fix all` and `Organize Imports` have not yet been implemented. (Quick Fixes should still work, though)
 - Hierarchial configuration for individual files is not yet supported. At the moment, the language server uses the `ruff.toml` / `pyproject.toml` at the workspace root to configure the formatter and linter.
 - Jupyter Notebook files are not supported yet.
-- Using local Ruff binaries is not yet supported. At the moment, the extension will always use the bundled Ruff binary. (version `0.3.3`)
+- Using local Ruff binaries is not yet supported. At the moment, the extension will always use the bundled Ruff binary. (`v0.3.3`)
 
 ## Commands
 
