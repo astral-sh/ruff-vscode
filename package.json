@@ -46,6 +46,7 @@
   "activationEvents": [
     "onLanguage:python",
     "workspaceContains:*.py",
+    "workspaceContains:*.ipynb",
     "onCommand:ruff.restart"
   ],
   "main": "./dist/extension.js",
@@ -81,8 +82,6 @@
         "ruff.lint.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
-          "markdownDeprecationMessage": "**Deprecated**: This will be replaced in the future with specific formatter settings.",
-          "deprecationMessage": "Deprecated: This will be replaced in the future with specific formatter settings.",
           "items": {
             "type": "string"
           },
@@ -128,8 +127,6 @@
         "ruff.format.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
-          "markdownDeprecationMessage": "**Deprecated**: This will be replaced in the future with specific formatter settings.",
-          "deprecationMessage": "Deprecated: This will be replaced in the future with specific formatter settings.",
           "items": {
             "type": "string"
           },
