@@ -1,8 +1,8 @@
 ## Ruff for VS Code - Pre-Release Information
 
-This is a pre-release edition of Ruff for VS Code that uses our new, Rust-based LSP - `ruff server`.
+This is a pre-release edition of Ruff for VS Code that offers the option to use the new, Rust-based LSP - `ruff server`.
 
-At the moment, the pre-release has the following known limitations:
+At the moment, the experimental server has the following known limitations:
 
 - Extension settings are not yet supported, and many will not be needed after the transition to the new server is finished. For example, `lint.args` / `format.args` will be replaced in the future with specific configuration fields for the linter and formatter.
 - Commands like `Fix all` and `Quick Fix` have not yet been implemented. (code actions should still work, though)
