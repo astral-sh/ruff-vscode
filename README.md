@@ -1,9 +1,9 @@
 # Ruff extension for Visual Studio Code
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![image](https://img.shields.io/pypi/v/ruff/0.4.1.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/l/ruff/0.4.1.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/pyversions/ruff/0.4.1.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/v/ruff/0.3.3.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/l/ruff/0.3.3.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/pyversions/ruff/0.3.3.svg)](https://pypi.python.org/pypi/ruff)
 [![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
 
 A Visual Studio Code extension for [Ruff](https://github.com/astral-sh/ruff), an extremely fast
@@ -12,7 +12,7 @@ Python linter and code formatter, written in Rust. Available on the [Visual Stud
 Ruff can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupgrade, and more,
 all while executing tens or hundreds of times faster than any individual tool.
 
-The extension ships with `ruff==0.4.1`.
+The extension ships with `ruff==0.3.3`.
 
 (Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
@@ -283,6 +283,18 @@ using the `ruff.lint.args` and `ruff.format.args` options in `settings.json`:
 
 Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
 `pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
+
+### Using the Experimental Server
+
+To use the new Rust-based language server (`ruff server`), you'll need to enable the "Experimental Server" setting and reload the extension.
+
+At the moment, the experimental server has the following known limitations:
+
+- Most extension settings are not yet supported, and many will not be needed after the transition to the new server is finished. For example, `editor.codeActionsOnSave` does not work at the moment due to missing support for source-level code actions (see below). Additionally, `lint.args` / `format.args` will be replaced in the future with specific configuration fields for the linter and formatter.
+- Commands like `Fix all` and `Organize Imports` have not yet been implemented. (Quick Fixes should still work, though)
+- Hierarchial configuration for individual files is not yet supported. At the moment, the language server uses the `ruff.toml` / `pyproject.toml` at the workspace root to configure the formatter and linter.
+- Jupyter Notebook files are not supported yet.
+- Using local Ruff binaries is not yet supported. At the moment, the extension will always use the bundled Ruff binary. (`v0.3.3`)
 
 ## Commands
 

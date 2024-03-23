@@ -33,6 +33,7 @@ type Format = {
 };
 
 export interface ISettings {
+  experimentalServer: boolean;
   cwd: string;
   workspace: string;
   path: string[];
@@ -95,6 +96,7 @@ export async function getWorkspaceSettings(
   }
 
   return {
+    experimentalServer: config.get<boolean>("experimentalServer") ?? false,
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
@@ -128,6 +130,7 @@ function getGlobalValue<T>(config: WorkspaceConfiguration, key: string, defaultV
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
   return {
+    experimentalServer: getGlobalValue<boolean>(config, "experimentalServer", false),
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
@@ -157,20 +160,22 @@ export function checkIfConfigurationChanged(
   const settings = [
     `${namespace}.codeAction`,
     `${namespace}.enable`,
+    `${namespace}.experimentalServer`,
     `${namespace}.fixAll`,
     `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
     `${namespace}.lint.enable`,
     `${namespace}.lint.run`,
-    `${namespace}.lint.args`,
-    `${namespace}.format.args`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
     `${namespace}.showNotifications`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,
+    // Deprecated settings (will be replaced with specific config options in the future)
+    `${namespace}.lint.args`,
+    `${namespace}.format.args`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }
