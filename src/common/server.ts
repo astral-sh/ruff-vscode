@@ -7,7 +7,14 @@ import {
   RevealOutputChannelOn,
   ServerOptions,
 } from "vscode-languageclient/node";
-import { DEBUG_SERVER_SCRIPT_PATH, SERVER_SCRIPT_PATH } from "./constants";
+import {
+  BUNDLED_PYTHON_SCRIPTS_DIR,
+  DEBUG_SERVER_SCRIPT_PATH,
+  RUFF_BIN_PATH,
+  RUFF_SERVER_REQUIRED_ARGS,
+  RUFF_SERVER_CMD,
+  SERVER_SCRIPT_PATH,
+} from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
 import {
@@ -20,7 +27,49 @@ import { updateStatus } from "./status";
 import { getLSClientTraceLevel, getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
 
-export type IInitOptions = { settings: ISettings[]; globalSettings: ISettings };
+export type IInitOptions = {
+  settings: ISettings[];
+  globalSettings: ISettings;
+};
+
+async function createExperimentalServer(
+  settings: ISettings,
+  serverId: string,
+  serverName: string,
+  outputChannel: LogOutputChannel,
+  initializationOptions: IInitOptions,
+): Promise<LanguageClient> {
+  const command = RUFF_BIN_PATH;
+  const cwd = settings.cwd;
+  const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+
+  const serverOptions: ServerOptions = {
+    command,
+    args,
+    options: { cwd, env: process.env },
+  };
+
+  traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+
+  const clientOptions = {
+    // Register the server for python documents
+    documentSelector: isVirtualWorkspace()
+      ? [{ language: "python" }]
+      : [
+          { scheme: "file", language: "python" },
+          { scheme: "untitled", language: "python" },
+          // TODO(jane): Support Jupyter Notebook
+          // { scheme: "vscode-notebook", language: "python" },
+          // { scheme: "vscode-notebook-cell", language: "python" },
+        ],
+    outputChannel: outputChannel,
+    traceOutputChannel: outputChannel,
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
+    initializationOptions,
+  };
+
+  return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
+}
 
 async function createServer(
   settings: ISettings,
@@ -94,12 +143,29 @@ export async function restartServer(
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
 
   const projectRoot = await getProjectRoot();
-  const workspaceSetting = await getWorkspaceSettings(serverId, projectRoot);
+  const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
 
-  const newLSClient = await createServer(workspaceSetting, serverId, serverName, outputChannel, {
-    settings: await getExtensionSettings(serverId),
-    globalSettings: await getGlobalSettings(serverId),
-  });
+  const extensionSettings = await getExtensionSettings(serverId);
+  const globalSettings = await getGlobalSettings(serverId);
+
+  let newLSClient;
+  if (workspaceSettings.experimentalServer || globalSettings.experimentalServer) {
+    newLSClient = await createExperimentalServer(
+      workspaceSettings,
+      serverId,
+      serverName,
+      outputChannel,
+      {
+        settings: extensionSettings,
+        globalSettings: globalSettings,
+      },
+    );
+  } else {
+    newLSClient = await createServer(workspaceSettings, serverId, serverName, outputChannel, {
+      settings: extensionSettings,
+      globalSettings: globalSettings,
+    });
+  }
   traceInfo(`Server: Start requested.`);
   _disposables.push(
     newLSClient.onDidChangeState((e) => {
