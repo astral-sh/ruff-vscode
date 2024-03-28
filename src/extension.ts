@@ -66,10 +66,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.window.showWarningMessage(
           "To enable or disable Ruff after changing the `enable` setting, you must restart VS Code.",
         );
-      } else if (event.affectsConfiguration("ruff.experimentalServer")) {
-        vscode.window.showWarningMessage(
-          "To enable or disable the experimental Ruff server, you must restart VS Code.",
-        );
       }
     }),
   );
