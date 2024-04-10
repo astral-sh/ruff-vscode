@@ -10,10 +10,10 @@ import {
 import {
   BUNDLED_PYTHON_SCRIPTS_DIR,
   DEBUG_SERVER_SCRIPT_PATH,
-  RUFF_BIN_PATH,
   RUFF_SERVER_REQUIRED_ARGS,
   RUFF_SERVER_CMD,
   SERVER_SCRIPT_PATH,
+  NEW_SERVER_SCRIPT_PATH,
 } from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
@@ -39,17 +39,31 @@ async function createExperimentalServer(
   outputChannel: LogOutputChannel,
   initializationOptions: IInitOptions,
 ): Promise<LanguageClient> {
-  const command = RUFF_BIN_PATH;
-  const cwd = settings.cwd;
-  const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+  let serverOptions: ServerOptions;
+  if (settings.path.length > 0 && settings.path[0]) {
+    const command = settings.path[0];
+    const cwd = settings.cwd;
+    const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+    serverOptions = {
+      command,
+      args,
+      options: { cwd, env: process.env },
+    };
 
-  const serverOptions: ServerOptions = {
-    command,
-    args,
-    options: { cwd, env: process.env },
-  };
+    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+  } else {
+    const command = settings.interpreter[0];
+    const cwd = settings.cwd;
+    const args = [NEW_SERVER_SCRIPT_PATH, RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
 
-  traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+    serverOptions = {
+      command,
+      args,
+      options: { cwd, env: process.env },
+    };
+
+    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+  }
 
   const clientOptions = {
     // Register the server for python documents
