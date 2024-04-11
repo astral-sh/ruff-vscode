@@ -10,10 +10,10 @@ import {
 import {
   BUNDLED_PYTHON_SCRIPTS_DIR,
   DEBUG_SERVER_SCRIPT_PATH,
-  RUFF_BIN_PATH,
   RUFF_SERVER_REQUIRED_ARGS,
   RUFF_SERVER_CMD,
   SERVER_SCRIPT_PATH,
+  EXPERIMENTAL_SERVER_SCRIPT_PATH,
 } from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
@@ -39,17 +39,34 @@ async function createExperimentalServer(
   outputChannel: LogOutputChannel,
   initializationOptions: IInitOptions,
 ): Promise<LanguageClient> {
-  const command = RUFF_BIN_PATH;
-  const cwd = settings.cwd;
-  const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+  let serverOptions: ServerOptions;
+  // If the user provided a binary path, we'll try to call that path directly.
+  if (settings.path[0]) {
+    const command = settings.path[0];
+    const cwd = settings.cwd;
+    const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+    serverOptions = {
+      command,
+      args,
+      options: { cwd, env: process.env },
+    };
 
-  const serverOptions: ServerOptions = {
-    command,
-    args,
-    options: { cwd, env: process.env },
-  };
+    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+  } else {
+    // Otherwise, we'll call a Python script that tries to locate
+    // a binary, falling back to the bundled version if no local executable is found.
+    const command = settings.interpreter[0];
+    const cwd = settings.cwd;
+    const args = [EXPERIMENTAL_SERVER_SCRIPT_PATH, RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
 
-  traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+    serverOptions = {
+      command,
+      args,
+      options: { cwd, env: process.env },
+    };
+
+    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+  }
 
   const clientOptions = {
     // Register the server for python documents
