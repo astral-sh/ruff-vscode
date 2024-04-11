@@ -2,7 +2,7 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
-## 2024.19.0-alpha
+## 2024.19.0-dev
 
 This pre-release upgrades the bundled Ruff version to `v0.3.6`.
 
