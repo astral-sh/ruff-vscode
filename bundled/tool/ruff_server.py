@@ -23,6 +23,8 @@ def update_sys_path(path_to_add: str) -> None:
         site.addsitedir(path_to_add)
 
 
+# This is separate from the 'main' entrypoint because we need
+# to update the system path _before_ importing `pacakging`
 if __name__ == "__main__":
     # Ensure that we can import bundled libraries like `packaging`
     update_sys_path(os.fspath(BUNDLE_DIR / "libs"))
