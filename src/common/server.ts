@@ -41,7 +41,7 @@ async function createExperimentalServer(
 ): Promise<LanguageClient> {
   let serverOptions: ServerOptions;
   // If the user provided a binary path, we'll try to call that path directly.
-  if (settings.path.length > 0 && settings.path[0]) {
+  if (settings.path[0]) {
     const command = settings.path[0];
     const cwd = settings.cwd;
     const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
