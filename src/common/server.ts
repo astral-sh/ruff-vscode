@@ -13,7 +13,7 @@ import {
   RUFF_SERVER_REQUIRED_ARGS,
   RUFF_SERVER_CMD,
   SERVER_SCRIPT_PATH,
-  NEW_SERVER_SCRIPT_PATH,
+  EXPERIMENTAL_SERVER_SCRIPT_PATH,
 } from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
@@ -54,7 +54,7 @@ async function createExperimentalServer(
   } else {
     const command = settings.interpreter[0];
     const cwd = settings.cwd;
-    const args = [NEW_SERVER_SCRIPT_PATH, RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+    const args = [EXPERIMENTAL_SERVER_SCRIPT_PATH, RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
 
     serverOptions = {
       command,

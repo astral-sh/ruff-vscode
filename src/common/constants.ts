@@ -10,7 +10,7 @@ export const DEBUG_SERVER_SCRIPT_PATH = path.join(
   "tool",
   `_debug_server.py`,
 );
-export const NEW_SERVER_SCRIPT_PATH = path.join(
+export const EXPERIMENTAL_SERVER_SCRIPT_PATH = path.join(
   BUNDLED_PYTHON_SCRIPTS_DIR,
   "tool",
   "ruff_server.py",
