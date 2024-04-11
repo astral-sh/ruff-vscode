@@ -31,11 +31,8 @@ if __name__ == "__main__":
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-# This is the first release that included `ruff server`.
-# The minimum version may change in the future.
-RUFF_VERSION_REQUIREMENT = SpecifierSet(">=0.3.3")
-# These versions have major bugs or broken integration, and should be avoided.
-FORBIDDEN_RUFF_VERSIONS = [Version("0.3.4")]
+# This is subject to change in the future
+RUFF_VERSION_REQUIREMENT = SpecifierSet(">=0.3.5")
 
 
 def executable_version(executable: str) -> Version:
@@ -48,21 +45,12 @@ def executable_version(executable: str) -> Version:
 def check_compatibility(
     executable: str,
     requirement: SpecifierSet,
-    forbidden_requirements: SpecifierSet,
 ) -> None:
     """Check the executable for compatibility against various version specifiers."""
     version = executable_version(executable)
     if not requirement.contains(version, prereleases=True):
         message = f"Ruff {requirement} required, but found {version} at {executable}"
         raise RuntimeError(message)
-    for forbidden in forbidden_requirements:
-        if version == forbidden:
-            message = (
-                f"Tried to use Ruff version {version} at {executable}, which is not allowed.\n"
-                "This version of the server has incompatibilities and/or integration-breaking bugs.\n"
-                "Please upgrade to the latest version and try again."
-            )
-            raise RuntimeError(message)
 
 
 def find_ruff_bin(fallback: Path) -> Path:
@@ -97,6 +85,6 @@ if __name__ == "__main__":
             Path(BUNDLE_DIR / "libs" / "bin" / RUFF_EXE),
         ),
     )
-    check_compatibility(ruff, RUFF_VERSION_REQUIREMENT, FORBIDDEN_RUFF_VERSIONS)
+    check_compatibility(ruff, RUFF_VERSION_REQUIREMENT)
     completed_process = subprocess.run([ruff, *sys.argv[1:]], check=False)
     sys.exit(completed_process.returncode)
