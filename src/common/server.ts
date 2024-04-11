@@ -40,6 +40,7 @@ async function createExperimentalServer(
   initializationOptions: IInitOptions,
 ): Promise<LanguageClient> {
   let serverOptions: ServerOptions;
+  // If the user provided a binary path, we'll try to call that path directly.
   if (settings.path.length > 0 && settings.path[0]) {
     const command = settings.path[0];
     const cwd = settings.cwd;
@@ -52,6 +53,8 @@ async function createExperimentalServer(
 
     traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
   } else {
+    // Otherwise, we'll call a Python script that tries to locate
+    // a binary, falling back to the bundled version if no local executable is found.
     const command = settings.interpreter[0];
     const cwd = settings.cwd;
     const args = [EXPERIMENTAL_SERVER_SCRIPT_PATH, RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
