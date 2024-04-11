@@ -52,7 +52,6 @@
   "main": "./dist/extension.js",
   "scripts": {
     "fmt": "prettier -w .",
-    "fmt:check": "prettier --check .",
     "lint": "eslint src --ext ts",
     "tsc": "tsc --noEmit",
     "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
