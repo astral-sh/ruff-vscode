@@ -20,6 +20,7 @@ check:
   ruff ./bundled/tool ./build ./tests
   ruff format --check ./bundled/tool ./build ./tests
   mypy ./bundled/tool ./build ./tests
+  npm run fmt-check
   npm run lint
   npm run tsc
 
