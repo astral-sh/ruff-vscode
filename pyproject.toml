@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ruff-vscode"
-version = "2024.19.0-dev"
+version = "2024.21.0-dev"
 description = "A Visual Studio Code extension with support for the Ruff linter."
 authors = [{ name = "Charlie Marsh", email = "charlie.r.marsh@gmail.com" }]
 maintainers = [{ name = "Charlie Marsh", email = "charlie.r.marsh@gmail.com" }]
 requires-python = ">=3.7"
 license = "MIT"
-dependencies = ["packaging>=23.1", "ruff-lsp==0.0.53", "ruff==0.3.6"]
+dependencies = ["packaging>=23.1", "ruff-lsp==0.0.53", "ruff==0.4.0"]
 
 [project.optional-dependencies]
 dev = ["mypy==1.2.0", "python-lsp-jsonrpc==1.0.0"]
