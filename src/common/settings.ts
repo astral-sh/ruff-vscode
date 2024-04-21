@@ -91,6 +91,14 @@ export function getInterpreterFromSetting(namespace: string, scope?: Configurati
   return config.get<string[]>("interpreter");
 }
 
+function getLineLength(configuration: WorkspaceConfiguration, key: string): number | undefined {
+  let lineLength = configuration.get<number>(key);
+  if (lineLength && lineLength > 0 && lineLength <= 320) {
+    return lineLength;
+  }
+  return undefined;
+}
+
 export async function getWorkspaceSettings(
   namespace: string,
   workspace: WorkspaceFolder,
