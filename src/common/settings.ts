@@ -26,10 +26,15 @@ type Lint = {
   enable?: boolean;
   args?: string[];
   run?: Run;
+  preview?: boolean;
+  select?: string[];
+  extendSelect?: string[];
+  ignore?: string[];
 };
 
 type Format = {
   args?: string[];
+  preview?: boolean;
 };
 
 export interface ISettings {
@@ -47,6 +52,8 @@ export interface ISettings {
   fixAll: boolean;
   lint: Lint;
   format: Format;
+  exclude?: string[];
+  lineLength?: number;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -84,6 +91,14 @@ export function getInterpreterFromSetting(namespace: string, scope?: Configurati
   return config.get<string[]>("interpreter");
 }
 
+function getLineLength(configuration: WorkspaceConfiguration, key: string): number | undefined {
+  let lineLength = configuration.get<number>(key);
+  if (lineLength && lineLength > 0 && lineLength <= 320) {
+    return lineLength;
+  }
+  return undefined;
+}
+
 export async function getWorkspaceSettings(
   namespace: string,
   workspace: WorkspaceFolder,
@@ -111,20 +126,40 @@ export async function getWorkspaceSettings(
         getPreferredWorkspaceSetting<string[]>("lint.args", "args", config) ?? [],
         workspace,
       ),
+      preview: config.get<boolean>("lint.preview"),
+      select: config.get<string[]>("lint.select"),
+      extendSelect: config.get<string[]>("lint.extendSelect"),
+      ignore: config.get<string[]>("lint.ignore"),
     },
     format: {
       args: resolveVariables(config.get<string[]>("format.args") ?? [], workspace),
+      preview: config.get<boolean>("format.preview"),
     },
     enable: config.get<boolean>("enable") ?? true,
     organizeImports: config.get<boolean>("organizeImports") ?? true,
     fixAll: config.get<boolean>("fixAll") ?? true,
     showNotifications: config.get<string>("showNotifications") ?? "off",
+    exclude: config.get<string[]>("exclude"),
+    lineLength: getLineLength(config, "lineLength"),
   };
 }
 
 function getGlobalValue<T>(config: WorkspaceConfiguration, key: string, defaultValue: T): T {
   const inspect = config.inspect<T>(key);
   return inspect?.globalValue ?? inspect?.defaultValue ?? defaultValue;
+}
+
+function getOptionalGlobalValue<T>(config: WorkspaceConfiguration, key: string): T | undefined {
+  const inspect = config.inspect<T>(key);
+  return inspect?.globalValue;
+}
+
+function getGlobalLineLength(config: WorkspaceConfiguration, key: string): number | undefined {
+  let lineLength = config.inspect<number>(key)?.globalValue;
+  if (lineLength && lineLength > 0 && lineLength <= 320) {
+    return lineLength;
+  }
+  return undefined;
 }
 
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
@@ -142,14 +177,21 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
       enable: getPreferredGlobalSetting<boolean>("lint.enable", "enable", config) ?? true,
       run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
       args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
+      preview: getOptionalGlobalValue<boolean>(config, "lint.preview"),
+      select: getOptionalGlobalValue<string[]>(config, "lint.select"),
+      extendSelect: getOptionalGlobalValue<string[]>(config, "lint.extendSelect"),
+      ignore: getOptionalGlobalValue<string[]>(config, "lint.ignore"),
     },
     format: {
       args: getGlobalValue<string[]>(config, "format.args", []),
+      preview: getOptionalGlobalValue<boolean>(config, "format.preview"),
     },
     enable: getGlobalValue<boolean>(config, "enable", true),
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
+    exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
+    lineLength: getGlobalLineLength(config, "lineLength"),
   };
 }
 
@@ -167,9 +209,16 @@ export function checkIfConfigurationChanged(
     `${namespace}.interpreter`,
     `${namespace}.lint.enable`,
     `${namespace}.lint.run`,
+    `${namespace}.lint.preview`,
+    `${namespace}.lint.select`,
+    `${namespace}.lint.extendSelect`,
+    `${namespace}.lint.ignore`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
     `${namespace}.showNotifications`,
+    `${namespace}.format.preview`,
+    `${namespace}.exclude`,
+    `${namespace}.lineLength`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,

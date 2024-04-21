@@ -89,6 +89,36 @@
           "scope": "resource",
           "type": "array"
         },
+        "ruff.lint.preview": {
+          "markdownDescription": "Enable preview mode for the linter; enables unstable rules and fixes.",
+          "scope": "window",
+          "type": "boolean",
+          "default": null
+        },
+        "ruff.lint.select": {
+          "markdownDescription": "Set rule codes to enable. Use `ALL` to enable all rules.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "default": null
+        },
+        "ruff.lint.extendSelect": {
+          "markdownDescription": "Enable additional rule codes on top of existing configuration, instead of overriding it. Use `ALL` to enable all rules.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "default": null
+        },
+        "ruff.lint.ignore": {
+          "markdownDescription": "Set rule codes to disable.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "default": null
+        },
         "ruff.run": {
           "default": "onType",
           "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
@@ -133,6 +163,12 @@
           },
           "scope": "resource",
           "type": "array"
+        },
+        "ruff.format.preview": {
+          "markdownDescription": "Enable preview mode for the formatter; enables unstable formatting.",
+          "scope": "window",
+          "type": "boolean",
+          "default": null
         },
         "ruff.path": {
           "default": [],
@@ -249,6 +285,21 @@
           ],
           "scope": "window",
           "type": "string"
+        },
+        "ruff.exclude": {
+          "markdownDescription": "Set paths for the linter and formatter to ignore.",
+          "scope": "window",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "default": null
+        },
+        "ruff.lineLength": {
+          "markdownDescription": "Set the line length used by the formatter and linter.",
+          "scope": "window",
+          "type": ["integer", "null"],
+          "default": null
         },
         "ruff.enableExperimentalFormatter": {
           "default": false,
