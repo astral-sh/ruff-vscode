@@ -91,14 +91,6 @@ export function getInterpreterFromSetting(namespace: string, scope?: Configurati
   return config.get<string[]>("interpreter");
 }
 
-function getLineLength(configuration: WorkspaceConfiguration, key: string): number | undefined {
-  let lineLength = configuration.get<number>(key);
-  if (lineLength && lineLength > 0 && lineLength <= 320) {
-    return lineLength;
-  }
-  return undefined;
-}
-
 export async function getWorkspaceSettings(
   namespace: string,
   workspace: WorkspaceFolder,
@@ -140,7 +132,7 @@ export async function getWorkspaceSettings(
     fixAll: config.get<boolean>("fixAll") ?? true,
     showNotifications: config.get<string>("showNotifications") ?? "off",
     exclude: config.get<string[]>("exclude"),
-    lineLength: getLineLength(config, "lineLength"),
+    lineLength: config.get<number>("lineLength"),
   };
 }
 
@@ -152,14 +144,6 @@ function getGlobalValue<T>(config: WorkspaceConfiguration, key: string, defaultV
 function getOptionalGlobalValue<T>(config: WorkspaceConfiguration, key: string): T | undefined {
   const inspect = config.inspect<T>(key);
   return inspect?.globalValue;
-}
-
-function getGlobalLineLength(config: WorkspaceConfiguration, key: string): number | undefined {
-  let lineLength = config.inspect<number>(key)?.globalValue;
-  if (lineLength && lineLength > 0 && lineLength <= 320) {
-    return lineLength;
-  }
-  return undefined;
 }
 
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
@@ -191,7 +175,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
     exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
-    lineLength: getGlobalLineLength(config, "lineLength"),
+    lineLength: getOptionalGlobalValue<number>(config, "lineLength"),
   };
 }
 
