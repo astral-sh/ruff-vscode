@@ -54,6 +54,7 @@ export interface ISettings {
   format: Format;
   exclude?: string[];
   lineLength?: number;
+  prioritizeFileConfiguration?: boolean;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -141,6 +142,7 @@ export async function getWorkspaceSettings(
     showNotifications: config.get<string>("showNotifications") ?? "off",
     exclude: config.get<string[]>("exclude"),
     lineLength: config.get<number>("lineLength"),
+    prioritizeFileConfiguration: config.get<boolean>("prioritizeFileConfiguration") ?? false,
   };
 }
 
@@ -184,6 +186,11 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
     exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
     lineLength: getOptionalGlobalValue<number>(config, "lineLength"),
+    prioritizeFileConfiguration: getGlobalValue<boolean>(
+      config,
+      "prioritizeFileConfiguration",
+      false,
+    ),
   };
 }
 
@@ -211,6 +218,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.format.preview`,
     `${namespace}.exclude`,
     `${namespace}.lineLength`,
+    `${namespace}.prioritizeFileConfiguration`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,

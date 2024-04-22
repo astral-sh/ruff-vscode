@@ -309,6 +309,12 @@
           "scope": "resource",
           "type": ["integer", "null"]
         },
+        "ruff.prioritizeFileConfiguration": {
+          "markdownDescription": "Whether to prioritize file configuration over configuration set in extension settings.",
+          "scope": "window",
+          "type": "boolean",
+          "default": false
+        },
         "ruff.enableExperimentalFormatter": {
           "default": false,
           "markdownDescription": "Controls whether Ruff registers as capable of code formatting.",
