@@ -89,6 +89,42 @@
           "scope": "resource",
           "type": "array"
         },
+        "ruff.lint.preview": {
+          "default": null,
+          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#lint_preview) for the linter; enables unstable rules and fixes.",
+          "scope": "resource",
+          "type": "boolean"
+        },
+        "ruff.lint.select": {
+          "default": null,
+          "markdownDescription": "Set rule codes to enable. Use `ALL` to enable all rules. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select) for more details.",
+          "examples": [
+            ["E4", "E7", "E9", "F"]
+          ],
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
+        "ruff.lint.extendSelect": {
+          "default": null,
+          "markdownDescription": "Enable additional rule codes on top of existing configuration, instead of overriding it. Use `ALL` to enable all rules.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
+        "ruff.lint.ignore": {
+          "default": null,
+          "markdownDescription": "Set rule codes to disable. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore) for more details.",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "type": "array"
+        },
         "ruff.run": {
           "default": "onType",
           "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
@@ -133,6 +169,12 @@
           },
           "scope": "resource",
           "type": "array"
+        },
+        "ruff.format.preview": {
+          "default": null,
+          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#format_preview) for the formatter; enables unstable formatting.",
+          "scope": "resource",
+          "type": "boolean"
         },
         "ruff.path": {
           "default": [],
@@ -249,6 +291,23 @@
           ],
           "scope": "window",
           "type": "string"
+        },
+        "ruff.exclude": {
+          "default": null,
+          "items": {
+            "type": "string"
+          },
+          "markdownDescription": "Set paths for the linter and formatter to ignore. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_exclude) for more details.",
+          "type": "array",
+          "scope": "resource"
+        },
+        "ruff.lineLength": {
+          "default": null,
+          "minimum": 1,
+          "maximum": 320,
+          "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0 and less than or equal to 320.",
+          "scope": "resource",
+          "type": ["integer", "null"]
         },
         "ruff.enableExperimentalFormatter": {
           "default": false,
