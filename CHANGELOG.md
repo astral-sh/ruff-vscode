@@ -2,6 +2,24 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.21.0-dev
+
+This pre-release upgrades the bundled Ruff version to `v0.4.2`.
+
+Several new extension settings have been introduced, which allow you to override certain options passed into the linter and formatter. See [#10984](https://github.com/astral-sh/ruff/pull/10984)
+for more details.
+
+The `v0.4.2` server introduces several other features and improvements:
+
+- Diagnostics for open files are now automatically refreshed when a configuration file is modified ([#10988](https://github.com/astral-sh/ruff/pull/10988))
+- File configuration is now resolved on a per-file basis, which matches how the CLI resolves configuration ([#10950](https://github.com/astral-sh/ruff/pull/10950))
+- Hover documentation for `noqa` codes has been implemented ([#11096](https://github.com/astral-sh/ruff/pull/11096))
+- Major errors are now shown as pop-up notifications ([#10951](https://github.com/astral-sh/ruff/pull/10951))
+
+This release also includes a bug fix:
+
+- Ruff-specific source actions (such as `source.organizeImports.ruff`) now work as intended ([#10916](https://github.com/astral-sh/ruff/pull/10916))
+
 ## 2024.20.0
 
 This release upgrades the bundled Ruff version to v0.4.1.
@@ -15,6 +33,7 @@ This pre-release upgrades the bundled Ruff version to `v0.3.6`.
 The extension can now detect and use local `ruff` executables on your system, though it can still fall back to the bundled Ruff binary.
 
 The `v0.3.6` server introduces several major features:
+
 - Source actions like `source.fixAll` and `source.organizeImports` are now supported.
 - Extension commands are now supported.
 - Some extension settings now work as expected. See [the relevant PR](https://github.com/astral-sh/ruff/pull/10764) for more details.
