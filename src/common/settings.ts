@@ -13,6 +13,8 @@ type ImportStrategy = "fromEnvironment" | "useBundled";
 
 type Run = "onType" | "onSave";
 
+type ConfigResolutionStrategy = "default" | "prioritizeWorkspace";
+
 type CodeAction = {
   disableRuleComment?: {
     enable?: boolean;
@@ -54,7 +56,7 @@ export interface ISettings {
   format: Format;
   exclude?: string[];
   lineLength?: number;
-  prioritizeFileConfiguration?: boolean;
+  configurationResolutionStrategy?: ConfigResolutionStrategy;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -142,7 +144,8 @@ export async function getWorkspaceSettings(
     showNotifications: config.get<string>("showNotifications") ?? "off",
     exclude: config.get<string[]>("exclude"),
     lineLength: config.get<number>("lineLength"),
-    prioritizeFileConfiguration: config.get<boolean>("prioritizeFileConfiguration") ?? false,
+    configurationResolutionStrategy:
+      config.get<ConfigResolutionStrategy>("configurationResolutionStrategy") ?? "default",
   };
 }
 
@@ -186,10 +189,10 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
     exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
     lineLength: getOptionalGlobalValue<number>(config, "lineLength"),
-    prioritizeFileConfiguration: getGlobalValue<boolean>(
+    configurationResolutionStrategy: getGlobalValue<ConfigResolutionStrategy>(
       config,
-      "prioritizeFileConfiguration",
-      false,
+      "configurationResolutionStrategy",
+      "default",
     ),
   };
 }

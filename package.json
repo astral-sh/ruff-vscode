@@ -309,11 +309,19 @@
           "scope": "resource",
           "type": ["integer", "null"]
         },
-        "ruff.prioritizeFileConfiguration": {
-          "markdownDescription": "Whether to prioritize file configuration over configuration set in extension settings.",
-          "scope": "window",
-          "type": "boolean",
-          "default": false
+        "ruff.configurationResolutionStrategy": {
+          "enum": [
+            "default",
+            "prioritizeWorkspace"
+          ],
+          "enumDescriptions": [
+            "The default strategy - configuration set in the editor takes priority over configuration set in `.toml` files.",
+            "An alternative strategy - configuration set in `.toml` files takes priority over configuration set in the editor."
+          ],
+          "markdownDescription": "The resolution strategy used to merge configuration set in the editor with configuration set in local `.toml` files.",
+          "scope": "resource",
+          "type": "string",
+          "default": "default"
         },
         "ruff.enableExperimentalFormatter": {
           "default": false,
