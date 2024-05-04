@@ -63,7 +63,12 @@ export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
   );
 }
 
-function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[] {
+function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[];
+function resolveVariables(value: string, workspace?: WorkspaceFolder): string;
+function resolveVariables(
+  value: string | string[],
+  workspace?: WorkspaceFolder,
+): string | string[] | null {
   const substitutions = new Map<string, string>();
   const home = process.env.HOME || process.env.USERPROFILE;
   if (home) {
@@ -77,12 +82,20 @@ function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[
     substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
   });
 
-  return value.map((s) => {
+  if (typeof value === "string") {
+    let s = value;
     for (const [key, value] of substitutions) {
       s = s.replace(key, value);
     }
     return s;
-  });
+  } else {
+    return value.map((s) => {
+      for (const [key, value] of substitutions) {
+        s = s.replace(key, value);
+      }
+      return s;
+    });
+  }
 }
 
 export function getInterpreterFromSetting(namespace: string, scope?: ConfigurationScope) {
@@ -101,6 +114,11 @@ export async function getWorkspaceSettings(
     interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
   }
 
+  let configuration = config.get<string>("configuration") ?? null;
+  if (configuration !== null) {
+    configuration = resolveVariables(configuration, workspace);
+  }
+
   return {
     experimentalServer: config.get<boolean>("experimentalServer") ?? false,
     cwd: workspace.uri.fsPath,
@@ -108,7 +126,7 @@ export async function getWorkspaceSettings(
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     ignoreStandardLibrary: config.get<boolean>("ignoreStandardLibrary") ?? true,
     interpreter: resolveVariables(interpreter, workspace),
-    configuration: config.get<string | null>("configuration") ?? null,
+    configuration,
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
     lint: {
