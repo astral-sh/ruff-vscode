@@ -1,11 +1,9 @@
 import {
   ConfigurationChangeEvent,
   ConfigurationScope,
-  Uri,
   WorkspaceConfiguration,
   WorkspaceFolder,
 } from "vscode";
-import { traceError } from "./log/logging";
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 
@@ -39,6 +37,7 @@ export interface ISettings {
   path: string[];
   ignoreStandardLibrary: boolean;
   interpreter: string[];
+  configuration: string | null;
   importStrategy: ImportStrategy;
   codeAction: CodeAction;
   enable: boolean;
@@ -102,6 +101,7 @@ export async function getWorkspaceSettings(
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     ignoreStandardLibrary: config.get<boolean>("ignoreStandardLibrary") ?? true,
     interpreter: resolveVariables(interpreter, workspace),
+    configuration: config.get<string | null>("configuration") ?? null,
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
     lint: {
@@ -136,6 +136,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     path: getGlobalValue<string[]>(config, "path", []),
     ignoreStandardLibrary: getGlobalValue<boolean>(config, "ignoreStandardLibrary", true),
     interpreter: [],
+    configuration: getGlobalValue<string | null>(config, "configuration", null),
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
     lint: {
@@ -159,6 +160,7 @@ export function checkIfConfigurationChanged(
 ): boolean {
   const settings = [
     `${namespace}.codeAction`,
+    `${namespace}.configuration`,
     `${namespace}.enable`,
     `${namespace}.experimentalServer`,
     `${namespace}.fixAll`,
