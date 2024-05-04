@@ -69,6 +69,12 @@
           "scope": "window",
           "type": "boolean"
         },
+        "ruff.configuration": {
+          "default": null,
+          "markdownDescription": "**Warning**: This setting is only respected when the experimental Ruff language server is enabled. Path to a `ruff.toml` or `pyproject.toml` file to use for configuration. By default, Ruff will discover configuration for each project from the filesystem, mirroring the behavior of the Ruff CLI.",
+          "scope": "window",
+          "type": "string"
+        },
         "ruff.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
