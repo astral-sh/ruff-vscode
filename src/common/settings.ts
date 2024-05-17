@@ -13,7 +13,7 @@ type ImportStrategy = "fromEnvironment" | "useBundled";
 
 type Run = "onType" | "onSave";
 
-type ConfigResolutionStrategy = "default" | "prioritizeWorkspace";
+type ConfigPreference = "editorFirst" | "filesystemFirst" | "editorOnly";
 
 type CodeAction = {
   disableRuleComment?: {
@@ -56,7 +56,7 @@ export interface ISettings {
   format: Format;
   exclude?: string[];
   lineLength?: number;
-  configurationResolutionStrategy?: ConfigResolutionStrategy;
+  configurationPreference?: ConfigPreference;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -92,14 +92,6 @@ function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[
 export function getInterpreterFromSetting(namespace: string, scope?: ConfigurationScope) {
   const config = getConfiguration(namespace, scope);
   return config.get<string[]>("interpreter");
-}
-
-function getLineLength(configuration: WorkspaceConfiguration, key: string): number | undefined {
-  let lineLength = configuration.get<number>(key);
-  if (lineLength && lineLength > 0 && lineLength <= 320) {
-    return lineLength;
-  }
-  return undefined;
 }
 
 export async function getWorkspaceSettings(
@@ -144,8 +136,8 @@ export async function getWorkspaceSettings(
     showNotifications: config.get<string>("showNotifications") ?? "off",
     exclude: config.get<string[]>("exclude"),
     lineLength: config.get<number>("lineLength"),
-    configurationResolutionStrategy:
-      config.get<ConfigResolutionStrategy>("configurationResolutionStrategy") ?? "default",
+    configurationPreference:
+      config.get<ConfigPreference>("configurationPreference") ?? "editorFirst",
   };
 }
 
@@ -189,10 +181,10 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
     exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
     lineLength: getOptionalGlobalValue<number>(config, "lineLength"),
-    configurationResolutionStrategy: getGlobalValue<ConfigResolutionStrategy>(
+    configurationPreference: getGlobalValue<ConfigPreference>(
       config,
-      "configurationResolutionStrategy",
-      "default",
+      "configurationPreference",
+      "editorFirst",
     ),
   };
 }
@@ -221,7 +213,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.format.preview`,
     `${namespace}.exclude`,
     `${namespace}.lineLength`,
-    `${namespace}.prioritizeFileConfiguration`,
+    `${namespace}.configurationPreference`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,
