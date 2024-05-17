@@ -32,7 +32,7 @@ export type IInitOptions = {
   globalSettings: ISettings;
 };
 
-async function createExperimentalServer(
+async function createBetaServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
@@ -166,17 +166,11 @@ export async function restartServer(
   const globalSettings = await getGlobalSettings(serverId);
 
   let newLSClient;
-  if (workspaceSettings.experimentalServer || globalSettings.experimentalServer) {
-    newLSClient = await createExperimentalServer(
-      workspaceSettings,
-      serverId,
-      serverName,
-      outputChannel,
-      {
-        settings: extensionSettings,
-        globalSettings: globalSettings,
-      },
-    );
+  if (workspaceSettings.betaServer || globalSettings.betaServer) {
+    newLSClient = await createBetaServer(workspaceSettings, serverId, serverName, outputChannel, {
+      settings: extensionSettings,
+      globalSettings: globalSettings,
+    });
   } else {
     newLSClient = await createServer(workspaceSettings, serverId, serverName, outputChannel, {
       settings: extensionSettings,

@@ -63,21 +63,21 @@
   "contributes": {
     "configuration": {
       "properties": {
-        "ruff.experimentalServer": {
+        "ruff.betaServer": {
           "default": false,
-          "markdownDescription": "Use the new, experimental Ruff language server. Some features and configuration options are not supported yet.",
+          "markdownDescription": "Use the new beta language server, integrated with Ruff.",
           "scope": "window",
           "type": "boolean"
         },
         "ruff.configuration": {
           "default": null,
-          "markdownDescription": "**Warning**: This setting is only respected when the experimental Ruff language server is enabled. Path to a `ruff.toml` or `pyproject.toml` file to use for configuration. By default, Ruff will discover configuration for each project from the filesystem, mirroring the behavior of the Ruff CLI.",
+          "markdownDescription": "Path to a `ruff.toml` or `pyproject.toml` file to use for configuration. By default, Ruff will discover configuration for each project from the filesystem, mirroring the behavior of the Ruff CLI. This setting is used only by the beta server.",
           "scope": "window",
           "type": "string"
         },
         "ruff.args": {
           "default": [],
-          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`. This setting is not supported by the beta server.",
           "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.args` instead.",
           "deprecationMessage": "Deprecated: Please use ruff.lint.args instead.",
           "items": {
@@ -88,7 +88,7 @@
         },
         "ruff.lint.args": {
           "default": [],
-          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`. This setting is not supported by the beta server.",
           "items": {
             "type": "string"
           },
@@ -97,13 +97,13 @@
         },
         "ruff.lint.preview": {
           "default": null,
-          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#lint_preview) for the linter; enables unstable rules and fixes.",
+          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#lint_preview) for the linter; enables unstable rules and fixes. This setting is used only by the beta server.",
           "scope": "resource",
           "type": "boolean"
         },
         "ruff.lint.select": {
           "default": null,
-          "markdownDescription": "Set rule codes to enable. Use `ALL` to enable all rules. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select) for more details.",
+          "markdownDescription": "Set rule codes to enable. Use `ALL` to enable all rules. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select) for more details. This setting is used only by the beta server.",
           "examples": [
             ["E4", "E7", "E9", "F"]
           ],
@@ -115,7 +115,7 @@
         },
         "ruff.lint.extendSelect": {
           "default": null,
-          "markdownDescription": "Enable additional rule codes on top of existing configuration, instead of overriding it. Use `ALL` to enable all rules.",
+          "markdownDescription": "Enable additional rule codes on top of existing configuration, instead of overriding it. Use `ALL` to enable all rules. This setting is used only by the beta server.",
           "items": {
             "type": "string"
           },
@@ -124,7 +124,7 @@
         },
         "ruff.lint.ignore": {
           "default": null,
-          "markdownDescription": "Set rule codes to disable. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore) for more details.",
+          "markdownDescription": "Set rule codes to disable. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore) for more details. This setting is used only by the beta server.",
           "items": {
             "type": "string"
           },
@@ -133,7 +133,7 @@
         },
         "ruff.run": {
           "default": "onType",
-          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`). This setting is not supported by the beta server.",
           "markdownDeprecationMessage": "**Deprecated**: Please use `#ruff.lint.run` instead.",
           "deprecationMessage": "Deprecated: Please use ruff.lint.run instead.",
           "enum": [
@@ -149,7 +149,7 @@
         },
         "ruff.lint.run": {
           "default": "onType",
-          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`).",
+          "markdownDescription": "Run Ruff on every keystroke (`onType`) or on save (`onSave`). This setting is not supported by the beta server.",
           "enum": [
             "onType",
             "onSave"
@@ -169,7 +169,7 @@
         },
         "ruff.format.args": {
           "default": [],
-          "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.",
+          "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`. This setting is not supported by the beta server.",
           "items": {
             "type": "string"
           },
@@ -178,7 +178,7 @@
         },
         "ruff.format.preview": {
           "default": null,
-          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#format_preview) for the formatter; enables unstable formatting.",
+          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#format_preview) for the formatter; enables unstable formatting. This setting is used only by the beta server.",
           "scope": "resource",
           "type": "boolean"
         },
@@ -303,7 +303,7 @@
           "items": {
             "type": "string"
           },
-          "markdownDescription": "Set paths for the linter and formatter to ignore. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_exclude) for more details.",
+          "markdownDescription": "Set paths for the linter and formatter to ignore. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_exclude) for more details. This setting is used only by the beta server.",
           "type": "array",
           "scope": "resource"
         },
@@ -311,7 +311,7 @@
           "default": null,
           "minimum": 1,
           "maximum": 320,
-          "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0 and less than or equal to 320.",
+          "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0 and less than or equal to 320. This setting is used only by the beta server.",
           "scope": "resource",
           "type": ["integer", "null"]
         },
@@ -326,7 +326,7 @@
             "An alternative strategy - configuration set in `.toml` files takes priority over configuration set in the editor.",
             "An alternative strategy - configuration set in `.toml` files is ignored entirely."
           ],
-          "markdownDescription": "The preferred method of resolving configuration in the editor with local configuration froml `.toml` files.",
+          "markdownDescription": "The preferred method of resolving configuration in the editor with local configuration froml `.toml` files. This setting is used only by the beta server.",
           "scope": "resource",
           "type": "string",
           "default": "editorFirst"
