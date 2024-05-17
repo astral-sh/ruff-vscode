@@ -315,6 +315,22 @@
           "scope": "resource",
           "type": ["integer", "null"]
         },
+        "ruff.configurationPreference": {
+          "enum": [
+            "editorFirst",
+            "filesystemFirst",
+            "editorOnly"
+          ],
+          "enumDescriptions": [
+            "The default strategy - configuration set in the editor takes priority over configuration set in `.toml` files.",
+            "An alternative strategy - configuration set in `.toml` files takes priority over configuration set in the editor.",
+            "An alternative strategy - configuration set in `.toml` files is ignored entirely."
+          ],
+          "markdownDescription": "The preferred method of resolving configuration in the editor with local configuration froml `.toml` files.",
+          "scope": "resource",
+          "type": "string",
+          "default": "editorFirst"
+        },
         "ruff.enableExperimentalFormatter": {
           "default": false,
           "markdownDescription": "Controls whether Ruff registers as capable of code formatting.",

@@ -11,6 +11,8 @@ type ImportStrategy = "fromEnvironment" | "useBundled";
 
 type Run = "onType" | "onSave";
 
+type ConfigPreference = "editorFirst" | "filesystemFirst" | "editorOnly";
+
 type CodeAction = {
   disableRuleComment?: {
     enable?: boolean;
@@ -53,6 +55,7 @@ export interface ISettings {
   format: Format;
   exclude?: string[];
   lineLength?: number;
+  configurationPreference?: ConfigPreference;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -151,6 +154,8 @@ export async function getWorkspaceSettings(
     showNotifications: config.get<string>("showNotifications") ?? "off",
     exclude: config.get<string[]>("exclude"),
     lineLength: config.get<number>("lineLength"),
+    configurationPreference:
+      config.get<ConfigPreference>("configurationPreference") ?? "editorFirst",
   };
 }
 
@@ -195,6 +200,11 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
     exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
     lineLength: getOptionalGlobalValue<number>(config, "lineLength"),
+    configurationPreference: getGlobalValue<ConfigPreference>(
+      config,
+      "configurationPreference",
+      "editorFirst",
+    ),
   };
 }
 
@@ -223,6 +233,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.format.preview`,
     `${namespace}.exclude`,
     `${namespace}.lineLength`,
+    `${namespace}.configurationPreference`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,
