@@ -75,9 +75,8 @@ async function createBetaServer(
       : [
           { scheme: "file", language: "python" },
           { scheme: "untitled", language: "python" },
-          // TODO(jane): Support Jupyter Notebook
-          // { scheme: "vscode-notebook", language: "python" },
-          // { scheme: "vscode-notebook-cell", language: "python" },
+          { scheme: "vscode-notebook", language: "python" },
+          { scheme: "vscode-notebook-cell", language: "python" },
         ],
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
