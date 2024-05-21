@@ -70,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
   );
 
-  const { enable, betaServer } = getConfiguration(serverId) as unknown as ISettings;
+  const { enable, nativeServer } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
     traceLog(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
@@ -101,7 +101,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = true;
 
-    if (betaServer) {
+    if (nativeServer) {
       traceVerbose("Using experimental server with bundled Ruff binary");
 
       lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);

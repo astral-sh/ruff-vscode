@@ -38,7 +38,7 @@ type Format = {
 };
 
 export interface ISettings {
-  betaServer: boolean;
+  nativeServer: boolean;
   cwd: string;
   workspace: string;
   path: string[];
@@ -123,7 +123,7 @@ export async function getWorkspaceSettings(
   }
 
   return {
-    betaServer: config.get<boolean>("betaServer") ?? false,
+    nativeServer: config.get<boolean>("nativeServer") ?? false,
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
@@ -172,7 +172,7 @@ function getOptionalGlobalValue<T>(config: WorkspaceConfiguration, key: string):
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
   return {
-    betaServer: getGlobalValue<boolean>(config, "betaServer", false),
+    nativeServer: getGlobalValue<boolean>(config, "nativeServer", false),
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
@@ -216,7 +216,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.codeAction`,
     `${namespace}.configuration`,
     `${namespace}.enable`,
-    `${namespace}.betaServer`,
+    `${namespace}.nativeServer`,
     `${namespace}.fixAll`,
     `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,

@@ -32,7 +32,7 @@ export type IInitOptions = {
   globalSettings: ISettings;
 };
 
-async function createBetaServer(
+async function createnativeServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
@@ -165,8 +165,8 @@ export async function restartServer(
   const globalSettings = await getGlobalSettings(serverId);
 
   let newLSClient;
-  if (workspaceSettings.betaServer || globalSettings.betaServer) {
-    newLSClient = await createBetaServer(workspaceSettings, serverId, serverName, outputChannel, {
+  if (workspaceSettings.nativeServer || globalSettings.nativeServer) {
+    newLSClient = await createnativeServer(workspaceSettings, serverId, serverName, outputChannel, {
       settings: extensionSettings,
       globalSettings: globalSettings,
     });

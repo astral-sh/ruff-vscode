@@ -284,11 +284,11 @@ using the `ruff.lint.args` and `ruff.format.args` options in `settings.json`:
 Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
 `pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
 
-### Using the Beta Server
+### Using the Native Server
 
-To use the new Rust-based language server (`ruff server`), you'll need to enable the "Beta Server" setting in the extension settings.
+To use the new Rust-based language server (`ruff server`), you'll need to enable the "Native Server" setting in the extension settings.
 
-The beta version of the language server makes several changes to configuration, and some extension settings will not work with it (this will be mentioned in the description for that setting).
+The native server makes several changes to configuration, and some extension settings will not work with it (this will be mentioned in the description for that setting).
 
 
 ## Commands
