@@ -290,7 +290,6 @@ To use the new Rust-based language server (`ruff server`), you'll need to enable
 
 The native server makes several changes to configuration, and some extension settings will not work with it (this will be mentioned in the description for that setting).
 
-
 ## Commands
 
 | Command                             | Description                      |

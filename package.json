@@ -105,7 +105,12 @@
           "default": null,
           "markdownDescription": "Set rule codes to enable. Use `ALL` to enable all rules. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select) for more details. This setting is used only by the native server.",
           "examples": [
-            ["E4", "E7", "E9", "F"]
+            [
+              "E4",
+              "E7",
+              "E9",
+              "F"
+            ]
           ],
           "items": {
             "type": "string"
@@ -313,7 +318,10 @@
           "maximum": 320,
           "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0 and less than or equal to 320. This setting is used only by the native server.",
           "scope": "resource",
-          "type": ["integer", "null"]
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "ruff.configurationPreference": {
           "enum": [
