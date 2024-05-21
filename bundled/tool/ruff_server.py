@@ -76,7 +76,7 @@ def find_ruff_bin(fallback: Path) -> Path:
 
     which_path = shutil.which("ruff")
     if which_path:
-        return which_path
+        return Path(which_path)
 
     return fallback
 
