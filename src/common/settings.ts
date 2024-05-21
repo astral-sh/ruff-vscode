@@ -1,17 +1,17 @@
 import {
   ConfigurationChangeEvent,
   ConfigurationScope,
-  Uri,
   WorkspaceConfiguration,
   WorkspaceFolder,
 } from "vscode";
-import { traceError } from "./log/logging";
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
 
 type Run = "onType" | "onSave";
+
+type ConfigPreference = "editorFirst" | "filesystemFirst" | "editorOnly";
 
 type CodeAction = {
   disableRuleComment?: {
@@ -26,18 +26,25 @@ type Lint = {
   enable?: boolean;
   args?: string[];
   run?: Run;
+  preview?: boolean;
+  select?: string[];
+  extendSelect?: string[];
+  ignore?: string[];
 };
 
 type Format = {
   args?: string[];
+  preview?: boolean;
 };
 
 export interface ISettings {
+  nativeServer: boolean;
   cwd: string;
   workspace: string;
   path: string[];
   ignoreStandardLibrary: boolean;
   interpreter: string[];
+  configuration: string | null;
   importStrategy: ImportStrategy;
   codeAction: CodeAction;
   enable: boolean;
@@ -46,6 +53,9 @@ export interface ISettings {
   fixAll: boolean;
   lint: Lint;
   format: Format;
+  exclude?: string[];
+  lineLength?: number;
+  configurationPreference?: ConfigPreference;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -56,7 +66,12 @@ export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
   );
 }
 
-function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[] {
+function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[];
+function resolveVariables(value: string, workspace?: WorkspaceFolder): string;
+function resolveVariables(
+  value: string | string[],
+  workspace?: WorkspaceFolder,
+): string | string[] | null {
   const substitutions = new Map<string, string>();
   const home = process.env.HOME || process.env.USERPROFILE;
   if (home) {
@@ -70,12 +85,20 @@ function resolveVariables(value: string[], workspace?: WorkspaceFolder): string[
     substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
   });
 
-  return value.map((s) => {
+  if (typeof value === "string") {
+    let s = value;
     for (const [key, value] of substitutions) {
       s = s.replace(key, value);
     }
     return s;
-  });
+  } else {
+    return value.map((s) => {
+      for (const [key, value] of substitutions) {
+        s = s.replace(key, value);
+      }
+      return s;
+    });
+  }
 }
 
 export function getInterpreterFromSetting(namespace: string, scope?: ConfigurationScope) {
@@ -94,12 +117,19 @@ export async function getWorkspaceSettings(
     interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
   }
 
+  let configuration = config.get<string>("configuration") ?? null;
+  if (configuration !== null) {
+    configuration = resolveVariables(configuration, workspace);
+  }
+
   return {
+    nativeServer: config.get<boolean>("nativeServer") ?? false,
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     ignoreStandardLibrary: config.get<boolean>("ignoreStandardLibrary") ?? true,
     interpreter: resolveVariables(interpreter, workspace),
+    configuration,
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
     lint: {
@@ -109,14 +139,23 @@ export async function getWorkspaceSettings(
         getPreferredWorkspaceSetting<string[]>("lint.args", "args", config) ?? [],
         workspace,
       ),
+      preview: config.get<boolean>("lint.preview"),
+      select: config.get<string[]>("lint.select"),
+      extendSelect: config.get<string[]>("lint.extendSelect"),
+      ignore: config.get<string[]>("lint.ignore"),
     },
     format: {
       args: resolveVariables(config.get<string[]>("format.args") ?? [], workspace),
+      preview: config.get<boolean>("format.preview"),
     },
     enable: config.get<boolean>("enable") ?? true,
     organizeImports: config.get<boolean>("organizeImports") ?? true,
     fixAll: config.get<boolean>("fixAll") ?? true,
     showNotifications: config.get<string>("showNotifications") ?? "off",
+    exclude: config.get<string[]>("exclude"),
+    lineLength: config.get<number>("lineLength"),
+    configurationPreference:
+      config.get<ConfigPreference>("configurationPreference") ?? "editorFirst",
   };
 }
 
@@ -125,28 +164,47 @@ function getGlobalValue<T>(config: WorkspaceConfiguration, key: string, defaultV
   return inspect?.globalValue ?? inspect?.defaultValue ?? defaultValue;
 }
 
+function getOptionalGlobalValue<T>(config: WorkspaceConfiguration, key: string): T | undefined {
+  const inspect = config.inspect<T>(key);
+  return inspect?.globalValue;
+}
+
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
   return {
+    nativeServer: getGlobalValue<boolean>(config, "nativeServer", false),
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
     ignoreStandardLibrary: getGlobalValue<boolean>(config, "ignoreStandardLibrary", true),
     interpreter: [],
+    configuration: getGlobalValue<string | null>(config, "configuration", null),
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
     lint: {
       enable: getPreferredGlobalSetting<boolean>("lint.enable", "enable", config) ?? true,
       run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
       args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
+      preview: getOptionalGlobalValue<boolean>(config, "lint.preview"),
+      select: getOptionalGlobalValue<string[]>(config, "lint.select"),
+      extendSelect: getOptionalGlobalValue<string[]>(config, "lint.extendSelect"),
+      ignore: getOptionalGlobalValue<string[]>(config, "lint.ignore"),
     },
     format: {
       args: getGlobalValue<string[]>(config, "format.args", []),
+      preview: getOptionalGlobalValue<boolean>(config, "format.preview"),
     },
     enable: getGlobalValue<boolean>(config, "enable", true),
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
     showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
+    exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
+    lineLength: getOptionalGlobalValue<number>(config, "lineLength"),
+    configurationPreference: getGlobalValue<ConfigPreference>(
+      config,
+      "configurationPreference",
+      "editorFirst",
+    ),
   };
 }
 
@@ -156,21 +214,32 @@ export function checkIfConfigurationChanged(
 ): boolean {
   const settings = [
     `${namespace}.codeAction`,
+    `${namespace}.configuration`,
     `${namespace}.enable`,
+    `${namespace}.nativeServer`,
     `${namespace}.fixAll`,
     `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
     `${namespace}.lint.enable`,
     `${namespace}.lint.run`,
-    `${namespace}.lint.args`,
-    `${namespace}.format.args`,
+    `${namespace}.lint.preview`,
+    `${namespace}.lint.select`,
+    `${namespace}.lint.extendSelect`,
+    `${namespace}.lint.ignore`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
     `${namespace}.showNotifications`,
+    `${namespace}.format.preview`,
+    `${namespace}.exclude`,
+    `${namespace}.lineLength`,
+    `${namespace}.configurationPreference`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,
+    // Deprecated settings (will be replaced with specific config options in the future)
+    `${namespace}.lint.args`,
+    `${namespace}.format.args`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }

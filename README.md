@@ -1,9 +1,9 @@
 # Ruff extension for Visual Studio Code
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![image](https://img.shields.io/pypi/v/ruff/0.4.1.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/l/ruff/0.4.1.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/pyversions/ruff/0.4.1.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/v/ruff/0.4.2.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/l/ruff/0.4.2.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/pyversions/ruff/0.4.2.svg)](https://pypi.python.org/pypi/ruff)
 [![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
 
 A Visual Studio Code extension for [Ruff](https://github.com/astral-sh/ruff), an extremely fast
@@ -12,7 +12,7 @@ Python linter and code formatter, written in Rust. Available on the [Visual Stud
 Ruff can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupgrade, and more,
 all while executing tens or hundreds of times faster than any individual tool.
 
-The extension ships with `ruff==0.4.1`.
+The extension ships with `ruff==0.4.2`.
 
 (Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
@@ -283,6 +283,13 @@ using the `ruff.lint.args` and `ruff.format.args` options in `settings.json`:
 
 Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
 `pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
+
+### Using the Native Server
+
+To use the new Rust-based language server (`ruff server`), you'll need to enable the "Native Server" setting in the extension settings.
+
+The native server makes several changes to configuration, and some extension settings will not work with it (this will be mentioned in the description for that setting).
+
 
 ## Commands
 

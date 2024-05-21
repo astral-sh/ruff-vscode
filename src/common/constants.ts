@@ -10,3 +10,10 @@ export const DEBUG_SERVER_SCRIPT_PATH = path.join(
   "tool",
   `_debug_server.py`,
 );
+export const EXPERIMENTAL_SERVER_SCRIPT_PATH = path.join(
+  BUNDLED_PYTHON_SCRIPTS_DIR,
+  "tool",
+  "ruff_server.py",
+);
+export const RUFF_SERVER_CMD = "server";
+export const RUFF_SERVER_REQUIRED_ARGS = ["--preview"];

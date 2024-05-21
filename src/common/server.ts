@@ -7,7 +7,14 @@ import {
   RevealOutputChannelOn,
   ServerOptions,
 } from "vscode-languageclient/node";
-import { DEBUG_SERVER_SCRIPT_PATH, SERVER_SCRIPT_PATH } from "./constants";
+import {
+  BUNDLED_PYTHON_SCRIPTS_DIR,
+  DEBUG_SERVER_SCRIPT_PATH,
+  RUFF_SERVER_REQUIRED_ARGS,
+  RUFF_SERVER_CMD,
+  SERVER_SCRIPT_PATH,
+  EXPERIMENTAL_SERVER_SCRIPT_PATH,
+} from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
 import {
@@ -20,7 +27,65 @@ import { updateStatus } from "./status";
 import { getLSClientTraceLevel, getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
 
-export type IInitOptions = { settings: ISettings[]; globalSettings: ISettings };
+export type IInitOptions = {
+  settings: ISettings[];
+  globalSettings: ISettings;
+};
+
+async function createnativeServer(
+  settings: ISettings,
+  serverId: string,
+  serverName: string,
+  outputChannel: LogOutputChannel,
+  initializationOptions: IInitOptions,
+): Promise<LanguageClient> {
+  let serverOptions: ServerOptions;
+  // If the user provided a binary path, we'll try to call that path directly.
+  if (settings.path[0]) {
+    const command = settings.path[0];
+    const cwd = settings.cwd;
+    const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+    serverOptions = {
+      command,
+      args,
+      options: { cwd, env: process.env },
+    };
+
+    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+  } else {
+    // Otherwise, we'll call a Python script that tries to locate
+    // a binary, falling back to the bundled version if no local executable is found.
+    const command = settings.interpreter[0];
+    const cwd = settings.cwd;
+    const args = [EXPERIMENTAL_SERVER_SCRIPT_PATH, RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
+
+    serverOptions = {
+      command,
+      args,
+      options: { cwd, env: process.env },
+    };
+
+    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+  }
+
+  const clientOptions = {
+    // Register the server for python documents
+    documentSelector: isVirtualWorkspace()
+      ? [{ language: "python" }]
+      : [
+          { scheme: "file", language: "python" },
+          { scheme: "untitled", language: "python" },
+          { scheme: "vscode-notebook", language: "python" },
+          { scheme: "vscode-notebook-cell", language: "python" },
+        ],
+    outputChannel: outputChannel,
+    traceOutputChannel: outputChannel,
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
+    initializationOptions,
+  };
+
+  return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
+}
 
 async function createServer(
   settings: ISettings,
@@ -94,12 +159,23 @@ export async function restartServer(
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
 
   const projectRoot = await getProjectRoot();
-  const workspaceSetting = await getWorkspaceSettings(serverId, projectRoot);
+  const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
 
-  const newLSClient = await createServer(workspaceSetting, serverId, serverName, outputChannel, {
-    settings: await getExtensionSettings(serverId),
-    globalSettings: await getGlobalSettings(serverId),
-  });
+  const extensionSettings = await getExtensionSettings(serverId);
+  const globalSettings = await getGlobalSettings(serverId);
+
+  let newLSClient;
+  if (workspaceSettings.nativeServer || globalSettings.nativeServer) {
+    newLSClient = await createnativeServer(workspaceSettings, serverId, serverName, outputChannel, {
+      settings: extensionSettings,
+      globalSettings: globalSettings,
+    });
+  } else {
+    newLSClient = await createServer(workspaceSettings, serverId, serverName, outputChannel, {
+      settings: extensionSettings,
+      globalSettings: globalSettings,
+    });
+  }
   traceInfo(`Server: Start requested.`);
   _disposables.push(
     newLSClient.onDidChangeState((e) => {

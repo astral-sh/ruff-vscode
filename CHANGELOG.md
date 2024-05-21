@@ -2,17 +2,66 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.21.0-dev
+
+This pre-release upgrades the bundled Ruff version to `v0.4.2`.
+
+Several new extension settings have been introduced, which allow you to override certain options passed into the linter and formatter. See [#10984](https://github.com/astral-sh/ruff/pull/10984)
+for more details.
+
+The `v0.4.2` server introduces several other features and improvements:
+
+- Diagnostics for open files are now automatically refreshed when a configuration file is modified ([#10988](https://github.com/astral-sh/ruff/pull/10988))
+- File configuration is now resolved on a per-file basis, which matches how the CLI resolves configuration ([#10950](https://github.com/astral-sh/ruff/pull/10950))
+- Hover documentation for `noqa` codes has been implemented ([#11096](https://github.com/astral-sh/ruff/pull/11096))
+- Major errors are now shown as pop-up notifications ([#10951](https://github.com/astral-sh/ruff/pull/10951))
+
+This release also includes a bug fix:
+
+- Ruff-specific source actions (such as `source.organizeImports.ruff`) now work as intended ([#10916](https://github.com/astral-sh/ruff/pull/10916))
+
 ## 2024.20.0
 
 This release upgrades the bundled Ruff version to v0.4.1.
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.18.0...2024.20.0
 
+## 2024.19.0-dev
+
+This pre-release upgrades the bundled Ruff version to `v0.3.6`.
+
+The extension can now detect and use local `ruff` executables on your system, though it can still fall back to the bundled Ruff binary.
+
+The `v0.3.6` server introduces several major features:
+
+- Source actions like `source.fixAll` and `source.organizeImports` are now supported.
+- Extension commands are now supported.
+- Some extension settings now work as expected. See [the relevant PR](https://github.com/astral-sh/ruff/pull/10764) for more details.
+- Linter/formatter configuration is now reloaded automatically when you make changes to `ruff.toml` / `pyproject.toml` files.
+
+This release also brings significant quality-of-life improvements and fixes several bugs.
+
 ## 2024.18.0
 
 This release upgrades the bundled Ruff version to v0.4.0.
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.16.0...2024.18.0
+
+## 2024.17.0-dev
+
+This pre-release introduces support for the new, experimental Ruff language server (`ruff server`). It also upgrades the bundled Ruff version to `v0.3.3`.
+
+`ruff server` is still missing some core functionality and stability guarantees - this pre-release is intended for early testing. The server can be enabled and disabled with the `experimentalServer` setting. A restart is required after changing this setting.
+
+At the moment, the experimental server has the following known limitations:
+
+- Most extension settings are not yet supported, and many will not be needed after the transition to the new server is finished. For example, `editor.codeActionsOnSave` does not work at the moment due to missing support for source-level code actions (see below). Additionally, `lint.args` / `format.args` will be replaced in the future with specific configuration fields for the linter and formatter.
+- Commands/source-level code actions like `Fix all` and `Organize Imports` have not yet been implemented (Quick Fixes should still work, though).
+- Hierarchial configuration for individual files is not yet supported. At the moment, the language server uses the `ruff.toml` / `pyproject.toml` at the workspace root to configure the formatter and linter.
+- Jupyter Notebook files are not supported yet.
+- Using local Ruff binaries is not yet supported. At the moment, the extension will always use the bundled Ruff binary. (`v0.3.3`)
+
+These limitations will all be resolved in future versions.
 
 ## 2024.16.0
 
