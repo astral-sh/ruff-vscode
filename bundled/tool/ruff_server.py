@@ -57,9 +57,9 @@ def check_compatibility(
 
 def find_ruff_bin(fallback: Path) -> Path:
     """Return the ruff binary path."""
-    path = Path(sysconfig.get_path("scripts")) / RUFF_EXE
-    if path.is_file():
-        return path
+    bin_path = Path(sysconfig.get_path("scripts")) / RUFF_EXE
+    if bin_path.is_file():
+        return bin_path
 
     if sys.version_info >= (3, 10):
         user_scheme = sysconfig.get_preferred_scheme("user")
@@ -70,13 +70,13 @@ def find_ruff_bin(fallback: Path) -> Path:
     else:
         user_scheme = "posix_user"
 
-    path = Path(sysconfig.get_path("scripts", scheme=user_scheme)) / RUFF_EXE
-    if path.is_file():
-        return path
+    scripts_path = Path(sysconfig.get_path("scripts", scheme=user_scheme)) / RUFF_EXE
+    if scripts_path.is_file():
+        return scripts_path
 
-    path = shutil.which("ruff")
-    if path:
-        return path
+    which_path = shutil.which("ruff")
+    if which_path:
+        return which_path
 
     return fallback
 
