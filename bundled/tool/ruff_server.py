@@ -30,8 +30,8 @@ if __name__ == "__main__":
     update_sys_path(os.fspath(BUNDLE_DIR / "libs"))
 
 
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
+from packaging.specifiers import SpecifierSet  # noqa: E402
+from packaging.version import Version  # noqa: E402
 
 # This is subject to change in the future
 RUFF_VERSION_REQUIREMENT = SpecifierSet(">=0.3.5")
