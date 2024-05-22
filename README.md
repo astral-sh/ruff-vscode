@@ -296,7 +296,7 @@ unsupported; see [_Configuring Ruff_](#rust-based-language-server-beta) for more
 ### Configuring Ruff
 
 The Ruff VS Code extension will respect any Ruff configuration as defined in your project's
-`pyproject.toml`, `ruff.toml`, or `.ruff.toml` file (see: [Configuring Ruff](https://docs.astral.sh/ruff/configuration/) in the Ruff documentation).
+`pyproject.toml`, `ruff.toml`, or `.ruff.toml` file (see: [_Configuring Ruff_](https://docs.astral.sh/ruff/configuration/) in the Ruff documentation).
 In general, we recommend configuring Ruff via `pyproject.toml` or `ruff.toml` so that your
 configuration is shared between the VS Code extension and the command-line tool, and between all
 contributors to the project.
