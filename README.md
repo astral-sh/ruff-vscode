@@ -89,18 +89,18 @@ This requires Ruff version `v0.1.3` or later.
 The following settings are exclusive to the Rust-based language server (`nativeServer: true`), and
 are available in addition to those listed above:
 
-| Settings                  | Default       | Description                                                                                              |
-| ------------------------- | ------------- | -------------------------------------------------------------------------------------------------------- |
-| `configuration`           | `null`        | Path to a `ruff.toml` or `pyproject.toml` file to use for configuration.                                 |
-| `configurationPreference` | `editorFirst` | The strategy to use when resolving settings across VS Code and the filesystem.                           |
-| `exclude`                 | `[]`          | Glob patterns to exclude files from linting.                                                             |
-| `lineLength`              | `88`          | The line length to use for the linter and formatter.                                                     |
-| `lint.preview`            | `false`       | Whether to enable Ruff's preview mode when linting.                                                      |
-| `lint.select`             | `[]`          | Rules to enable by default. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select).  |
-| `lint.extendSelect`       | `[]`          | Rules to enable in addition to those in `lint.select`.                                                   |
-| `lint.ignore`             | `[]`          | Rules to disable by default. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore). |
-| `lint.extendIgnore`       | `[]`          | Rules to disable in addition to those in `lint.ignore`.                                                  |
-| `format.preview`          | `false`       | Whether to enable Ruff's preview mode when formatting.                                                   |
+| Settings                  | Default       | Description                                                                                                                                                                 |
+| ------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `configuration`           | `null`        | Path to a `ruff.toml` or `pyproject.toml` file to use for configuration.                                                                                                    |
+| `configurationPreference` | `editorFirst` | The strategy to use when resolving settings across VS Code and the filesystem. By default, editor configuration is prioritized over `ruff.toml` and `pyproject.toml` files. |
+| `exclude`                 | `[]`          | Glob patterns to exclude files from linting.                                                                                                                                |
+| `lineLength`              | `88`          | The line length to use for the linter and formatter.                                                                                                                        |
+| `lint.preview`            | `false`       | Whether to enable Ruff's preview mode when linting.                                                                                                                         |
+| `lint.select`             | `[]`          | Rules to enable by default. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select).                                                                     |
+| `lint.extendSelect`       | `[]`          | Rules to enable in addition to those in `lint.select`.                                                                                                                      |
+| `lint.ignore`             | `[]`          | Rules to disable by default. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore).                                                                    |
+| `lint.extendIgnore`       | `[]`          | Rules to disable in addition to those in `lint.ignore`.                                                                                                                     |
+| `format.preview`          | `false`       | Whether to enable Ruff's preview mode when formatting.                                                                                                                      |
 
 ### Configuring VS Code
 
