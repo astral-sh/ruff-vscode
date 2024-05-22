@@ -11,7 +11,7 @@
 > **As of Ruff v0.4.5, Ruff ships with a built-in language server written in Rust: ⚡ `ruff server` ⚡**
 >
 > **To opt in to `ruff server` support (now available in Beta), enable the "Native Server" extension
-> setting (`ruff.nativeServer: true`).**
+> setting with `"ruff.nativeServer": true`.**
 >
 > **See: [_Enabling the Rust-based language server_](#enabling-the-rust-based-language-server).**
 
