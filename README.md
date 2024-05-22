@@ -14,6 +14,8 @@ all while executing tens or hundreds of times faster than any individual tool.
 
 The extension ships with `ruff==0.4.2`.
 
+(Interested in testing out the new Rust-based language server? Check out the [docs](#enabling-the-rust-based-language-server).)
+
 (Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
 
@@ -62,7 +64,7 @@ code actions, and formatting.
 
 This requires Ruff version `v0.1.3` or later.
 
-[Notebook Document Synchronization]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#notebookDocument_synchronization
+[notebook document synchronization]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#notebookDocument_synchronization
 
 ## Settings
 
@@ -188,9 +190,9 @@ _Note: if you're using Ruff to organize imports in VS Code and also expect to ru
 command line, you'll want to enable Ruff's isort rules by adding `"I"` to your
 [`extend-select`](https://docs.astral.sh/ruff/settings/#extend-select)._
 
-_Note: All of the above mentioned Notebook configurations will run the action for each cell individually.
-This is the way VS Code handles Notebook actions and is unrelated to `ruff-lsp`. If you'd prefer to run
-them on the entire notebook at once, prefer to use the `Ruff` prefixed commands such as
+_Note: The above-mentioned Notebook configurations will run the action for each cell individually.
+This is the way VS Code handles Notebook actions and is unrelated to `ruff-lsp`. If you'd prefer to
+run them on the entire notebook at once, prefer to use the `Ruff` prefixed commands such as
 `Ruff: Organize Imports` and `Ruff: Fix all auto-fixable problems`._
 
 If you're using the [VS Code Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python),
@@ -284,11 +286,29 @@ using the `ruff.lint.args` and `ruff.format.args` options in `settings.json`:
 Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
 `pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
 
-### Using the Native Server
+### Enabling the Rust-based language server
 
-To use the new Rust-based language server (`ruff server`), you'll need to enable the "Native Server" setting in the extension settings.
+To use the new Rust-based language server (`ruff server`), you'll need to enable the "Native Server"
+setting in the extension settings:
 
-The native server makes several changes to configuration, and some extension settings will not work with it (this will be mentioned in the description for that setting).
+```json
+{
+  "ruff.nativeServer": true
+}
+```
+
+Use of the native server may require changes to your VS Code configuration, as some settings are
+unsupported.
+
+For example, the native server does not support the `ruff.lint.args` and `ruff.format.args`;
+instead, either create a `ruff.toml` file in your project directory for automatic discovery, or
+set `ruff.configuration` to identify an external configuration file:
+
+```json
+{
+  "ruff.configuration": "/path/to/ruff.toml"
+}
+```
 
 ## Commands
 
