@@ -272,6 +272,23 @@ to unset the `editor.defaultFormatter` in `settings.json`:
 }
 ```
 
+### Enabling the Rust-based language server
+
+To use the new Rust-based language server (`ruff server`), you'll need to enable the "Native Server"
+setting in the extension settings:
+
+```json
+{
+  "ruff.nativeServer": true
+}
+```
+
+The Rust-based language server is built into Ruff directly, and both faster and more fully-featured
+than the Python-based language server.
+
+Use of the native server may require changes to your VS Code configuration, as some settings are
+unsupported; see [_Configuring Ruff_](#configuring-ruff).
+
 ### Configuring Ruff
 
 The Ruff VS Code extension will respect any Ruff configuration as defined in your project's
@@ -280,9 +297,12 @@ In general, we recommend configuring Ruff via `pyproject.toml` or `ruff.toml` so
 configuration is shared between the VS Code extension and the command-line tool, and between all
 contributors to the project.
 
-However, to provide custom arguments to the Ruff CLI, you can use the `ruff.lint.args` and
-`ruff.format.args` settings in `settings.json`. For example, to enable the `pyupgrade` rule set in
-VS Code, add the following to `settings.json`:
+#### Python-based language server (Stable)
+
+If you're using the default Python-based language server, you can use the `ruff.lint.args` and
+`ruff.format.args` settings in `settings.json` to pass command-line arguments to Ruff.
+
+For example, to enable the `pyupgrade` rule set in VS Code, add the following to `settings.json`:
 
 ```json
 {
@@ -304,29 +324,30 @@ using the `ruff.lint.args` and `ruff.format.args` options in `settings.json`:
 Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
 `pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
 
-### Enabling the Rust-based language server
+### Rust-based language server (Beta)
 
-To use the new Rust-based language server (`ruff server`), you'll need to enable the "Native Server"
-setting in the extension settings:
+If you're using the Rust-based language server (`ruff server`), you can configure some common
+settings in VS Code directly, like `ruff.lineLength` (to configure the line length for the linter
+and formatter) or `ruff.lint.select` (to configure the enabled lint rules):
 
 ```json
 {
-  "ruff.nativeServer": true
+  "ruff.lineLength": 88,
+  "ruff.lint.select": ["C", "E", "F", "W"]
 }
 ```
 
-Use of the native server may require changes to your VS Code configuration, as some settings are
-unsupported.
-
-For example, the native server does not support the `ruff.lint.args` and `ruff.format.args`;
-instead, either create a `ruff.toml` file in your project directory for automatic discovery, or
-set `ruff.configuration` to identify an external configuration file:
+To use a custom configuration file, set the `ruff.configuration` setting to the path of your
+`ruff.toml` or `pyproject.toml` file:
 
 ```json
 {
   "ruff.configuration": "/path/to/ruff.toml"
 }
 ```
+
+Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
+`pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
 
 ## Commands
 
