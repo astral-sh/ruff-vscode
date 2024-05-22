@@ -6,6 +6,15 @@
 [![image](https://img.shields.io/pypi/pyversions/ruff/0.4.2.svg)](https://pypi.python.org/pypi/ruff)
 [![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
 
+> [!NOTE]
+>
+> **As of Ruff v0.4.5, Ruff ships with a built-in language server written in Rust: ⚡ `ruff server` ⚡**
+>
+> **To opt in to `ruff server` support (now available in Beta), enable the "Native Server" extension
+> setting (`ruff.nativeServer: true`).**
+>
+> **See: [_Enabling the Rust-based language server_](#enabling-the-rust-based-language-server).**
+
 A Visual Studio Code extension for [Ruff](https://github.com/astral-sh/ruff), an extremely fast
 Python linter and code formatter, written in Rust. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
@@ -13,8 +22,6 @@ Ruff can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupg
 all while executing tens or hundreds of times faster than any individual tool.
 
 The extension ships with `ruff==0.4.2`.
-
-(Interested in testing out the new Rust-based language server? Check out the [docs](#enabling-the-rust-based-language-server).)
 
 (Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
 [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
