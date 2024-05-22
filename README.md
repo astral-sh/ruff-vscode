@@ -294,7 +294,7 @@ The Rust-based language server is built into Ruff directly, and is both faster a
 than the Python-based language server.
 
 Use of the native server may require changes to your VS Code configuration, as some settings are
-unsupported; see [_Configuring Ruff_](#configuring-ruff).
+unsupported; see [_Configuring Ruff_](#rust-based-language-server-beta) for more information.
 
 ### Configuring Ruff
 
