@@ -65,7 +65,7 @@
       "properties": {
         "ruff.nativeServer": {
           "default": false,
-          "markdownDescription": "Use the new beta language server, integrated with Ruff.",
+          "markdownDescription": "Use the integrated Rust-based language server, available now in Beta.",
           "scope": "window",
           "type": "boolean"
         },
