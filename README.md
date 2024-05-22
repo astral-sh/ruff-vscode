@@ -23,9 +23,6 @@ all while executing tens or hundreds of times faster than any individual tool.
 
 The extension ships with `ruff==0.4.2`.
 
-(Interested in using [Ruff](https://github.com/astral-sh/ruff) with another editor? Check out
-[`ruff-lsp`](https://github.com/astral-sh/ruff-lsp).)
-
 ## Highlights
 
 ### "Quick Fix" actions for auto-fixable violations (like unused imports)
