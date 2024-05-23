@@ -301,6 +301,31 @@ In general, we recommend configuring Ruff via `pyproject.toml` or `ruff.toml` so
 configuration is shared between the VS Code extension and the command-line tool, and between all
 contributors to the project.
 
+#### Rust-based language server (Beta)
+
+If you're using the Rust-based language server (`ruff server`), you can configure some common
+settings in VS Code directly, like `ruff.lineLength` (to configure the line length for the linter
+and formatter) or `ruff.lint.select` (to configure the enabled lint rules):
+
+```json
+{
+  "ruff.lineLength": 88,
+  "ruff.lint.select": ["C", "E", "F", "W"]
+}
+```
+
+To use a custom configuration file, set the `ruff.configuration` setting to the path of your
+`ruff.toml` or `pyproject.toml` file:
+
+```json
+{
+  "ruff.configuration": "/path/to/ruff.toml"
+}
+```
+
+Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
+`pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
+
 #### Python-based language server (Stable)
 
 If you're using the default Python-based language server, you can use the `ruff.lint.args` and
@@ -322,31 +347,6 @@ using the `ruff.lint.args` and `ruff.format.args` options in `settings.json`:
 {
   "ruff.lint.args": ["--config=/path/to/ruff.toml"],
   "ruff.format.args": ["--config=/path/to/ruff.toml"]
-}
-```
-
-Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
-`pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
-
-### Rust-based language server (Beta)
-
-If you're using the Rust-based language server (`ruff server`), you can configure some common
-settings in VS Code directly, like `ruff.lineLength` (to configure the line length for the linter
-and formatter) or `ruff.lint.select` (to configure the enabled lint rules):
-
-```json
-{
-  "ruff.lineLength": 88,
-  "ruff.lint.select": ["C", "E", "F", "W"]
-}
-```
-
-To use a custom configuration file, set the `ruff.configuration` setting to the path of your
-`ruff.toml` or `pyproject.toml` file:
-
-```json
-{
-  "ruff.configuration": "/path/to/ruff.toml"
 }
 ```
 
