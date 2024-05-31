@@ -2,13 +2,40 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.24.0
+
+This release upgrades the bundled Ruff version to `v0.4.7`, which includes a number of bug fxies
+and improvements to `ruff server`.
+
+To start using `ruff server`, add the following to your `settings.json`:
+
+```json
+{
+  "ruff.nativeServer": true
+}
+```
+
+Or see the [README](https://github.com/astral-sh/ruff-vscode/?tab=readme-ov-file#enabling-the-rust-based-language-server)
+for more.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.22.0...2024.24.0
+
 ## 2024.22.0
 
 This release upgrades the bundled Ruff version to `v0.4.5`.
 
 This release also stabilizes `ruff server` as an available feature, along with its new configuration options. `ruff server` supports the same feature set as `ruff-lsp`, powering linting, formatting, and code fixes in Ruff's editor integrations -- but with superior performance and no installation required. We'd love your feedback!
 
-To start using `ruff server`, refer to the [README](https://github.com/astral-sh/ruff-vscode/?tab=readme-ov-file#enabling-the-rust-based-language-server).
+To start using `ruff server`, add the following to your `settings.json`:
+
+```json
+{
+  "ruff.nativeServer": true
+}
+```
+
+Or see the [README](https://github.com/astral-sh/ruff-vscode/?tab=readme-ov-file#enabling-the-rust-based-language-server)
+for more.
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.20.0...2024.22.0
 
