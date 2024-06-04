@@ -370,7 +370,23 @@
         "category": "Ruff",
         "command": "ruff.restart"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "ruff.executeAutofix",
+          "when": "resourceExtname == .py || resourceExtname == .pyi || resourceExtname == .ipynb"
+        },
+        {
+          "command": "ruff.executeFormat",
+          "when": "resourceExtname == .py || resourceExtname == .pyi || resourceExtname == .ipynb"
+        },
+        {
+          "command": "ruff.executeOrganizeImports",
+          "when": "resourceExtname == .py || resourceExtname == .pyi || resourceExtname == .ipynb"
+        }
+      ]
+    }
   },
   "dependencies": {
     "fs-extra": "^11.1.1",
