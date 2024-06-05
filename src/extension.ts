@@ -16,7 +16,6 @@ import {
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
 import { registerLanguageStatusItem, updateStatus } from "./common/status";
-import { getLSClientTraceLevel } from "./common/utilities";
 import {
   createOutputChannel,
   getConfiguration,
@@ -40,20 +39,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // Setup logging
   const outputChannel = createOutputChannel(serverName);
   context.subscriptions.push(outputChannel, registerLogger(outputChannel));
-
-  const changeLogLevel = async (c: vscode.LogLevel, g: vscode.LogLevel) => {
-    const level = getLSClientTraceLevel(c, g);
-    await lsClient?.setTrace(level);
-  };
-
-  context.subscriptions.push(
-    outputChannel.onDidChangeLogLevel(async (e) => {
-      await changeLogLevel(e, vscode.env.logLevel);
-    }),
-    vscode.env.onDidChangeLogLevel(async (e) => {
-      await changeLogLevel(outputChannel.logLevel, e);
-    }),
-  );
 
   // Log Server information
   traceLog(`Name: ${serverInfo.name}`);
