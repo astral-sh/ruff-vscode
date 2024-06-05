@@ -22,19 +22,6 @@ function logLevelToTrace(logLevel: LogLevel): Trace {
   }
 }
 
-export function getLSClientTraceLevel(channelLogLevel: LogLevel, globalLogLevel: LogLevel): Trace {
-  if (channelLogLevel === LogLevel.Off) {
-    return logLevelToTrace(globalLogLevel);
-  }
-  if (globalLogLevel === LogLevel.Off) {
-    return logLevelToTrace(channelLogLevel);
-  }
-  const level = logLevelToTrace(
-    channelLogLevel <= globalLogLevel ? channelLogLevel : globalLogLevel,
-  );
-  return level;
-}
-
 export async function getProjectRoot(): Promise<WorkspaceFolder> {
   const workspaces: readonly WorkspaceFolder[] = getWorkspaceFolders();
   if (workspaces.length === 0) {

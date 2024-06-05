@@ -24,7 +24,7 @@ import {
   ISettings,
 } from "./settings";
 import { updateStatus } from "./status";
-import { getLSClientTraceLevel, getProjectRoot } from "./utilities";
+import { getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
 
 export type IInitOptions = {
@@ -201,7 +201,5 @@ export async function restartServer(
     return undefined;
   }
 
-  const level = getLSClientTraceLevel(outputChannel.logLevel, env.logLevel);
-  await newLSClient.setTrace(level);
   return newLSClient;
 }
