@@ -2,9 +2,27 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.26.0
+
+This release upgrades the bundled Ruff version to `v0.4.8`, which includes a number of bug fixes
+and improvements to `ruff server`.
+
+To start using `ruff server`, add the following to your `settings.json`:
+
+```json
+{
+  "ruff.nativeServer": true
+}
+```
+
+Or see the [README](https://github.com/astral-sh/ruff-vscode/?tab=readme-ov-file#enabling-the-rust-based-language-server)
+for more.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.24.0...2024.26.0
+
 ## 2024.24.0
 
-This release upgrades the bundled Ruff version to `v0.4.7`, which includes a number of bug fxies
+This release upgrades the bundled Ruff version to `v0.4.7`, which includes a number of bug fixes
 and improvements to `ruff server`.
 
 To start using `ruff server`, add the following to your `settings.json`:
