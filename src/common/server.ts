@@ -32,7 +32,7 @@ export type IInitOptions = {
   globalSettings: ISettings;
 };
 
-async function createnativeServer(
+async function createNativeServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
@@ -166,7 +166,7 @@ export async function restartServer(
 
   let newLSClient;
   if (workspaceSettings.nativeServer || globalSettings.nativeServer) {
-    newLSClient = await createnativeServer(workspaceSettings, serverId, serverName, outputChannel, {
+    newLSClient = await createNativeServer(workspaceSettings, serverId, serverName, outputChannel, {
       settings: extensionSettings,
       globalSettings: globalSettings,
     });
