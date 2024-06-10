@@ -240,6 +240,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         );
       });
     }),
+    registerCommand(`${serverId}.printDebugInformation`, async () => {
+      if (!lsClient) {
+        return;
+      }
+
+      const params = {
+        command: `${serverId}.printDebugInformation`,
+      };
+
+      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+        await vscode.window.showErrorMessage("Failed to print debug information.");
+      });
+    }),
     registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),
   );
 
