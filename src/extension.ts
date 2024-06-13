@@ -191,6 +191,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       });
     }),
     registerCommand(`${serverId}.executeFormat`, async () => {
+      // let configuration = getConfiguration(serverId) as ISettings;
+
       if (!lsClient) {
         return;
       }
@@ -238,6 +240,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await vscode.window.showErrorMessage(
           `Failed to apply Ruff fixes to the document. Please consider opening an issue at ${issueTracker} with steps to reproduce.`,
         );
+      });
+    }),
+    registerCommand(`${serverId}.debugInformation`, async () => {
+      let configuration = getConfiguration(serverId) as unknown as ISettings;
+      if (!lsClient || !configuration.nativeServer) {
+        return;
+      }
+
+      const params = {
+        command: `${serverId}.printDebugInformation`,
+      };
+
+      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
+        await vscode.window.showErrorMessage("Failed to print debug information.");
       });
     }),
     registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),

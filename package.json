@@ -366,6 +366,11 @@
         "command": "ruff.executeOrganizeImports"
       },
       {
+        "title": "Print debug information (native server only)",
+        "category": "Ruff",
+        "command": "ruff.debugInformation"
+      },
+      {
         "title": "Restart Server",
         "category": "Ruff",
         "command": "ruff.restart"
