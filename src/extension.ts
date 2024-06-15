@@ -191,8 +191,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       });
     }),
     registerCommand(`${serverId}.executeFormat`, async () => {
-      // let configuration = getConfiguration(serverId) as ISettings;
-
       if (!lsClient) {
         return;
       }
