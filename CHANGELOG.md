@@ -2,6 +2,15 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.30.0
+
+This release upgrades the bundled Ruff version to `v0.5.0`. Check out the [blog post](https://astral.sh/blog/ruff-v0.5.0) for a migration guide and overview of the changes!
+
+This release also adds a new `showSyntaxErrors` setting that controls whether Ruff shows syntax errors.
+Disabling the syntax errors can be helpful when using the Ruff extension with other Python extensions that also show syntax errors.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.28.0...2024.30.0
+
 ## 2024.28.0
 
 This release upgrades the bundled Ruff version to `v0.4.9`, which includes a number of bug fixes
