@@ -271,7 +271,7 @@
         },
         "ruff.showSyntaxErrors": {
           "default": true,
-          "markdownDescription": "Controls whether Ruff should show syntax error diagnostics.",
+          "markdownDescription": "Whether to show syntax error diagnostics.",
           "scope": "window",
           "type": "boolean"
         },
