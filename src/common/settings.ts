@@ -13,6 +13,8 @@ type Run = "onType" | "onSave";
 
 type ConfigPreference = "editorFirst" | "filesystemFirst" | "editorOnly";
 
+type LanguageServer = "automatic" | "native" | "legacy";
+
 type CodeAction = {
   disableRuleComment?: {
     enable?: boolean;
@@ -39,6 +41,7 @@ type Format = {
 
 export interface ISettings {
   nativeServer: boolean;
+  languageServer: LanguageServer;
   cwd: string;
   workspace: string;
   path: string[];
@@ -124,6 +127,7 @@ export async function getWorkspaceSettings(
 
   return {
     nativeServer: config.get<boolean>("nativeServer") ?? false,
+    languageServer: config.get<LanguageServer>("languageServer") ?? "automatic",
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
@@ -173,6 +177,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
   return {
     nativeServer: getGlobalValue<boolean>(config, "nativeServer", false),
+    languageServer: getGlobalValue<LanguageServer>(config, "languageServer", "automatic"),
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
@@ -217,6 +222,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.configuration`,
     `${namespace}.enable`,
     `${namespace}.nativeServer`,
+    `${namespace}.languageServer`,
     `${namespace}.fixAll`,
     `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
