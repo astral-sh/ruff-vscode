@@ -56,6 +56,7 @@ export interface ISettings {
   exclude?: string[];
   lineLength?: number;
   configurationPreference?: ConfigPreference;
+  showSyntaxErrors: boolean;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -156,6 +157,7 @@ export async function getWorkspaceSettings(
     lineLength: config.get<number>("lineLength"),
     configurationPreference:
       config.get<ConfigPreference>("configurationPreference") ?? "editorFirst",
+    showSyntaxErrors: config.get<boolean>("showSyntaxErrors") ?? true,
   };
 }
 
@@ -205,6 +207,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
       "configurationPreference",
       "editorFirst",
     ),
+    showSyntaxErrors: getGlobalValue<boolean>(config, "showSyntaxErrors", true),
   };
 }
 
@@ -234,6 +237,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.exclude`,
     `${namespace}.lineLength`,
     `${namespace}.configurationPreference`,
+    `${namespace}.showSyntaxErrors`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,

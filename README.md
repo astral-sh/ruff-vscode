@@ -88,6 +88,7 @@ This requires Ruff version `v0.1.3` or later.
 | `organizeImports`                      | `"explicit"`      | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                           |
 | `path`                                 | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                              |
 | `showNotifications`                    | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                   |
+| `showSyntaxErrors`                     | `true`            | Whether to show syntax error diagnostics. _New in Ruff v0.5.0_                                                                                                                              |
 | `nativeServer`                         | `false`           | Whether to use the Rust-based language server.                                                                                                                                              |
 
 The following settings are exclusive to the Rust-based language server (`nativeServer: true`), and
