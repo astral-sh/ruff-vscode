@@ -345,6 +345,25 @@
           "type": "string",
           "default": "editorFirst"
         },
+        "ruff.logLevel": {
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "markdownDescription": "The minimum log level needed for traces from the server. This setting is only used by the native server.",
+          "scope": "window",
+          "type": "string",
+          "default": "info"
+        },
+        "ruff.logFile": {
+          "type": "string",
+          "markdownDescription": "A file path for the server to write out logs to. This setting is only used by the native server.",
+          "scope": "window",
+          "default": null
+        },
         "ruff.enableExperimentalFormatter": {
           "default": false,
           "markdownDescription": "Controls whether Ruff registers as capable of code formatting.",

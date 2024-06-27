@@ -7,6 +7,8 @@ import {
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 
+type LogLevel = "error" | "warn" | "info" | "debug" | "trace";
+
 type ImportStrategy = "fromEnvironment" | "useBundled";
 
 type Run = "onType" | "onSave";
@@ -57,6 +59,8 @@ export interface ISettings {
   lineLength?: number;
   configurationPreference?: ConfigPreference;
   showSyntaxErrors: boolean;
+  logLevel: LogLevel;
+  logFile: string | null;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -158,6 +162,8 @@ export async function getWorkspaceSettings(
     configurationPreference:
       config.get<ConfigPreference>("configurationPreference") ?? "editorFirst",
     showSyntaxErrors: config.get<boolean>("showSyntaxErrors") ?? true,
+    logLevel: config.get<LogLevel>("logLevel") ?? "info",
+    logFile: config.get<string>("logFile") ?? null,
   };
 }
 
@@ -208,6 +214,8 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
       "editorFirst",
     ),
     showSyntaxErrors: getGlobalValue<boolean>(config, "showSyntaxErrors", true),
+    logLevel: getGlobalValue<LogLevel>(config, "logLevel", "info"),
+    logFile: getGlobalValue<string | null>(config, "logFile", null),
   };
 }
 
