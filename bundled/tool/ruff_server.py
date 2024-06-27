@@ -44,17 +44,6 @@ def executable_version(executable: str) -> Version:
     return Version(version)
 
 
-def check_compatibility(
-    executable: str,
-    requirement: SpecifierSet,
-) -> None:
-    """Check the executable for compatibility against various version specifiers."""
-    version = executable_version(executable)
-    if not requirement.contains(version, prereleases=True):
-        message = f"Ruff {requirement} required, but found {version} at {executable}"
-        raise RuntimeError(message)
-
-
 def find_ruff_bin(fallback: Path) -> Path:
     """Return the ruff binary path."""
     bin_path = Path(sysconfig.get_path("scripts")) / RUFF_EXE
@@ -87,6 +76,5 @@ if __name__ == "__main__":
             Path(BUNDLE_DIR / "libs" / "bin" / RUFF_EXE),
         ),
     )
-    check_compatibility(ruff, RUFF_VERSION_REQUIREMENT)
     completed_process = subprocess.run([ruff, *sys.argv[1:]], check=False)
     sys.exit(completed_process.returncode)
