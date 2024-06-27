@@ -17,3 +17,4 @@ export const EXPERIMENTAL_SERVER_SCRIPT_PATH = path.join(
 );
 export const RUFF_SERVER_CMD = "server";
 export const RUFF_SERVER_REQUIRED_ARGS = ["--preview"];
+export const RUFF_VERSION_ARGS = ["--version"];

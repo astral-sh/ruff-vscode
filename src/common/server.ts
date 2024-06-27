@@ -14,6 +14,7 @@ import {
   RUFF_SERVER_CMD,
   SERVER_SCRIPT_PATH,
   EXPERIMENTAL_SERVER_SCRIPT_PATH,
+  RUFF_VERSION_ARGS,
 } from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
@@ -26,6 +27,10 @@ import {
 import { updateStatus } from "./status";
 import { getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
+import { promisify } from "util";
+import { exec } from "child_process";
+
+const MIN_NATIVE_VERSION = [0, 4, 5];
 
 export type IInitOptions = {
   settings: ISettings[];
@@ -87,7 +92,7 @@ async function createNativeServer(
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
 }
 
-async function createServer(
+async function createLegacyServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
@@ -142,6 +147,26 @@ async function createServer(
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
 }
 
+async function useNative(settings: ISettings): Promise<boolean> {
+  switch (settings.languageServer) {
+    case "automatic":
+      let version = await getRuffVersion(settings);
+      for (let i = 0; i < 3; i++) {
+        if (version[i] > MIN_NATIVE_VERSION[i]) {
+          return true;
+        }
+        if (version[i] < MIN_NATIVE_VERSION[i]) {
+          return false;
+        }
+      }
+      return true;
+    case "native":
+      return true;
+    case "legacy":
+      return false;
+  }
+}
+
 let _disposables: Disposable[] = [];
 export async function restartServer(
   serverId: string,
@@ -165,13 +190,13 @@ export async function restartServer(
   const globalSettings = await getGlobalSettings(serverId);
 
   let newLSClient;
-  if (workspaceSettings.nativeServer || globalSettings.nativeServer) {
+  if (await useNative(workspaceSettings)) {
     newLSClient = await createNativeServer(workspaceSettings, serverId, serverName, outputChannel, {
       settings: extensionSettings,
       globalSettings: globalSettings,
     });
   } else {
-    newLSClient = await createServer(workspaceSettings, serverId, serverName, outputChannel, {
+    newLSClient = await createLegacyServer(workspaceSettings, serverId, serverName, outputChannel, {
       settings: extensionSettings,
       globalSettings: globalSettings,
     });
@@ -202,4 +227,30 @@ export async function restartServer(
   }
 
   return newLSClient;
+}
+
+async function getRuffVersion(settings: ISettings): Promise<[number, number, number]> {
+  let command;
+  if (settings.path[0]) {
+    command = `${settings.path[0]} ${RUFF_VERSION_ARGS.join(" ")}`;
+  } else {
+    command = `${
+      settings.interpreter[0]
+    } ${EXPERIMENTAL_SERVER_SCRIPT_PATH} ${RUFF_VERSION_ARGS.join(" ")}`;
+  }
+  traceInfo(`Checking Ruff's version with command: ${command}`);
+  const execCommand = promisify(exec);
+  const { stdout } = await execCommand(command, {
+    cwd: settings.cwd,
+  });
+  const versionRegex = /ruff (\d+).(\d+).(\d+)/;
+  const matches = stdout.match(versionRegex) ?? [];
+  let major = Number(matches[1] ?? "X");
+  let minor = Number(matches[2] ?? "X");
+  let patch = Number(matches[3] ?? "X");
+  if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
+    return [0, 0, 0];
+  } else {
+    return [major, minor, patch];
+  }
 }
