@@ -63,8 +63,21 @@
   "contributes": {
     "configuration": {
       "properties": {
+        "ruff.languageServer": {
+          "type": "string",
+          "markdownDescription": "Set the language server for the extension to use. By default (in `auto` mode), the extension will use the native server if the active Ruff version is `v0.5.0` or greater, and will use `ruff-lsp` otherwise. `native` will force the extension to always use `ruff server`, and legacy will force the extension to always use `ruff-lsp`.",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "native",
+            "legacy"
+          ],
+          "scope": "window"
+        },
         "ruff.nativeServer": {
           "default": false,
+          "deprecationMessage": "Deprecated: use `ruff.languageServer` instead.",
+          "markdownDeprecationMessage": "**Deprecated**: use `ruff.languageServer` instead.",
           "markdownDescription": "Use the integrated Rust-based language server, available now in Beta.",
           "scope": "window",
           "type": "boolean"
