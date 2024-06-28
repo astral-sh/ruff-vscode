@@ -30,7 +30,7 @@ import { isVirtualWorkspace } from "./vscodeapi";
 import { promisify } from "util";
 import { exec } from "child_process";
 
-const MIN_NATIVE_VERSION = [0, 4, 5];
+const MIN_NATIVE_VERSION = [0, 5, 0];
 
 export type IInitOptions = {
   settings: ISettings[];
@@ -44,6 +44,7 @@ async function createNativeServer(
   outputChannel: LogOutputChannel,
   initializationOptions: IInitOptions,
 ): Promise<LanguageClient> {
+  traceInfo("Using the native language server");
   let serverOptions: ServerOptions;
   // If the user provided a binary path, we'll try to call that path directly.
   if (settings.path[0]) {
@@ -99,6 +100,7 @@ async function createLegacyServer(
   outputChannel: LogOutputChannel,
   initializationOptions: IInitOptions,
 ): Promise<LanguageClient> {
+  traceInfo("Using the legacy language server");
   const command = settings.interpreter[0];
   const cwd = settings.cwd;
 
@@ -231,7 +233,7 @@ export async function restartServer(
 
 async function getRuffVersion(settings: ISettings): Promise<[number, number, number]> {
   let command;
-  if (settings.path[0]) {
+  if (settings.path[0] != null) {
     command = `${settings.path[0]} ${RUFF_VERSION_ARGS.join(" ")}`;
   } else {
     command = `${
@@ -245,9 +247,9 @@ async function getRuffVersion(settings: ISettings): Promise<[number, number, num
   });
   const versionRegex = /ruff (\d+).(\d+).(\d+)/;
   const matches = stdout.match(versionRegex) ?? [];
-  let major = Number(matches[1] ?? "X");
-  let minor = Number(matches[2] ?? "X");
-  let patch = Number(matches[3] ?? "X");
+  let major = parseInt(matches[1] ?? "X", 10);
+  let minor = parseInt(matches[2] ?? "X", 10);
+  let patch = parseInt(matches[3] ?? "X", 10);
   if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
     return [0, 0, 0];
   } else {
