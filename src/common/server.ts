@@ -1,19 +1,20 @@
 import * as fsapi from "fs-extra";
-import { Disposable, env, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
+import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
 import { State } from "vscode-languageclient";
 import {
+  Executable,
   LanguageClient,
   LanguageClientOptions,
   RevealOutputChannelOn,
   ServerOptions,
 } from "vscode-languageclient/node";
 import {
-  BUNDLED_PYTHON_SCRIPTS_DIR,
+  BUNDLED_RUFF_EXECUTABLE,
   DEBUG_SERVER_SCRIPT_PATH,
   RUFF_SERVER_REQUIRED_ARGS,
-  RUFF_SERVER_CMD,
-  SERVER_SCRIPT_PATH,
-  EXPERIMENTAL_SERVER_SCRIPT_PATH,
+  RUFF_SERVER_SUBCOMMAND,
+  RUFF_LSP_SERVER_SCRIPT_PATH,
+  NATIVE_SERVER_SCRIPT_PATH,
 } from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
@@ -32,6 +33,40 @@ export type IInitOptions = {
   globalSettings: ISettings;
 };
 
+function createNativeServerOptions(settings: ISettings): Executable {
+  // 'path' setting takes priority over everything.
+  if (settings.path.length > 0) {
+    for (const path of settings.path) {
+      if (fsapi.existsSync(path)) {
+        traceInfo(`Using 'path' setting: ${path}`);
+        return {
+          command: path,
+          args: [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS],
+          options: { cwd: settings.cwd, env: process.env },
+        };
+      }
+    }
+    traceInfo(`Could not find executable in 'path': ${settings.path.join(", ")}`);
+  }
+
+  if (settings.importStrategy === "useBundled") {
+    traceInfo(`Using bundled executable: ${BUNDLED_RUFF_EXECUTABLE}`);
+    return {
+      command: BUNDLED_RUFF_EXECUTABLE,
+      args: [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS],
+      options: { cwd: settings.cwd, env: process.env },
+    };
+  }
+
+  // Otherwise, we'll call a Python script that tries to locate a binary,
+  // falling back to the bundled version if no local executable is found.
+  return {
+    command: settings.interpreter[0],
+    args: [NATIVE_SERVER_SCRIPT_PATH, RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS],
+    options: { cwd: settings.cwd, env: process.env },
+  };
+}
+
 async function createNativeServer(
   settings: ISettings,
   serverId: string,
@@ -39,33 +74,11 @@ async function createNativeServer(
   outputChannel: LogOutputChannel,
   initializationOptions: IInitOptions,
 ): Promise<LanguageClient> {
-  let serverOptions: ServerOptions;
-  // If the user provided a binary path, we'll try to call that path directly.
-  if (settings.path[0]) {
-    const command = settings.path[0];
-    const cwd = settings.cwd;
-    const args = [RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
-    serverOptions = {
-      command,
-      args,
-      options: { cwd, env: process.env },
-    };
-
-    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+  let serverOptions = createNativeServerOptions(settings);
+  if (serverOptions.args) {
+    traceInfo(`Server run command: ${[serverOptions.command, ...serverOptions.args].join(" ")}`);
   } else {
-    // Otherwise, we'll call a Python script that tries to locate
-    // a binary, falling back to the bundled version if no local executable is found.
-    const command = settings.interpreter[0];
-    const cwd = settings.cwd;
-    const args = [EXPERIMENTAL_SERVER_SCRIPT_PATH, RUFF_SERVER_CMD, ...RUFF_SERVER_REQUIRED_ARGS];
-
-    serverOptions = {
-      command,
-      args,
-      options: { cwd, env: process.env },
-    };
-
-    traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
+    traceInfo(`Server run command: ${serverOptions.command}`);
   }
 
   const clientOptions = {
@@ -112,7 +125,7 @@ async function createServer(
 
   const args =
     newEnv.USE_DEBUGPY === "False" || !isDebugScript
-      ? settings.interpreter.slice(1).concat([SERVER_SCRIPT_PATH])
+      ? settings.interpreter.slice(1).concat([RUFF_LSP_SERVER_SCRIPT_PATH])
       : settings.interpreter.slice(1).concat([DEBUG_SERVER_SCRIPT_PATH]);
   traceInfo(`Server run command: ${[command, ...args].join(" ")}`);
 
