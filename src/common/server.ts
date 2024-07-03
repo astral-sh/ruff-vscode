@@ -51,6 +51,54 @@ function executeCommand(command: string): Promise<string> {
   });
 }
 
+type VersionInfo = {
+  major: number;
+  minor: number;
+  patch: number;
+};
+
+/**
+ * Convert a version object to a string.
+ */
+function versionToString(version: VersionInfo): string {
+  return `${version.major}.${version.minor}.${version.patch}`;
+}
+
+/**
+ * The minimum version of the Ruff executable that supports the native server.
+ */
+const MINIMUM_RUFF_SERVER_VERSION: VersionInfo = { major: 0, minor: 3, patch: 5 };
+
+/**
+ * Check if the given version of the Ruff executable supports the native server.
+ */
+function supportsNativeServer(version: VersionInfo): boolean {
+  if (version.major > MINIMUM_RUFF_SERVER_VERSION.major) {
+    return true;
+  }
+  if (version.major === MINIMUM_RUFF_SERVER_VERSION.major) {
+    if (version.minor > MINIMUM_RUFF_SERVER_VERSION.minor) {
+      return true;
+    }
+    if (version.minor === MINIMUM_RUFF_SERVER_VERSION.minor) {
+      if (version.patch >= MINIMUM_RUFF_SERVER_VERSION.patch) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Get the version of the Ruff executable at the given path.
+ */
+async function getRuffVersion(executable: string): Promise<VersionInfo> {
+  const stdout = await executeCommand(`${executable} --version`);
+  const version = stdout.trim().split(" ")[1];
+  const [major, minor, patch] = version.split(".").map((x) => parseInt(x, 10));
+  return { major, minor, patch };
+}
+
 /**
  * Finds the Ruff binary path and returns it.
  *
@@ -133,6 +181,19 @@ async function createNativeServer(
   initializationOptions: IInitializationOptions,
 ): Promise<LanguageClient> {
   const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
+  const ruffVersion = await getRuffVersion(ruffBinaryPath);
+
+  if (!supportsNativeServer(ruffVersion)) {
+    const message = `Native server requires Ruff ${versionToString(
+      MINIMUM_RUFF_SERVER_VERSION,
+    )}, but found ${versionToString(ruffVersion)} at ${ruffBinaryPath} instead`;
+    traceError(message);
+    await vscode.window.showErrorMessage(message);
+    return Promise.reject();
+  }
+
+  traceInfo(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
+
   const ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS];
   traceInfo(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
 
