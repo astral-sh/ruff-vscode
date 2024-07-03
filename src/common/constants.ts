@@ -44,16 +44,15 @@ export const DEBUG_SERVER_SCRIPT_PATH = path.join(
 );
 
 /**
- * Path to the Python script that starts the native language server with an
- * appropriate `ruff` executable.
+ * Path to the Python script that tries to find the Ruff binary path.
  *
- * This should only be used as a fallback if the user has not specified either
- * the `path` setting or is not using the bundled import strategy.
+ * This should only be used as a fallback if there is no valid `ruff` binary in
+ * the user's `path` setting or the import strategy isn't `useBundled`.
  */
-export const NATIVE_SERVER_SCRIPT_PATH = path.join(
+export const FIND_RUFF_BINARY_SCRIPT_PATH = path.join(
   BUNDLED_PYTHON_SCRIPTS_DIR,
   "tool",
-  "ruff_server.py",
+  "find_ruff_binary_path.py",
 );
 
 /**
