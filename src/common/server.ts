@@ -1,8 +1,8 @@
 import * as fsapi from "fs-extra";
+import * as vscode from "vscode";
 import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
 import { State } from "vscode-languageclient";
 import {
-  Executable,
   LanguageClient,
   LanguageClientOptions,
   RevealOutputChannelOn,
@@ -14,7 +14,8 @@ import {
   RUFF_SERVER_REQUIRED_ARGS,
   RUFF_SERVER_SUBCOMMAND,
   RUFF_LSP_SERVER_SCRIPT_PATH,
-  NATIVE_SERVER_SCRIPT_PATH,
+  FIND_RUFF_BINARY_SCRIPT_PATH,
+  RUFF_BINARY_NAME,
 } from "./constants";
 import { traceError, traceInfo, traceVerbose } from "./log/logging";
 import { getDebuggerPath } from "./python";
@@ -27,23 +28,54 @@ import {
 import { updateStatus } from "./status";
 import { getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
+import { exec } from "child_process";
+import which = require("which");
 
-export type IInitOptions = {
+export type IInitializationOptions = {
   settings: ISettings[];
   globalSettings: ISettings;
 };
 
-function findNativeServerExecutable(settings: ISettings): Executable {
+/**
+ * Function to execute a command and return the stdout.
+ */
+function executeCommand(command: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, _) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+}
+
+/**
+ * Finds the Ruff binary path and returns it.
+ *
+ * The strategy is as follows:
+ * 1. If the 'path' setting is set, check each path in order. The first valid
+ *    path is returned.
+ * 2. If the 'importStrategy' setting is 'useBundled', return the bundled
+ *    executable path.
+ * 3. Execute a Python script that tries to locate the binary. This uses either
+ *    the user-provided interpreter or the interpreter provided by the Python
+ *    extension.
+ * 4. If the Python script doesn't return a path, check the global environment
+ *    which checks the PATH environment variable.
+ * 5. If all else fails, return the bundled executable path.
+ */
+async function findRuffBinaryPath(
+  settings: ISettings,
+  outputChannel: LogOutputChannel,
+): Promise<string> {
   // 'path' setting takes priority over everything.
   if (settings.path.length > 0) {
     for (const path of settings.path) {
-      if (fsapi.existsSync(path)) {
+      if (await fsapi.pathExists(path)) {
         traceInfo(`Using 'path' setting: ${path}`);
-        return {
-          command: path,
-          args: [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS],
-          options: { cwd: settings.cwd, env: process.env },
-        };
+        return path;
       }
     }
     traceInfo(`Could not find executable in 'path': ${settings.path.join(", ")}`);
@@ -51,20 +83,46 @@ function findNativeServerExecutable(settings: ISettings): Executable {
 
   if (settings.importStrategy === "useBundled") {
     traceInfo(`Using bundled executable: ${BUNDLED_RUFF_EXECUTABLE}`);
-    return {
-      command: BUNDLED_RUFF_EXECUTABLE,
-      args: [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS],
-      options: { cwd: settings.cwd, env: process.env },
-    };
+    return BUNDLED_RUFF_EXECUTABLE;
   }
 
-  // Otherwise, we'll call a Python script that tries to locate a binary,
-  // falling back to the bundled version if no local executable is found.
-  return {
-    command: settings.interpreter[0],
-    args: [NATIVE_SERVER_SCRIPT_PATH, RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS],
-    options: { cwd: settings.cwd, env: process.env },
-  };
+  // Otherwise, we'll call a Python script that tries to locate a binary.
+  let ruffBinaryPath: string | undefined;
+  try {
+    const stdout = await executeCommand(
+      `${settings.interpreter[0]} ${FIND_RUFF_BINARY_SCRIPT_PATH}`,
+    );
+    ruffBinaryPath = stdout.trim();
+  } catch (err) {
+    await vscode.window
+      .showErrorMessage(
+        "Unexpected error while trying to find the Ruff binary. See the logs for more details.",
+        "Show Logs",
+      )
+      .then((selection) => {
+        if (selection) {
+          outputChannel.show();
+        }
+      });
+    traceError(`Error while trying to find the Ruff binary: ${err}`);
+  }
+
+  if (ruffBinaryPath && ruffBinaryPath.length > 0) {
+    // First choice: the executable found by the script.
+    traceInfo(`Using the Ruff binary: ${ruffBinaryPath}`);
+    return ruffBinaryPath;
+  }
+
+  // Second choice: the executable in the global environment.
+  const environmentPath = await which(RUFF_BINARY_NAME, { nothrow: true });
+  if (environmentPath) {
+    traceInfo(`Using environment executable: ${environmentPath}`);
+    return environmentPath;
+  }
+
+  // Third choice: bundled executable.
+  traceInfo(`Falling back to bundled executable: ${BUNDLED_RUFF_EXECUTABLE}`);
+  return BUNDLED_RUFF_EXECUTABLE;
 }
 
 async function createNativeServer(
@@ -72,14 +130,17 @@ async function createNativeServer(
   serverId: string,
   serverName: string,
   outputChannel: LogOutputChannel,
-  initializationOptions: IInitOptions,
+  initializationOptions: IInitializationOptions,
 ): Promise<LanguageClient> {
-  let serverOptions = findNativeServerExecutable(settings);
-  if (serverOptions.args) {
-    traceInfo(`Server run command: ${[serverOptions.command, ...serverOptions.args].join(" ")}`);
-  } else {
-    traceInfo(`Server run command: ${serverOptions.command}`);
-  }
+  const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
+  const ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS];
+  traceInfo(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
+
+  let serverOptions = {
+    command: ruffBinaryPath,
+    args: ruffServerArgs,
+    options: { cwd: settings.cwd, env: process.env },
+  };
 
   const clientOptions = {
     // Register the server for python documents
@@ -105,7 +166,7 @@ async function createServer(
   serverId: string,
   serverName: string,
   outputChannel: LogOutputChannel,
-  initializationOptions: IInitOptions,
+  initializationOptions: IInitializationOptions,
 ): Promise<LanguageClient> {
   const command = settings.interpreter[0];
   const cwd = settings.cwd;
