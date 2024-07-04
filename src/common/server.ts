@@ -33,7 +33,7 @@ export type IInitOptions = {
   globalSettings: ISettings;
 };
 
-function createNativeServerOptions(settings: ISettings): Executable {
+function findNativeServerExecutable(settings: ISettings): Executable {
   // 'path' setting takes priority over everything.
   if (settings.path.length > 0) {
     for (const path of settings.path) {
@@ -74,7 +74,7 @@ async function createNativeServer(
   outputChannel: LogOutputChannel,
   initializationOptions: IInitOptions,
 ): Promise<LanguageClient> {
-  let serverOptions = createNativeServerOptions(settings);
+  let serverOptions = findNativeServerExecutable(settings);
   if (serverOptions.args) {
     traceInfo(`Server run command: ${[serverOptions.command, ...serverOptions.args].join(" ")}`);
   } else {
