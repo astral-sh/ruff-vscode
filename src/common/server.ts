@@ -1,4 +1,5 @@
 import * as fsapi from "fs-extra";
+import * as vscode from "vscode";
 import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
 import { State } from "vscode-languageclient";
 import {
@@ -35,7 +36,9 @@ export type IInitializationOptions = {
   globalSettings: ISettings;
 };
 
-// Function to execute a command and capture the stdout.
+/**
+ * Function to execute a command and return the stdout.
+ */
 function executeCommand(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
     exec(command, (error, stdout, _) => {
@@ -48,7 +51,25 @@ function executeCommand(command: string): Promise<string> {
   });
 }
 
-async function findRuffBinaryPath(settings: ISettings): Promise<string> {
+/**
+ * Finds the Ruff binary path and returns it.
+ *
+ * The strategy is as follows:
+ * 1. If the 'path' setting is set, check each path in order. The first valid
+ *    path is returned.
+ * 2. If the 'importStrategy' setting is 'useBundled', return the bundled
+ *    executable path.
+ * 3. Execute a Python script that tries to locate the binary. This uses either
+ *    the user-provided interpreter or the interpreter provided by the Python
+ *    extension.
+ * 4. If the Python script doesn't return a path, check the global environment
+ *    which checks the PATH environment variable.
+ * 5. If all else fails, return the bundled executable path.
+ */
+async function findRuffBinaryPath(
+  settings: ISettings,
+  outputChannel: LogOutputChannel,
+): Promise<string> {
   // 'path' setting takes priority over everything.
   if (settings.path.length > 0) {
     for (const path of settings.path) {
@@ -65,15 +86,24 @@ async function findRuffBinaryPath(settings: ISettings): Promise<string> {
     return BUNDLED_RUFF_EXECUTABLE;
   }
 
-  // Otherwise, we'll call a Python script that tries to locate a binary,
-  // falling back to the bundled version if no local executable is found.
-  let ruffBinaryPath: string | null = null;
+  // Otherwise, we'll call a Python script that tries to locate a binary.
+  let ruffBinaryPath: string | undefined;
   try {
     const stdout = await executeCommand(
       `${settings.interpreter[0]} ${FIND_RUFF_BINARY_SCRIPT_PATH}`,
     );
     ruffBinaryPath = stdout.trim();
   } catch (err) {
+    await vscode.window
+      .showErrorMessage(
+        "Unexpected error while trying to find the Ruff binary. See the logs for more details.",
+        "Show Logs",
+      )
+      .then((selection) => {
+        if (selection) {
+          outputChannel.show();
+        }
+      });
     traceError(`Error while trying to find the Ruff binary: ${err}`);
   }
 
@@ -102,7 +132,7 @@ async function createNativeServer(
   outputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
 ): Promise<LanguageClient> {
-  const ruffBinaryPath = await findRuffBinaryPath(settings);
+  const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
   const ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS];
   traceInfo(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
 

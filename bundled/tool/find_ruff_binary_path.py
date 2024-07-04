@@ -8,7 +8,7 @@ RUFF_EXE = "ruff.exe" if sys.platform == "win32" else "ruff"
 
 
 def find_ruff_binary_path() -> Optional[Path]:
-    """Return the ruff binary path, `None` if unable to find."""
+    """Return the ruff binary path if it exists, `None` otherwise."""
     bin_path = Path(sysconfig.get_path("scripts")) / RUFF_EXE
     if bin_path.is_file():
         return bin_path
