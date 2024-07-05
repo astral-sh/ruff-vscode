@@ -55,7 +55,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
   );
 
-  const { enable, nativeServer } = getConfiguration(serverId) as unknown as ISettings;
+  const { enable } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
     traceLog(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
@@ -86,9 +86,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = true;
 
-    if (nativeServer) {
-      traceVerbose("Using experimental server with bundled Ruff binary");
-
+    const interpreter = getInterpreterFromSetting(serverId);
+    if (
+      interpreter !== undefined &&
+      interpreter.length > 0 &&
+      checkVersion(await resolveInterpreter(interpreter))
+    ) {
+      traceVerbose(
+        `Using interpreter from ${serverInfo.module}.interpreter: ${interpreter.join(" ")}`,
+      );
       lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
 
       restartInProgress = false;
@@ -98,42 +104,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
 
       return;
-    } else {
-      const interpreter = getInterpreterFromSetting(serverId);
-      if (
-        interpreter &&
-        interpreter.length > 0 &&
-        checkVersion(await resolveInterpreter(interpreter))
-      ) {
-        traceVerbose(
-          `Using interpreter from ${serverInfo.module}.interpreter: ${interpreter.join(" ")}`,
-        );
-        lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+    }
 
-        restartInProgress = false;
-        if (restartQueued) {
-          restartQueued = false;
-          await runServer();
-        }
+    const interpreterDetails = await getInterpreterDetails();
+    if (interpreterDetails.path) {
+      traceVerbose(`Using interpreter from Python extension: ${interpreterDetails.path.join(" ")}`);
+      lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
 
-        return;
+      restartInProgress = false;
+      if (restartQueued) {
+        restartQueued = false;
+        await runServer();
       }
 
-      const interpreterDetails = await getInterpreterDetails();
-      if (interpreterDetails.path) {
-        traceVerbose(
-          `Using interpreter from Python extension: ${interpreterDetails.path.join(" ")}`,
-        );
-        lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
-
-        restartInProgress = false;
-        if (restartQueued) {
-          restartQueued = false;
-          await runServer();
-        }
-
-        return;
-      }
+      return;
     }
 
     restartInProgress = false;
