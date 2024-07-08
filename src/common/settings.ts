@@ -13,6 +13,8 @@ type Run = "onType" | "onSave";
 
 type ConfigPreference = "editorFirst" | "filesystemFirst" | "editorOnly";
 
+type NativeServer = boolean | "on" | "off" | "auto";
+
 type CodeAction = {
   disableRuleComment?: {
     enable?: boolean;
@@ -38,7 +40,7 @@ type Format = {
 };
 
 export interface ISettings {
-  nativeServer: boolean;
+  nativeServer: NativeServer;
   cwd: string;
   workspace: string;
   path: string[];
@@ -124,7 +126,7 @@ export async function getWorkspaceSettings(
   }
 
   return {
-    nativeServer: config.get<boolean>("nativeServer") ?? false,
+    nativeServer: config.get<NativeServer>("nativeServer") ?? "auto",
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
@@ -174,7 +176,7 @@ function getOptionalGlobalValue<T>(config: WorkspaceConfiguration, key: string):
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
   return {
-    nativeServer: getGlobalValue<boolean>(config, "nativeServer", false),
+    nativeServer: getGlobalValue<NativeServer>(config, "nativeServer", "auto"),
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
@@ -308,4 +310,57 @@ function getPreferredGlobalSetting<T>(
   }
 
   return newSettings?.defaultValue;
+}
+
+/**
+ * Get the settings that were explicitly set by the user that are only relevant
+ * to the native server.
+ */
+export function getUserSetNativeServerSettings(
+  namespace: string,
+  workspace: WorkspaceFolder,
+): string[] {
+  const settings = [
+    "configuration",
+    "configurationPreference",
+    "exclude",
+    "lineLength",
+    "lint.preview",
+    "lint.select",
+    "lint.extendSelect",
+    "lint.ignore",
+    "lint.extendIgnore",
+    "format.preview",
+  ];
+  const config = getConfiguration(namespace, workspace);
+  return settings
+    .filter((s) => isSettingExplicitlySetByUser(config, s))
+    .map((s) => `${namespace}.${s}`);
+}
+
+/**
+ * Get the settings that were explicitly set by the user that are only relevant
+ * to the legacy server.
+ */
+export function getUserSetLegacyServerSettings(
+  namespace: string,
+  workspace: WorkspaceFolder,
+): string[] {
+  const settings = ["ignoreStandardLibrary", "lint.run", "lint.args", "format.args"];
+  const config = getConfiguration(namespace, workspace);
+  return settings
+    .filter((s) => isSettingExplicitlySetByUser(config, s))
+    .map((s) => `${namespace}.${s}`);
+}
+
+/**
+ * Check if a setting was explicitly set by the user.
+ */
+function isSettingExplicitlySetByUser(config: WorkspaceConfiguration, section: string): boolean {
+  const inspect = config.inspect(section);
+  return (
+    inspect?.globalValue !== undefined ||
+    inspect?.workspaceValue !== undefined ||
+    inspect?.workspaceFolderValue !== undefined
+  );
 }

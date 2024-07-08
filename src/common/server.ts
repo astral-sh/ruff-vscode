@@ -17,14 +17,24 @@ import {
   FIND_RUFF_BINARY_SCRIPT_PATH,
   RUFF_BINARY_NAME,
 } from "./constants";
-import { traceError, traceInfo, traceVerbose } from "./log/logging";
+import { traceError, traceInfo, traceVerbose, traceWarn } from "./log/logging";
 import { getDebuggerPath } from "./python";
 import {
   getExtensionSettings,
   getGlobalSettings,
+  getUserSetLegacyServerSettings,
+  getUserSetNativeServerSettings,
   getWorkspaceSettings,
   ISettings,
 } from "./settings";
+import {
+  supportsNativeServer,
+  versionToString,
+  VersionInfo,
+  MINIMUM_NATIVE_SERVER_VERSION,
+  supportsStableNativeServer,
+  NATIVE_SERVER_STABLE_VERSION,
+} from "./version";
 import { updateStatus } from "./status";
 import { getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
@@ -49,44 +59,6 @@ function executeCommand(command: string): Promise<string> {
       }
     });
   });
-}
-
-type VersionInfo = {
-  major: number;
-  minor: number;
-  patch: number;
-};
-
-/**
- * Convert a version object to a string.
- */
-function versionToString(version: VersionInfo): string {
-  return `${version.major}.${version.minor}.${version.patch}`;
-}
-
-/**
- * The minimum version of the Ruff executable that supports the native server.
- */
-const MINIMUM_RUFF_SERVER_VERSION: VersionInfo = { major: 0, minor: 3, patch: 5 };
-
-/**
- * Check if the given version of the Ruff executable supports the native server.
- */
-function supportsNativeServer(version: VersionInfo): boolean {
-  if (version.major > MINIMUM_RUFF_SERVER_VERSION.major) {
-    return true;
-  }
-  if (version.major === MINIMUM_RUFF_SERVER_VERSION.major) {
-    if (version.minor > MINIMUM_RUFF_SERVER_VERSION.minor) {
-      return true;
-    }
-    if (version.minor === MINIMUM_RUFF_SERVER_VERSION.minor) {
-      if (version.patch >= MINIMUM_RUFF_SERVER_VERSION.patch) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 /**
@@ -179,20 +151,26 @@ async function createNativeServer(
   serverName: string,
   outputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
+  ruffBinaryPath?: string,
+  ruffVersion?: VersionInfo,
 ): Promise<LanguageClient> {
-  const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
-  const ruffVersion = await getRuffVersion(ruffBinaryPath);
+  if (!ruffBinaryPath) {
+    ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
+  }
+  if (!ruffVersion) {
+    ruffVersion = await getRuffVersion(ruffBinaryPath);
+  }
+
+  traceInfo(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
 
   if (!supportsNativeServer(ruffVersion)) {
     const message = `Native server requires Ruff ${versionToString(
-      MINIMUM_RUFF_SERVER_VERSION,
+      MINIMUM_NATIVE_SERVER_VERSION,
     )}, but found ${versionToString(ruffVersion)} at ${ruffBinaryPath} instead`;
     traceError(message);
     await vscode.window.showErrorMessage(message);
     return Promise.reject();
   }
-
-  traceInfo(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
 
   const ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS];
   traceInfo(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
@@ -222,7 +200,7 @@ async function createNativeServer(
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
 }
 
-async function createServer(
+async function createLegacyServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
@@ -277,6 +255,139 @@ async function createServer(
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
 }
 
+async function showWarningMessageWithLogs(message: string, outputChannel: LogOutputChannel) {
+  const selection = await vscode.window.showWarningMessage(message, "Show Logs");
+  if (selection) {
+    outputChannel.show();
+  }
+}
+
+async function legacyServerSettingsWarning(settings: string[], outputChannel: LogOutputChannel) {
+  await showWarningMessageWithLogs(
+    "Unsupported settings used with the native server. Refer to the logs for more details.",
+    outputChannel,
+  );
+  traceWarn(
+    `The following settings are not supported with the native server: ${JSON.stringify(settings)}`,
+  );
+}
+
+async function nativeServerSettingsWarning(
+  settings: string[],
+  outputChannel: LogOutputChannel,
+  suggestion?: string,
+) {
+  await showWarningMessageWithLogs(
+    "Unsupported settings used with the legacy server (ruff-lsp). Refer to the logs for more details.",
+    outputChannel,
+  );
+  traceWarn(
+    `The following settings are not supported with the legacy server (ruff-lsp): ${JSON.stringify(
+      settings,
+    )}`,
+  );
+  if (suggestion) {
+    traceWarn(suggestion);
+  }
+}
+
+type RuffExecutable = {
+  path: string;
+  version: VersionInfo;
+};
+
+async function resolveNativeServerSetting(
+  settings: ISettings,
+  workspace: vscode.WorkspaceFolder,
+  serverId: string,
+  outputChannel: LogOutputChannel,
+): Promise<{ useNativeServer: boolean; executable: RuffExecutable | undefined }> {
+  let useNativeServer: boolean;
+  let executable: RuffExecutable | undefined;
+
+  switch (settings.nativeServer) {
+    case "on":
+    case true:
+      const legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
+      if (legacyServerSettings.length > 0) {
+        await legacyServerSettingsWarning(legacyServerSettings, outputChannel);
+      }
+      return { useNativeServer: true, executable };
+    case "off":
+    case false:
+      let nativeServerSettings = getUserSetNativeServerSettings(serverId, workspace);
+      if (nativeServerSettings.length > 0) {
+        await nativeServerSettingsWarning(nativeServerSettings, outputChannel);
+      }
+      return { useNativeServer: false, executable };
+    case "auto":
+      const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
+      const ruffVersion = await getRuffVersion(ruffBinaryPath);
+
+      if (supportsStableNativeServer(ruffVersion)) {
+        const legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
+        if (legacyServerSettings.length > 0) {
+          traceInfo(`Legacy server settings found: ${JSON.stringify(legacyServerSettings)}`);
+          useNativeServer = false;
+        } else {
+          useNativeServer = true;
+        }
+      } else {
+        traceInfo(
+          `Stable version of the native server requires Ruff ${versionToString(
+            NATIVE_SERVER_STABLE_VERSION,
+          )}, but found ${versionToString(ruffVersion)} at ${ruffBinaryPath} instead`,
+        );
+        let nativeServerSettings = getUserSetNativeServerSettings(serverId, workspace);
+        if (nativeServerSettings.length > 0) {
+          await nativeServerSettingsWarning(
+            nativeServerSettings,
+            outputChannel,
+            "Please remove these settings or set 'nativeServer' to 'on' to use the native server",
+          );
+        }
+        useNativeServer = false;
+      }
+
+      traceInfo(
+        `Resolved '${serverId}.nativeServer: auto' to use the ${
+          useNativeServer ? "native" : "legacy (ruff-lsp)"
+        } server`,
+      );
+      return { useNativeServer, executable: { path: ruffBinaryPath, version: ruffVersion } };
+  }
+}
+
+async function createServer(
+  settings: ISettings,
+  projectRoot: vscode.WorkspaceFolder,
+  serverId: string,
+  serverName: string,
+  outputChannel: LogOutputChannel,
+  initializationOptions: IInitializationOptions,
+): Promise<LanguageClient> {
+  const { useNativeServer, executable } = await resolveNativeServerSetting(
+    settings,
+    projectRoot,
+    serverId,
+    outputChannel,
+  );
+
+  if (useNativeServer) {
+    return createNativeServer(
+      settings,
+      serverId,
+      serverName,
+      outputChannel,
+      initializationOptions,
+      executable?.path,
+      executable?.version,
+    );
+  } else {
+    return createLegacyServer(settings, serverId, serverName, outputChannel, initializationOptions);
+  }
+}
+
 let _disposables: Disposable[] = [];
 export async function restartServer(
   serverId: string,
@@ -299,18 +410,17 @@ export async function restartServer(
   const extensionSettings = await getExtensionSettings(serverId);
   const globalSettings = await getGlobalSettings(serverId);
 
-  let newLSClient;
-  if (workspaceSettings.nativeServer || globalSettings.nativeServer) {
-    newLSClient = await createNativeServer(workspaceSettings, serverId, serverName, outputChannel, {
+  let newLSClient = await createServer(
+    workspaceSettings,
+    projectRoot,
+    serverId,
+    serverName,
+    outputChannel,
+    {
       settings: extensionSettings,
       globalSettings: globalSettings,
-    });
-  } else {
-    newLSClient = await createServer(workspaceSettings, serverId, serverName, outputChannel, {
-      settings: extensionSettings,
-      globalSettings: globalSettings,
-    });
-  }
+    },
+  );
   traceInfo(`Server: Start requested.`);
   _disposables.push(
     newLSClient.onDidChangeState((e) => {
