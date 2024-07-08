@@ -35,7 +35,7 @@ import {
   supportsStableNativeServer,
   NATIVE_SERVER_STABLE_VERSION,
 } from "./version";
-import { updateStatus } from "./status";
+import { updateServerKind, updateStatus } from "./status";
 import { getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
 import { exec } from "child_process";
@@ -373,6 +373,7 @@ async function createServer(
     outputChannel,
   );
 
+  updateServerKind(useNativeServer);
   if (useNativeServer) {
     return createNativeServer(
       settings,

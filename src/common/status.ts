@@ -7,6 +7,8 @@ import { Command } from "vscode-languageclient";
 import { getDocumentSelector } from "./utilities";
 
 let _status: LanguageStatusItem | undefined;
+let _serverKind: "native" | "ruff-lsp" | undefined;
+
 export function registerLanguageStatusItem(id: string, name: string, command: string): Disposable {
   _status = createLanguageStatusItem(id, getDocumentSelector());
   _status.name = name;
@@ -21,6 +23,10 @@ export function registerLanguageStatusItem(id: string, name: string, command: st
   };
 }
 
+export function updateServerKind(native: boolean): void {
+  _serverKind = native ? "native" : "ruff-lsp";
+}
+
 export function updateStatus(
   status: string | undefined,
   severity: LanguageStatusSeverity,
@@ -28,7 +34,11 @@ export function updateStatus(
   detail?: string,
 ): void {
   if (_status) {
-    _status.text = status && status.length > 0 ? `${_status.name}: ${status}` : `${_status.name}`;
+    let name = _status.name;
+    if (_serverKind) {
+      name = `${name} (${_serverKind})`;
+    }
+    _status.text = status && status.length > 0 ? `${name}: ${status}` : `${name}`;
     _status.severity = severity;
     _status.busy = busy ?? false;
     _status.detail = detail;
