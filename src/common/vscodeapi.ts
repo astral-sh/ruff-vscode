@@ -34,7 +34,7 @@ export function registerCommand(
   return commands.registerCommand(command, callback, thisArg);
 }
 
-export const { onDidChangeConfiguration } = workspace;
+export const { onDidChangeConfiguration, onDidGrantWorkspaceTrust } = workspace;
 
 export function isVirtualWorkspace(): boolean {
   const isVirtual =

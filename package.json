@@ -39,6 +39,15 @@
     "ms-python.python"
   ],
   "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "restrictedConfigurations": [
+        "ruff.path",
+        "ruff.importStrategy",
+        "ruff.interpreter",
+        "ruff.configuration"
+      ]
+    },
     "virtualWorkspaces": {
       "supported": false,
       "description": "Virtual Workspaces are not supported by the Ruff extension."
