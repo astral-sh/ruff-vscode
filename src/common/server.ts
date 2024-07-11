@@ -156,15 +156,14 @@ async function createNativeServer(
   serverName: string,
   outputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
-  ruffBinaryPath?: string,
-  ruffVersion?: VersionInfo,
+  ruffExecutable?: RuffExecutable,
 ): Promise<LanguageClient> {
-  if (!ruffBinaryPath) {
-    ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
+  if (!ruffExecutable) {
+    const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
+    const ruffVersion = await getRuffVersion(ruffBinaryPath);
+    ruffExecutable = { path: ruffBinaryPath, version: ruffVersion };
   }
-  if (!ruffVersion) {
-    ruffVersion = await getRuffVersion(ruffBinaryPath);
-  }
+  const { path: ruffBinaryPath, version: ruffVersion } = ruffExecutable;
 
   traceInfo(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
 
@@ -401,8 +400,7 @@ async function createServer(
       serverName,
       outputChannel,
       initializationOptions,
-      executable?.path,
-      executable?.version,
+      executable,
     );
   } else {
     return createLegacyServer(settings, serverId, serverName, outputChannel, initializationOptions);

@@ -1,0 +1,7 @@
+[tool.ruff.lint]
+# Only select the rules that we want the diagnostics for.
+select = [
+    "I001",
+    "F401",
+    "F821",
+]
