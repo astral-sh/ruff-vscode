@@ -1,0 +1,12 @@
+{
+  // Always use the bundled Ruff binary for the tests.
+  "ruff.importStrategy": "useBundled",
+
+  // Ruff's extension depends on the Python extension which also provides a language server,
+  // so we need to disable the Python language server to avoid special casing in the tests.
+  "python.languageServer": "None",
+
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  }
+}
