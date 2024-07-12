@@ -54,9 +54,5 @@ jobs:
         run: npm run pretest
         shell: bash
       - name: Run tests
-        run: |
-          ls -la out/
-          ls -la node_modules/
-          ls -la bundled/libs
-          xvfb-run npm run tests
+        run: xvfb-run npm run tests
         shell: bash
