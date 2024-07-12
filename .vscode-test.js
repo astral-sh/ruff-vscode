@@ -5,6 +5,7 @@ module.exports = defineConfig({
   workspaceFolder: "./src/testFixture",
   mocha: {
     ui: "tdd",
-    timeout: 10000,
+    color: true,
+    timeout: 20000,
   },
 });

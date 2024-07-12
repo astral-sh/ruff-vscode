@@ -30,3 +30,29 @@ jobs:
         run: just check
       - name: Run tests
         run: just test
+
+  ts-tests:
+    name: TypeScript Tests
+    runs-on: ubuntu-latest
+    env:
+      UV_SYSTEM_PYTHON: 1
+    steps:
+      - uses: extractions/setup-just@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.7"
+      - uses: hynek/setup-cached-uv@v1
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          just setup
+          npm ci
+        shell: bash
+      - name: Compile tests
+        run: npm run pretest
+        shell: bash
+      - name: Run tests
+        run: xvfb-run npm run tests
+        shell: bash

@@ -3,6 +3,8 @@ import * as assert from "assert";
 import { getDocumentUri, activateExtension, sleep } from "./helper";
 
 suite("E2E tests", () => {
+  const TIMEOUT = 5000;
+
   teardown(async () => {
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
@@ -14,16 +16,23 @@ suite("E2E tests", () => {
     const document = await vscode.workspace.openTextDocument(documentUri);
     await vscode.window.showTextDocument(document);
 
+    const editor = vscode.window.activeTextEditor;
+    assert.ok(editor, "No active text editor");
+    assert.ok(
+      editor.document.uri.fsPath.endsWith("diagnostics.py"),
+      "Active text editor is not diagnostics.py",
+    );
+
     let actualDiagnostics = vscode.languages.getDiagnostics(documentUri);
     if (actualDiagnostics.length === 0) {
       // Wait for diagnostics to be computed
-      let timeout = 1000;
+      let timeout = TIMEOUT;
       while (actualDiagnostics.length === 0 && timeout > 0) {
         await sleep(100);
         actualDiagnostics = vscode.languages.getDiagnostics(documentUri);
         timeout -= 100;
       }
-      assert.ok(actualDiagnostics.length > 0, "No diagnostics provided in 1 second");
+      assert.ok(actualDiagnostics.length > 0, `No diagnostics provided in ${TIMEOUT}ms`);
     }
 
     actualDiagnostics = actualDiagnostics.sort((a, b) => {

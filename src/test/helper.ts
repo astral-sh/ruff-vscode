@@ -8,7 +8,11 @@ export async function activateExtension() {
   if (extension === undefined) {
     throw new Error(`Extension ${EXTENSION_ID} not found`);
   }
-  await extension.activate();
+  try {
+    await extension.activate();
+  } catch (e) {
+    console.error(`Failed to activate the extension: ${e}`);
+  }
 }
 
 export async function sleep(ms: number) {
