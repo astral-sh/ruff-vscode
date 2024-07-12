@@ -90,6 +90,11 @@ async function findRuffBinaryPath(
   settings: ISettings,
   outputChannel: LogOutputChannel,
 ): Promise<string> {
+  if (!vscode.workspace.isTrusted) {
+    traceInfo(`Workspace is not trusted, using bundled executable: ${BUNDLED_RUFF_EXECUTABLE}`);
+    return BUNDLED_RUFF_EXECUTABLE;
+  }
+
   // 'path' setting takes priority over everything.
   if (settings.path.length > 0) {
     for (const path of settings.path) {
@@ -315,12 +320,27 @@ async function resolveNativeServerSetting(
       return { useNativeServer: true, executable };
     case "off":
     case false:
+      if (!vscode.workspace.isTrusted) {
+        const message =
+          "Cannot use the legacy server (ruff-lsp) in an untrusted workspace; switching to the native server using the bundled executable.";
+        await vscode.window.showWarningMessage(message);
+        traceWarn(message);
+        return { useNativeServer: true, executable };
+      }
+
       let nativeServerSettings = getUserSetNativeServerSettings(serverId, workspace);
       if (nativeServerSettings.length > 0) {
         await nativeServerSettingsWarning(nativeServerSettings, outputChannel);
       }
       return { useNativeServer: false, executable };
     case "auto":
+      if (!vscode.workspace.isTrusted) {
+        traceInfo(
+          `Resolved '${serverId}.nativeServer: auto' to use the native server in an untrusted workspace`,
+        );
+        return { useNativeServer: true, executable };
+      }
+
       const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
       const ruffVersion = await getRuffVersion(ruffBinaryPath);
 

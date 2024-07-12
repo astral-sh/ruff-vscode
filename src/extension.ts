@@ -20,6 +20,7 @@ import {
   createOutputChannel,
   getConfiguration,
   onDidChangeConfiguration,
+  onDidGrantWorkspaceTrust,
   registerCommand,
 } from "./common/vscodeapi";
 
@@ -86,6 +87,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = true;
 
+    if (!vscode.workspace.isTrusted) {
+      lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+
+      restartInProgress = false;
+      if (restartQueued) {
+        restartQueued = false;
+        await runServer();
+      }
+
+      return;
+    }
+
     const interpreter = getInterpreterFromSetting(serverId);
     if (interpreter !== undefined && interpreter.length > 0) {
       if (checkVersion(await resolveInterpreter(interpreter))) {
@@ -141,6 +154,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (checkIfConfigurationChanged(e, serverId)) {
         await runServer();
       }
+    }),
+    onDidGrantWorkspaceTrust(async () => {
+      await runServer();
     }),
     registerCommand(`${serverId}.showLogs`, async () => {
       outputChannel.show();
@@ -241,11 +257,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
 
   setImmediate(async () => {
-    const interpreter = getInterpreterFromSetting(serverId);
-    if (interpreter === undefined || interpreter.length === 0) {
-      traceLog(`Python extension loading`);
-      await initializePython(context.subscriptions);
-      traceLog(`Python extension loaded`);
+    if (vscode.workspace.isTrusted) {
+      const interpreter = getInterpreterFromSetting(serverId);
+      if (interpreter === undefined || interpreter.length === 0) {
+        traceLog(`Python extension loading`);
+        await initializePython(context.subscriptions);
+        traceLog(`Python extension loaded`);
+      }
     } else {
       await runServer();
     }

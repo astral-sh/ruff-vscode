@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import {
   ConfigurationChangeEvent,
   ConfigurationScope,
@@ -116,7 +117,7 @@ export async function getWorkspaceSettings(
   const config = getConfiguration(namespace, workspace.uri);
 
   let interpreter: string[] = getInterpreterFromSetting(namespace, workspace) ?? [];
-  if (interpreter.length === 0) {
+  if (interpreter.length === 0 && vscode.workspace.isTrusted) {
     interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
   }
 
