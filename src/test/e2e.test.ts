@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as assert from "assert";
-import { getDocumentUri, activateExtension, sleep } from "./helper";
+import { getDocumentUri, activateExtensions, sleep } from "./helper";
 
 suite("E2E tests", () => {
   const TIMEOUT = 5000;
@@ -10,7 +10,7 @@ suite("E2E tests", () => {
   });
 
   test("Should provide diagnostics", async () => {
-    await activateExtension();
+    await activateExtensions();
 
     const documentUri = getDocumentUri("diagnostics.py");
     const document = await vscode.workspace.openTextDocument(documentUri);
@@ -72,7 +72,7 @@ suite("E2E tests", () => {
   });
 
   test("Should format document", async () => {
-    await activateExtension();
+    await activateExtensions();
 
     const docUri = getDocumentUri("formatting.py");
     const document = await vscode.workspace.openTextDocument(docUri);

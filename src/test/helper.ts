@@ -1,18 +1,26 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-const EXTENSION_ID = "charliermarsh.ruff";
+const RUFF_EXTENSION_ID = "charliermarsh.ruff";
+const PYTHON_EXTENSION_ID = "ms-python.python";
 
-export async function activateExtension() {
-  const extension = vscode.extensions.getExtension(EXTENSION_ID);
+async function activateExtension(extensionId: string) {
+  const extension = vscode.extensions.getExtension(extensionId);
   if (extension === undefined) {
-    throw new Error(`Extension ${EXTENSION_ID} not found`);
+    throw new Error(`Extension ${extensionId} not found`);
   }
-  try {
-    await extension.activate();
-  } catch (e) {
-    console.error(`Failed to activate the extension: ${e}`);
+  if (!extension.isActive) {
+    try {
+      await extension.activate();
+    } catch (e) {
+      console.error(`Failed to activate the extension: ${e}`);
+    }
   }
+}
+
+export async function activateExtensions() {
+  await activateExtension(RUFF_EXTENSION_ID);
+  await activateExtension(PYTHON_EXTENSION_ID);
 }
 
 export async function sleep(ms: number) {
