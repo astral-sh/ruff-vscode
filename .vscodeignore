@@ -23,5 +23,7 @@ requirements.txt
 scripts/
 src/
 tests/
+out/
+.vscode-test/
 tsconfig.json
 webpack.config.js

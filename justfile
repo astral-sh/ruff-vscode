@@ -15,8 +15,9 @@ install:
 test: setup
   python -m unittest
 
-e2e-test: install
-  npm run test
+e2e-tests: setup
+  npm run pretest
+  npm run tests
 
 check:
   ruff check ./bundled/tool ./build ./tests
@@ -34,3 +35,9 @@ fmt:
 build-package: setup
   npm ci
   npm run vsce-package
+
+clean:
+  rm -rf out
+  rm -rf node_modules
+  rm -rf .vscode-test
+  rm -rf bundled/libs

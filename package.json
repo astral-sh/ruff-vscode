@@ -63,13 +63,15 @@
     "fmt": "prettier -w .",
     "fmt-check": "prettier --check .",
     "lint": "eslint src --ext ts",
-    "compile": "tsc",
+    "compile": "webpack",
+    "compile-tests": "tsc -p . --outDir out",
     "tsc": "tsc --noEmit",
     "package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
     "watch": "webpack --watch",
     "vsce-package": "vsce package -o ruff.vsix",
     "vscode:prepublish": "npm run package",
-    "test": "npm run compile && vscode-test"
+    "pretest": "npm run compile-tests && npm run compile",
+    "tests": "vscode-test"
   },
   "contributes": {
     "configuration": {
