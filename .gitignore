@@ -4,7 +4,9 @@
 **/.venv/
 **/__pycache__/
 **/dist/
+**/out/
 **/node_modules/
 *.vsix
 *.pyc
 /bundled/libs/
+.vscode-test/

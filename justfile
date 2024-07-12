@@ -15,6 +15,9 @@ install:
 test: setup
   python -m unittest
 
+e2e-test: install
+  npm run test
+
 check:
   ruff check ./bundled/tool ./build ./tests
   ruff format --check ./bundled/tool ./build ./tests
