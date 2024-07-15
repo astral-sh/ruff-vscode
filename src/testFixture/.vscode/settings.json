@@ -1,5 +1,6 @@
 {
-  // Always use the bundled Ruff binary for the tests.
+  // Always use the native server and bundled Ruff binary for the tests.
+  "ruff.nativeServer": "on",
   "ruff.importStrategy": "useBundled",
 
   // Ruff's extension depends on the Python extension which also provides a language server,
