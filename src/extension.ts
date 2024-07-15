@@ -87,7 +87,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = true;
 
-    if (!vscode.workspace.isTrusted || process.env.CI == "true") {
+    if (!vscode.workspace.isTrusted) {
       lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
 
       restartInProgress = false;
@@ -257,7 +257,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
 
   setImmediate(async () => {
-    if (vscode.workspace.isTrusted && process.env.CI == undefined) {
+    if (vscode.workspace.isTrusted) {
       const interpreter = getInterpreterFromSetting(serverId);
       if (interpreter === undefined || interpreter.length === 0) {
         traceLog(`Python extension loading`);
