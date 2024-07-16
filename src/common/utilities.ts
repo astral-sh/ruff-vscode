@@ -1,26 +1,8 @@
 import * as fs from "fs-extra";
 import * as path from "path";
-import { LogLevel, Uri, WorkspaceFolder } from "vscode";
-import { Trace } from "vscode-jsonrpc/node";
+import { Uri, WorkspaceFolder } from "vscode";
 import { DocumentSelector } from "vscode-languageclient";
 import { getWorkspaceFolders, isVirtualWorkspace } from "./vscodeapi";
-
-function logLevelToTrace(logLevel: LogLevel): Trace {
-  switch (logLevel) {
-    case LogLevel.Error:
-    case LogLevel.Warning:
-    case LogLevel.Info:
-      return Trace.Messages;
-
-    case LogLevel.Debug:
-    case LogLevel.Trace:
-      return Trace.Verbose;
-
-    case LogLevel.Off:
-    default:
-      return Trace.Off;
-  }
-}
 
 export async function getProjectRoot(): Promise<WorkspaceFolder> {
   const workspaces: readonly WorkspaceFolder[] = getWorkspaceFolders();

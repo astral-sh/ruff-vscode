@@ -16,6 +16,8 @@ type ConfigPreference = "editorFirst" | "filesystemFirst" | "editorOnly";
 
 type NativeServer = boolean | "on" | "off" | "auto";
 
+type LogLevel = "error" | "warn" | "info" | "debug" | "trace";
+
 type CodeAction = {
   disableRuleComment?: {
     enable?: boolean;
@@ -60,6 +62,8 @@ export interface ISettings {
   lineLength?: number;
   configurationPreference?: ConfigPreference;
   showSyntaxErrors: boolean;
+  logLevel?: LogLevel;
+  logFile?: string;
 }
 
 export function getExtensionSettings(namespace: string): Promise<ISettings[]> {
@@ -161,6 +165,8 @@ export async function getWorkspaceSettings(
     configurationPreference:
       config.get<ConfigPreference>("configurationPreference") ?? "editorFirst",
     showSyntaxErrors: config.get<boolean>("showSyntaxErrors") ?? true,
+    logLevel: config.get<LogLevel>("logLevel"),
+    logFile: config.get<string>("logFile"),
   };
 }
 
@@ -211,6 +217,8 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
       "editorFirst",
     ),
     showSyntaxErrors: getGlobalValue<boolean>(config, "showSyntaxErrors", true),
+    logLevel: getOptionalGlobalValue<LogLevel>(config, "logLevel"),
+    logFile: getOptionalGlobalValue<string>(config, "logFile"),
   };
 }
 
@@ -241,6 +249,8 @@ export function checkIfConfigurationChanged(
     `${namespace}.lineLength`,
     `${namespace}.configurationPreference`,
     `${namespace}.showSyntaxErrors`,
+    `${namespace}.logLevel`,
+    `${namespace}.logFile`,
     // Deprecated settings (prefer `lint.args`, etc.).
     `${namespace}.args`,
     `${namespace}.run`,
