@@ -94,7 +94,7 @@
           "markdownEnumDescriptions": [
             "Use the native language server. A warning will be displayed if deprecated settings are detected.",
             "Use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp). A warning will be displayed if settings specific to the native server are detected.",
-            "Automatically select between the native language server and [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) based on the following conditions:\n1. If the Ruff version is >= `0.5.2`, use the native language server unless any deprecated settings are detected. In that case, show a warning and use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) instead.\n2. If the Ruff version is < `0.5.2`, use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp). A warning will be displayed if settings specific to the native server are detected.",
+            "Automatically select between the native language server and [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) based on the following conditions:\n1. If the Ruff version is >= `0.5.3`, use the native language server unless any deprecated settings are detected. In that case, show a warning and use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) instead.\n2. If the Ruff version is < `0.5.3`, use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp). A warning will be displayed if settings specific to the native server are detected.",
             "Same as `on`.",
             "Same as `off`."
           ]

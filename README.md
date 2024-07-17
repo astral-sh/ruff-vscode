@@ -10,10 +10,10 @@
 >
 > **As of Ruff v0.4.5, Ruff ships with a built-in language server written in Rust: ⚡ `ruff server` ⚡**
 >
-> **To opt in to `ruff server` support (now available in Beta), enable the "Native Server" extension
-> setting with `"ruff.nativeServer": true`.**
+> **The server was marked as stable in Ruff v0.5.3 and will automatically be used by the extension if
+> available.**
 >
-> **See: [_Enabling the Rust-based language server_](#enabling-the-rust-based-language-server).**
+> **See: [_Enabling the Rust-based language server_](#using-the-rust-based-language-server).**
 
 A Visual Studio Code extension for [Ruff](https://github.com/astral-sh/ruff), an extremely fast
 Python linter and code formatter, written in Rust. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
@@ -72,40 +72,27 @@ This requires Ruff version `v0.1.3` or later.
 
 ## Settings
 
-| Settings                               | Default           | Description                                                                                                                                                                                 |
-| -------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `codeAction.disableRuleComment.enable` | `true`            | Whether to display Quick Fix actions to disable rules via `noqa` suppression comments.                                                                                                      |
-| `codeAction.fixViolation.enable`       | `true`            | Whether to display Quick Fix actions to autofix violations.                                                                                                                                 |
-| `enable`                               | `true`            | Whether to enable the Ruff extension. Modifying this setting requires restarting VS Code to take effect.                                                                                    |
-| `fixAll`                               | `"explicit"`      | Whether to register Ruff as capable of handling `source.fixAll` actions.                                                                                                                    |
-| `ignoreStandardLibrary`                | `true`            | Whether to ignore files that are inferred to be part of the Python standard library.                                                                                                        |
-| `importStrategy`                       | `fromEnvironment` | Strategy for loading the `ruff` executable. `fromEnvironment` finds Ruff in the environment, falling back to the bundled version; `useBundled` uses the version bundled with the extension. |
-| `interpreter`                          | `[]`              | Path to a Python interpreter to use to run the linter server.                                                                                                                               |
-| `lint.args`                            | `[]`              | Additional command-line arguments to pass to `ruff check`, e.g., `"args": ["--config=/path/to/pyproject.toml"]`. _This setting is **not** supported under `nativeServer: true`._            |
-| `lint.enable`                          | `true`            | Whether to enable linting. Set to `false` to use Ruff exclusively as a formatter.                                                                                                           |
-| `lint.run`                             | `onType`          | Run Ruff on every keystroke (`onType`) or on save (`onSave`).                                                                                                                               |
-| `format.args`                          | `[]`              | Additional command-line arguments to pass to `ruff format`. _This setting is **not** supported under `nativeServer: true`._                                                                 |
-| `organizeImports`                      | `"explicit"`      | Whether to register Ruff as capable of handling `source.organizeImports` actions.                                                                                                           |
-| `path`                                 | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                              |
-| `showNotifications`                    | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                   |
-| `showSyntaxErrors`                     | `true`            | Whether to show syntax error diagnostics. _New in Ruff v0.5.0_                                                                                                                              |
-| `nativeServer`                         | `false`           | Whether to use the Rust-based language server.                                                                                                                                              |
+Refer to the [Ruff Language Server documentation](https://docs.astral.sh/ruff/server/settings/) for a full list of
+settings available in the extension.
 
-The following settings are exclusive to the Rust-based language server (`nativeServer: true`), and
-are available in addition to those listed above:
+The extension provides the following settings in addition to those available in the Ruff Language Server that can
+be used to configure the extension. The detailed documentation for these settings can be found in the settings
+editor in Visual Studio Code.
 
-| Settings                  | Default       | Description                                                                                                                                                                 |
-| ------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `configuration`           | `null`        | Path to a `ruff.toml` or `pyproject.toml` file to use for configuration.                                                                                                    |
-| `configurationPreference` | `editorFirst` | The strategy to use when resolving settings across VS Code and the filesystem. By default, editor configuration is prioritized over `ruff.toml` and `pyproject.toml` files. |
-| `exclude`                 | `[]`          | Glob patterns to exclude files from linting.                                                                                                                                |
-| `lineLength`              | `88`          | The line length to use for the linter and formatter.                                                                                                                        |
-| `lint.preview`            | `false`       | Whether to enable Ruff's preview mode when linting.                                                                                                                         |
-| `lint.select`             | `[]`          | Rules to enable by default. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select).                                                                     |
-| `lint.extendSelect`       | `[]`          | Rules to enable in addition to those in `lint.select`.                                                                                                                      |
-| `lint.ignore`             | `[]`          | Rules to disable by default. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore).                                                                    |
-| `lint.extendIgnore`       | `[]`          | Rules to disable in addition to those in `lint.ignore`.                                                                                                                     |
-| `format.preview`          | `false`       | Whether to enable Ruff's preview mode when formatting.                                                                                                                      |
+| Settings                    | Default           | Description                                                                                                                                                                                 |
+| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enable`                    | `true`            | Whether to enable the Ruff extension. Modifying this setting requires restarting VS Code to take effect.                                                                                    |
+| `format.args` [1]           | `[]`              | Additional command-line arguments to pass to `ruff format`.                                                                                                                                 |
+| `ignoreStandardLibrary` [1] | `true`            | Whether to ignore files that are inferred to be part of the Python standard library.                                                                                                        |
+| `importStrategy`            | `fromEnvironment` | Strategy for loading the `ruff` executable. `fromEnvironment` finds Ruff in the environment, falling back to the bundled version; `useBundled` uses the version bundled with the extension. |
+| `interpreter`               | `[]`              | Path to a Python interpreter to use to run the linter server.                                                                                                                               |
+| `lint.args` [1]             | `[]`              | Additional command-line arguments to pass to `ruff check`, e.g., `"args": ["--config=/path/to/pyproject.toml"]`.                                                                            |
+| `lint.run` [1]              | `onType`          | Run Ruff on every keystroke (`onType`) or on save (`onSave`).                                                                                                                               |
+| `nativeServer`              | `auto`            | Whether to use the Rust-based language server.                                                                                                                                              |
+| `path`                      | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                              |
+| `showNotifications`         | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                   |
+
+[1] These settings are **not** supported when using the Rust-based language server (`ruff server`).
 
 ### Configuring VS Code
 
@@ -277,14 +264,18 @@ to unset the `editor.defaultFormatter` in `settings.json`:
 }
 ```
 
-### Enabling the Rust-based language server
+### Using the Rust-based language server
 
-To use the new Rust-based language server (`ruff server`), you'll need to enable the "Native Server"
-setting in the extension settings:
+The Ruff extension will automatically use the Rust-based language server (`ruff server`) if the `ruff`
+executable is at least version `0.5.3`, the `nativeServer` setting is set to `auto` (default), and
+none of the settings that are specific to the Python-based language server are set. These settings
+include the ones marked with `[1]` in the [Settings](#settings) section. You can explicitly
+enable or disable the Rust-based language server by setting the `nativeServer` setting to `on` or `off`. If it's `off`,
+the extension will use the Python-based language server (`ruff-lsp`).
 
 ```json
 {
-  "ruff.nativeServer": true
+  "ruff.nativeServer": "on"
 }
 ```
 
@@ -292,7 +283,7 @@ The Rust-based language server is built into Ruff directly, and is both faster a
 than the Python-based language server.
 
 Use of the native server may require changes to your VS Code configuration, as some settings are
-unsupported; see [_Configuring Ruff_](#rust-based-language-server-beta) for more information.
+unsupported; see [_Configuring Ruff_](#rust-based-language-server) for more information.
 
 ### Configuring Ruff
 
@@ -302,7 +293,7 @@ In general, we recommend configuring Ruff via `pyproject.toml` or `ruff.toml` so
 configuration is shared between the VS Code extension and the command-line tool, and between all
 contributors to the project.
 
-#### Rust-based language server (Beta)
+#### Rust-based language server
 
 If you're using the Rust-based language server (`ruff server`), you can configure some common
 settings in VS Code directly, like `ruff.lineLength` (to configure the line length for the linter
@@ -327,7 +318,7 @@ To use a custom configuration file, set the `ruff.configuration` setting to the 
 Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
 `pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
 
-#### Python-based language server (Stable)
+#### Python-based language server (`ruff-lsp`)
 
 If you're using the default Python-based language server, you can use the `ruff.lint.args` and
 `ruff.format.args` settings in `settings.json` to pass command-line arguments to Ruff.
@@ -356,12 +347,13 @@ Finally, to use a common Ruff configuration across all projects, consider creati
 
 ## Commands
 
-| Command                             | Description                      |
-| ----------------------------------- | -------------------------------- |
-| Ruff: Fix all auto-fixable problems | Fix all auto-fixable problems.   |
-| Ruff: Format Imports                | Organize imports.                |
-| Ruff: Format Document               | Format the entire document.      |
-| Ruff: Restart Server                | Force restart the linter server. |
+| Command                                            | Description                                      |
+| -------------------------------------------------- | ------------------------------------------------ |
+| Ruff: Fix all auto-fixable problems                | Fix all auto-fixable problems.                   |
+| Ruff: Format Imports                               | Organize imports.                                |
+| Ruff: Format Document                              | Format the entire document.                      |
+| Ruff: Restart Server                               | Force restart the linter server.                 |
+| Ruff: Print debug information (native server only) | Print debug information about the native server. |
 
 ## Requirements
 

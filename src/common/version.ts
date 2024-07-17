@@ -49,7 +49,7 @@ export function supportsNativeServer(version: VersionInfo): boolean {
 /**
  * The version of the Ruff executable that made the native server stable.
  */
-export const NATIVE_SERVER_STABLE_VERSION: VersionInfo = { major: 0, minor: 5, patch: 0 };
+export const NATIVE_SERVER_STABLE_VERSION: VersionInfo = { major: 0, minor: 5, patch: 3 };
 
 /**
  * Check if the given version of the Ruff executable has the stable version of
