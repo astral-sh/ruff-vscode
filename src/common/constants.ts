@@ -61,6 +61,7 @@ export const FIND_RUFF_BINARY_SCRIPT_PATH = path.join(
 export const RUFF_SERVER_SUBCOMMAND = "server";
 
 /**
- * Required arguments for the `ruff server` command.
+ * Arguments for the `ruff server` command required when it's under preview i.e.,
+ * not yet stabilized.
  */
-export const RUFF_SERVER_REQUIRED_ARGS = ["--preview"];
+export const RUFF_SERVER_PREVIEW_ARGS = ["--preview"];
