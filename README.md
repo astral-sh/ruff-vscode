@@ -82,10 +82,10 @@ the `ruff` binary regardless of any other settings.
 
 The following settings are not supported in an untrusted workspace:
 
-* `ruff.configuration`
-* `ruff.importStrategy`
-* `ruff.interpreter`
-* `ruff.path`
+- `ruff.configuration`
+- `ruff.importStrategy`
+- `ruff.interpreter`
+- `ruff.path`
 
 ## Settings
 
@@ -107,6 +107,7 @@ editor in Visual Studio Code.
 | `lint.run` [1]              | `onType`          | Run Ruff on every keystroke (`onType`) or on save (`onSave`).                                                                                                                               |
 | `nativeServer`              | `auto`            | Whether to use the Rust-based language server.                                                                                                                                              |
 | `path`                      | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                              |
+| `trace.server`              | `off`             | Trace level for the language server.                                                                                                                                                        |
 | `showNotifications`         | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                   |
 
 [1] These settings are **not** supported when using the Rust-based language server (`ruff server`).
@@ -377,11 +378,46 @@ Finally, to use a common Ruff configuration across all projects, consider creati
 | Ruff: Format Document                              | Format the entire document.                      |
 | Ruff: Restart Server                               | Force restart the linter server.                 |
 | Ruff: Print debug information (native server only) | Print debug information about the native server. |
+| Ruff: Show logs                                    | Open the Ruff output channel.                    |
 
 ## Requirements
 
 This extension requires a version of the VSCode Python extension that supports Python 3.7+. Ruff
 itself is compatible with Python 3.7 to 3.13.
+
+## Troubleshooting
+
+If you encounter any issues with the extension or the language server, please refer to the
+logs in the output panel in VS Code. You can access the logs by running the `Ruff: Show logs`
+command.
+
+By default, the output panel will only contain logs from the extension. To enable logs from the
+language server, set the `trace.server` setting to `messages` in your `settings.json`:
+
+```json
+{
+  "ruff.trace.server": "messages"
+}
+```
+
+The trace value can also be set to `verbose` for more detailed logs. If you're using the Rust-based
+language server, you can use the `ruff.logLevel` setting to control the log level of the server and
+`ruff.logFile` to write logs to a file instead of the output panel.
+
+The extension also displays certain information in the status bar. This can be pinned to the status
+bar as a permanent item.
+
+<details><summary><b>How to pin the Ruff status item in VS Code toolbar?</b></summary>
+<img
+    width="677"
+    alt="Instructions to pin 'Ruff' status item on VS Code editor toolbar"
+    src="https://github.com/user-attachments/assets/fae75b6a-ae3f-4933-ad9c-61c6374f435b"
+>
+</details>
+
+The status bar item displays the status of the language server, specifically whether it's using the
+Rust-based language server (`Ruff (native)`) or the Python-based language server (`Ruff (ruff-lsp)`).
+It can also be clicked to open the Ruff output channel.
 
 ## License
 
