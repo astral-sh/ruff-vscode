@@ -70,6 +70,23 @@ This requires Ruff version `v0.1.3` or later.
 
 [notebook document synchronization]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#notebookDocument_synchronization
 
+## Untrusted Workspace
+
+_New in v2024.32.0_
+
+The extension supports loading in an [untrusted workspace](https://code.visualstudio.com/docs/editor/workspace-trust).
+When the workspace is untrusted, the extension will always use the Rust-based language server even if the `nativeServer`
+setting is set to `off`. This is because the Python-based language server requires a Python interpreter to run, which
+is not allowed in an untrusted workspace. This also means that the extension will always use the bundled executable of
+the `ruff` binary regardless of any other settings.
+
+The following settings are not supported in an untrusted workspace:
+
+* `ruff.configuration`
+* `ruff.importStrategy`
+* `ruff.interpreter`
+* `ruff.path`
+
 ## Settings
 
 Refer to the [Ruff Language Server documentation](https://docs.astral.sh/ruff/server/settings/) for a full list of
