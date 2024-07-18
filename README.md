@@ -75,42 +75,22 @@ This requires Ruff version `v0.1.3` or later.
 _New in v2024.32.0_
 
 The extension supports loading in an [untrusted workspace](https://code.visualstudio.com/docs/editor/workspace-trust).
-When the workspace is untrusted, the extension will always use the Rust-based language server even if the `nativeServer`
+When the workspace is untrusted, the extension will always use the Rust-based language server even if the [`nativeServer`](https://docs.astral.sh/ruff/editors/settings/#nativeserver)
 setting is set to `off`. This is because the Python-based language server requires a Python interpreter to run, which
 is not allowed in an untrusted workspace. This also means that the extension will always use the bundled executable of
 the `ruff` binary regardless of any other settings.
 
 The following settings are not supported in an untrusted workspace:
 
-- `ruff.configuration`
-- `ruff.importStrategy`
-- `ruff.interpreter`
-- `ruff.path`
+- [`ruff.configuration`](https://docs.astral.sh/ruff/editors/settings/#configuration)
+- [`ruff.importStrategy`](https://docs.astral.sh/ruff/editors/settings/#importstrategy)
+- [`ruff.interpreter`](https://docs.astral.sh/ruff/editors/settings/#interpreter)
+- [`ruff.path`](https://docs.astral.sh/ruff/editors/settings/#path)
 
 ## Settings
 
-Refer to the [Ruff Language Server documentation](https://docs.astral.sh/ruff/server/settings/) for a full list of
+Refer to the [Ruff Language Server documentation](https://docs.astral.sh/ruff/editors/settings/) for a full list of
 settings available in the extension.
-
-The extension provides the following settings in addition to those available in the Ruff Language Server that can
-be used to configure the extension. Detailed documentation for these settings can be found in the settings
-editor in Visual Studio Code.
-
-| Settings                    | Default           | Description                                                                                                                                                                                 |
-| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `enable`                    | `true`            | Whether to enable the Ruff extension. Modifying this setting requires restarting VS Code to take effect.                                                                                    |
-| `format.args` [1]           | `[]`              | Additional command-line arguments to pass to `ruff format`.                                                                                                                                 |
-| `ignoreStandardLibrary` [1] | `true`            | Whether to ignore files that are inferred to be part of the Python standard library.                                                                                                        |
-| `importStrategy`            | `fromEnvironment` | Strategy for loading the `ruff` executable. `fromEnvironment` finds Ruff in the environment, falling back to the bundled version; `useBundled` uses the version bundled with the extension. |
-| `interpreter`               | `[]`              | Path to a Python interpreter to use to run the linter server.                                                                                                                               |
-| `lint.args` [1]             | `[]`              | Additional command-line arguments to pass to `ruff check`, e.g., `"args": ["--config=/path/to/pyproject.toml"]`.                                                                            |
-| `lint.run` [1]              | `onType`          | Run Ruff on every keystroke (`onType`) or on save (`onSave`).                                                                                                                               |
-| `nativeServer`              | `auto`            | Whether to use the Rust-based language server.                                                                                                                                              |
-| `path`                      | `[]`              | Path to a custom `ruff` executable, e.g., `["/path/to/ruff"]`.                                                                                                                              |
-| `trace.server`              | `off`             | Trace level for the language server.                                                                                                                                                        |
-| `showNotifications`         | `off`             | Setting to control when a notification is shown: `off`, `onError`, `onWarning`, `always`.                                                                                                   |
-
-[1] These settings are **not** supported when using the Rust-based language server (`ruff server`).
 
 ### Configuring VS Code
 
