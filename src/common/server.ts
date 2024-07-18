@@ -11,7 +11,7 @@ import {
 import {
   BUNDLED_RUFF_EXECUTABLE,
   DEBUG_SERVER_SCRIPT_PATH,
-  RUFF_SERVER_REQUIRED_ARGS,
+  RUFF_SERVER_PREVIEW_ARGS,
   RUFF_SERVER_SUBCOMMAND,
   RUFF_LSP_SERVER_SCRIPT_PATH,
   FIND_RUFF_BINARY_SCRIPT_PATH,
@@ -176,7 +176,12 @@ async function createNativeServer(
     return Promise.reject();
   }
 
-  const ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_REQUIRED_ARGS];
+  let ruffServerArgs: string[];
+  if (supportsStableNativeServer(ruffVersion)) {
+    ruffServerArgs = [RUFF_SERVER_SUBCOMMAND];
+  } else {
+    ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_PREVIEW_ARGS];
+  }
   traceInfo(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
 
   let serverOptions = {
