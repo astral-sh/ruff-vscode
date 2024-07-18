@@ -2,6 +2,16 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.32.0
+
+This release upgrades the bundled Ruff version to `v0.5.3`. Ruff `0.5.3` marks
+the stable release of the Ruff language server and introduces revamped
+[documentation](https://docs.astral.sh/ruff/editors), including [setup guides
+for your editor of choice](https://docs.astral.sh/ruff/editors/setup) and [the
+language server itself](https://docs.astral.sh/ruff/editors/settings).
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.30.0...2024.32.0
+
 ## 2024.30.0
 
 This release upgrades the bundled Ruff version to `v0.5.0`. Check out the [blog post](https://astral.sh/blog/ruff-v0.5.0) for a migration guide and overview of the changes!
