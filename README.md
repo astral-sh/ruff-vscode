@@ -76,7 +76,7 @@ Refer to the [Ruff Language Server documentation](https://docs.astral.sh/ruff/se
 settings available in the extension.
 
 The extension provides the following settings in addition to those available in the Ruff Language Server that can
-be used to configure the extension. The detailed documentation for these settings can be found in the settings
+be used to configure the extension. Detailed documentation for these settings can be found in the settings
 editor in Visual Studio Code.
 
 | Settings                    | Default           | Description                                                                                                                                                                                 |
@@ -266,12 +266,18 @@ to unset the `editor.defaultFormatter` in `settings.json`:
 
 ### Using the Rust-based language server
 
-The Ruff extension will automatically use the Rust-based language server (`ruff server`) if the `ruff`
-executable is at least version `0.5.3`, the `nativeServer` setting is set to `auto` (default), and
-none of the settings that are specific to the Python-based language server are set. These settings
-include the ones marked with `[1]` in the [Settings](#settings) section. You can explicitly
-enable or disable the Rust-based language server by setting the `nativeServer` setting to `on` or `off`. If it's `off`,
-the extension will use the Python-based language server (`ruff-lsp`).
+The Ruff extension will automatically use the Rust-based language server (`ruff server`) if the
+following conditions are met:
+
+1. The `ruff` executable is at least version `0.5.3`
+2. The `ruff.nativeServer` setting is set to `auto` (default)
+3. None of the settings that are specific to the Python-based language server
+   are enabled. These settings include those that are marked with `[1]` in the
+   [Settings](#settings) section.
+
+You can explicitly enable or disable the Rust-based language server by setting
+the `nativeServer` setting to `on` or `off`. If set to `off`, the extension
+will use the Python-based language server (`ruff-lsp`).
 
 ```json
 {
