@@ -38,7 +38,7 @@ import {
 import { updateServerKind, updateStatus } from "./status";
 import { getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
-import { exec } from "child_process";
+import { spawn } from "child_process";
 import which = require("which");
 
 export type IInitializationOptions = {
@@ -49,14 +49,31 @@ export type IInitializationOptions = {
 /**
  * Function to execute a command and return the stdout.
  */
-function executeCommand(command: string): Promise<string> {
+function executeCommand(cmd: string, args: string[] = []): Promise<string> {
   return new Promise((resolve, reject) => {
-    exec(command, (error, stdout, _) => {
-      if (error) {
-        reject(error);
+    const child = spawn(cmd, args);
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(stderr));
       } else {
         resolve(stdout);
       }
+    });
+
+    child.on("error", (error) => {
+      reject(error);
     });
   });
 }
@@ -65,7 +82,7 @@ function executeCommand(command: string): Promise<string> {
  * Get the version of the Ruff executable at the given path.
  */
 async function getRuffVersion(executable: string): Promise<VersionInfo> {
-  const stdout = await executeCommand(`${executable} --version`);
+  const stdout = await executeCommand(executable, ["--version"]);
   const version = stdout.trim().split(" ")[1];
   const [major, minor, patch] = version.split(".").map((x) => parseInt(x, 10));
   return { major, minor, patch };
@@ -114,9 +131,7 @@ async function findRuffBinaryPath(
   // Otherwise, we'll call a Python script that tries to locate a binary.
   let ruffBinaryPath: string | undefined;
   try {
-    const stdout = await executeCommand(
-      `${settings.interpreter[0]} ${FIND_RUFF_BINARY_SCRIPT_PATH}`,
-    );
+    const stdout = await executeCommand(settings.interpreter[0], [FIND_RUFF_BINARY_SCRIPT_PATH]);
     ruffBinaryPath = stdout.trim();
   } catch (err) {
     await vscode.window
