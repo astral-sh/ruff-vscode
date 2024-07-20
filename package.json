@@ -389,7 +389,7 @@
             "An alternative strategy - configuration set in `.toml` files takes priority over configuration set in the editor.",
             "An alternative strategy - configuration set in `.toml` files is ignored entirely."
           ],
-          "markdownDescription": "The preferred method of resolving configuration in the editor with local configuration froml `.toml` files.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "The preferred method of resolving configuration in the editor with local configuration from `.toml` files.\n\n**This setting is used only by the native server.**",
           "scope": "resource",
           "type": "string",
           "default": "editorFirst"
