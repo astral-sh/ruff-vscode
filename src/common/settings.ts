@@ -121,8 +121,12 @@ export async function getWorkspaceSettings(
   const config = getConfiguration(namespace, workspace.uri);
 
   let interpreter: string[] = getInterpreterFromSetting(namespace, workspace) ?? [];
-  if (interpreter.length === 0 && vscode.workspace.isTrusted) {
-    interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
+  if (interpreter.length === 0) {
+    if (vscode.workspace.isTrusted) {
+      interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
+    }
+  } else {
+    interpreter = resolveVariables(interpreter, workspace);
   }
 
   let configuration = config.get<string>("configuration") ?? null;
@@ -136,7 +140,7 @@ export async function getWorkspaceSettings(
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     ignoreStandardLibrary: config.get<boolean>("ignoreStandardLibrary") ?? true,
-    interpreter: resolveVariables(interpreter, workspace),
+    interpreter,
     configuration,
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
     codeAction: config.get<CodeAction>("codeAction") ?? {},

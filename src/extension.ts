@@ -3,7 +3,6 @@ import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/nod
 import { registerLogger, traceError, traceLog, traceVerbose } from "./common/log/logging";
 import {
   checkVersion,
-  getInterpreterDetails,
   initializePython,
   onDidChangePythonInterpreter,
   resolveInterpreter,
@@ -12,6 +11,7 @@ import { restartServer } from "./common/server";
 import {
   checkIfConfigurationChanged,
   getInterpreterFromSetting,
+  getWorkspaceSettings,
   ISettings,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
@@ -23,6 +23,7 @@ import {
   onDidGrantWorkspaceTrust,
   registerCommand,
 } from "./common/vscodeapi";
+import { getProjectRoot } from "./common/utilities";
 
 const issueTracker = "https://github.com/astral-sh/ruff/issues";
 
@@ -87,63 +88,59 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = true;
 
-    if (!vscode.workspace.isTrusted) {
-      lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+    const projectRoot = await getProjectRoot();
+    const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
 
-      restartInProgress = false;
-      if (restartQueued) {
-        restartQueued = false;
-        await runServer();
-      }
-
-      return;
-    }
-
-    const interpreter = getInterpreterFromSetting(serverId);
-    if (interpreter !== undefined && interpreter.length > 0) {
-      if (checkVersion(await resolveInterpreter(interpreter))) {
-        traceVerbose(
-          `Using interpreter from ${serverInfo.module}.interpreter: ${interpreter.join(" ")}`,
+    if (vscode.workspace.isTrusted) {
+      if (workspaceSettings.interpreter.length === 0) {
+        updateStatus(
+          vscode.l10n.t("Please select a Python interpreter."),
+          vscode.LanguageStatusSeverity.Error,
         );
-        lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+        traceError(
+          "Python interpreter missing:\r\n" +
+            "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
+            `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
+            "Please use Python 3.7 or greater.",
+        );
 
         restartInProgress = false;
-        if (restartQueued) {
-          restartQueued = false;
-          await runServer();
-        }
+        return;
       }
 
-      restartInProgress = false;
-      return;
-    }
-
-    const interpreterDetails = await getInterpreterDetails();
-    if (interpreterDetails.path) {
-      traceVerbose(`Using interpreter from Python extension: ${interpreterDetails.path.join(" ")}`);
-      lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
-
-      restartInProgress = false;
-      if (restartQueued) {
-        restartQueued = false;
-        await runServer();
+      traceLog(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
+      const resolvedEnvironment = await resolveInterpreter(workspaceSettings.interpreter);
+      if (resolvedEnvironment === undefined) {
+        updateStatus(
+          vscode.l10n.t("Python interpreter not found."),
+          vscode.LanguageStatusSeverity.Error,
+        );
+        traceError(
+          "Unable to find any Python environment for the interpreter path:",
+          workspaceSettings.interpreter.join(" "),
+        );
+        restartInProgress = false;
+        return;
+      } else if (!checkVersion(resolvedEnvironment)) {
+        restartInProgress = false;
+        return;
       }
-
-      return;
     }
+
+    lsClient = await restartServer(
+      projectRoot,
+      workspaceSettings,
+      serverId,
+      serverName,
+      outputChannel,
+      lsClient,
+    );
 
     restartInProgress = false;
-
-    updateStatus(
-      vscode.l10n.t("Please select a Python interpreter."),
-      vscode.LanguageStatusSeverity.Error,
-    );
-    traceError(
-      "Python interpreter missing:\r\n" +
-        "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
-        `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
-        "Please use Python 3.7 or greater.",
-    );
+    if (restartQueued) {
+      restartQueued = false;
+      await runServer();
+    }
   };
 
   context.subscriptions.push(
@@ -263,10 +260,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         traceLog(`Python extension loading`);
         await initializePython(context.subscriptions);
         traceLog(`Python extension loaded`);
+        return; // The `onDidChangePythonInterpreter` event will trigger the server start.
       }
-    } else {
-      await runServer();
     }
+    await runServer();
   });
 }
 
