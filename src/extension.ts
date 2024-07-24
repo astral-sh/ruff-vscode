@@ -7,7 +7,7 @@ import {
   onDidChangePythonInterpreter,
   resolveInterpreter,
 } from "./common/python";
-import { restartServer } from "./common/server";
+import { startServer, stopServer } from "./common/server";
 import {
   checkIfConfigurationChanged,
   getInterpreterFromSetting,
@@ -89,6 +89,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     restartInProgress = true;
 
     try {
+      if (lsClient) {
+        await stopServer(lsClient);
+      }
+
       const projectRoot = await getProjectRoot();
       const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
 
@@ -124,13 +128,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
       }
 
-      lsClient = await restartServer(
+      lsClient = await startServer(
         projectRoot,
         workspaceSettings,
         serverId,
         serverName,
         outputChannel,
-        lsClient,
       );
     } finally {
       // Ensure that we reset the flag in case of an error, early return, or success.
@@ -268,6 +271,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 export async function deactivate(): Promise<void> {
   if (lsClient) {
-    await lsClient.stop();
+    await stopServer(lsClient);
   }
 }
