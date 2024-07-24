@@ -92,6 +92,11 @@ function resolveVariables(
   getWorkspaceFolders().forEach((w) => {
     substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
   });
+  for (const [key, value] of Object.entries(process.env)) {
+    if (value !== undefined) {
+      substitutions.set("${env:" + key + "}", value);
+    }
+  }
 
   if (typeof value === "string") {
     let s = value;

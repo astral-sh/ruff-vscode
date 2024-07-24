@@ -35,7 +35,7 @@ import {
   NATIVE_SERVER_STABLE_VERSION,
 } from "./version";
 import { updateServerKind, updateStatus } from "./status";
-import { isVirtualWorkspace } from "./vscodeapi";
+import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
 import which = require("which");
 
@@ -188,14 +188,7 @@ async function createNativeServer(
 
   const clientOptions = {
     // Register the server for python documents
-    documentSelector: isVirtualWorkspace()
-      ? [{ language: "python" }]
-      : [
-          { scheme: "file", language: "python" },
-          { scheme: "untitled", language: "python" },
-          { scheme: "vscode-notebook", language: "python" },
-          { scheme: "vscode-notebook-cell", language: "python" },
-        ],
+    documentSelector: getDocumentSelector(),
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Never,
@@ -243,14 +236,7 @@ async function createLegacyServer(
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
     // Register the server for python documents
-    documentSelector: isVirtualWorkspace()
-      ? [{ language: "python" }]
-      : [
-          { scheme: "file", language: "python" },
-          { scheme: "untitled", language: "python" },
-          { scheme: "vscode-notebook", language: "python" },
-          { scheme: "vscode-notebook-cell", language: "python" },
-        ],
+    documentSelector: getDocumentSelector(),
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Never,
