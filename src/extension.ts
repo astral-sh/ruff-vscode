@@ -181,7 +181,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       };
 
       await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        await vscode.window.showErrorMessage(
+        vscode.window.showErrorMessage(
           "Failed to apply Ruff fixes to the document. Please consider opening an issue with steps to reproduce.",
         );
       });
@@ -206,7 +206,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       };
 
       await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        await vscode.window.showErrorMessage(
+        vscode.window.showErrorMessage(
           "Failed to apply Ruff formatting to the document. Please consider opening an issue with steps to reproduce.",
         );
       });
@@ -231,7 +231,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       };
 
       await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        await vscode.window.showErrorMessage(
+        vscode.window.showErrorMessage(
           `Failed to apply Ruff fixes to the document. Please consider opening an issue at ${issueTracker} with steps to reproduce.`,
         );
       });
@@ -247,7 +247,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       };
 
       await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        await vscode.window.showErrorMessage("Failed to print debug information.");
+        vscode.window.showErrorMessage("Failed to print debug information.");
       });
     }),
     registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),
