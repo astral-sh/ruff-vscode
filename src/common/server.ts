@@ -24,7 +24,6 @@ import {
   getGlobalSettings,
   getUserSetLegacyServerSettings,
   getUserSetNativeServerSettings,
-  getWorkspaceSettings,
   ISettings,
 } from "./settings";
 import {
@@ -36,7 +35,6 @@ import {
   NATIVE_SERVER_STABLE_VERSION,
 } from "./version";
 import { updateServerKind, updateStatus } from "./status";
-import { getProjectRoot } from "./utilities";
 import { isVirtualWorkspace } from "./vscodeapi";
 import { execFile } from "child_process";
 import which = require("which");
@@ -412,6 +410,8 @@ async function createServer(
 
 let _disposables: Disposable[] = [];
 export async function restartServer(
+  projectRoot: vscode.WorkspaceFolder,
+  workspaceSettings: ISettings,
   serverId: string,
   serverName: string,
   outputChannel: LogOutputChannel,
@@ -425,9 +425,6 @@ export async function restartServer(
   }
 
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
-
-  const projectRoot = await getProjectRoot();
-  const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
 
   const extensionSettings = await getExtensionSettings(serverId);
   const globalSettings = await getGlobalSettings(serverId);

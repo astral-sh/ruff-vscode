@@ -243,7 +243,7 @@
         "ruff.interpreter": {
           "default": [],
           "markdownDescription": "Path to a Python interpreter to use to run the LSP server.",
-          "scope": "window",
+          "scope": "resource",
           "items": {
             "type": "string"
           },
