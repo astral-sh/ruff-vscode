@@ -16,7 +16,8 @@ This pre-release upgrades the bundled Ruff version to `v0.5.4`.
 
 This pre-release also updates the `ruff.interpreter` setting to allow VS Code specific variables
 such as `${workspaceFolder}` (https://github.com/astral-sh/ruff-vscode/pull/553). Additionally, the
-environment variables of the form `${env:HOME}` are also replaced (https://github.com/astral-sh/ruff-vscode/pull/554).
+[environment variables](https://code.visualstudio.com/docs/editor/variables-reference#_environment-variables)
+of the form `${env:HOME}` are also replaced (https://github.com/astral-sh/ruff-vscode/pull/554).
 
 ## 2024.34.0
 
