@@ -2,6 +2,30 @@
 
 See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
 
+## 2024.36.0
+
+This release follows-up on the previous pre-release (`2024.35.0-dev`) and includes additional
+bug fixes, specifically to avoid awaiting the VS Code pop-up notifications. These are shown
+when a user has set any incompatible settings as per the `ruff.nativeServer` value.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.34.0...2024.36.0
+
+## 2024.35.0-dev
+
+This pre-release upgrades the bundled Ruff version to `v0.5.4`.
+
+This pre-release also updates the `ruff.interpreter` setting to allow VS Code specific variables
+such as `${workspaceFolder}` (https://github.com/astral-sh/ruff-vscode/pull/553). Additionally, the
+[environment variables](https://code.visualstudio.com/docs/editor/variables-reference#_environment-variables)
+of the form `${env:HOME}` are also replaced (https://github.com/astral-sh/ruff-vscode/pull/554).
+
+## 2024.34.0
+
+This release includes a bug fix to use `spawn` rather than `exec` to support
+paths with spaces (https://github.com/astral-sh/ruff-vscode/pull/539).
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.32.0...2024.34.0
+
 ## 2024.32.0
 
 This release upgrades the bundled Ruff version to `v0.5.3`. Ruff `0.5.3` marks
