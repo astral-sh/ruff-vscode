@@ -396,21 +396,14 @@ async function createServer(
 }
 
 let _disposables: Disposable[] = [];
-export async function restartServer(
+
+export async function startServer(
   projectRoot: vscode.WorkspaceFolder,
   workspaceSettings: ISettings,
   serverId: string,
   serverName: string,
   outputChannel: LogOutputChannel,
-  lsClient?: LanguageClient,
 ): Promise<LanguageClient | undefined> {
-  if (lsClient) {
-    traceInfo(`Server: Stop requested`);
-    await lsClient.stop();
-    _disposables.forEach((d) => d.dispose());
-    _disposables = [];
-  }
-
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
 
   const extensionSettings = await getExtensionSettings(serverId);
@@ -453,4 +446,11 @@ export async function restartServer(
   }
 
   return newLSClient;
+}
+
+export async function stopServer(lsClient: LanguageClient): Promise<void> {
+  traceInfo(`Server: Stop requested`);
+  await lsClient.stop();
+  _disposables.forEach((d) => d.dispose());
+  _disposables = [];
 }
