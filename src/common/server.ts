@@ -115,7 +115,7 @@ async function findRuffBinaryPath(
     const stdout = await executeFile(settings.interpreter[0], [FIND_RUFF_BINARY_SCRIPT_PATH]);
     ruffBinaryPath = stdout.trim();
   } catch (err) {
-    await vscode.window
+    vscode.window
       .showErrorMessage(
         "Unexpected error while trying to find the Ruff binary. See the logs for more details.",
         "Show Logs",
@@ -168,7 +168,7 @@ async function createNativeServer(
       MINIMUM_NATIVE_SERVER_VERSION,
     )}, but found ${versionToString(ruffVersion)} at ${ruffBinaryPath} instead`;
     traceError(message);
-    await vscode.window.showErrorMessage(message);
+    vscode.window.showErrorMessage(message);
     return Promise.reject();
   }
 
@@ -246,15 +246,16 @@ async function createLegacyServer(
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
 }
 
-async function showWarningMessageWithLogs(message: string, outputChannel: LogOutputChannel) {
-  const selection = await vscode.window.showWarningMessage(message, "Show Logs");
-  if (selection) {
-    outputChannel.show();
-  }
+function showWarningMessageWithLogs(message: string, outputChannel: LogOutputChannel) {
+  vscode.window.showWarningMessage(message, "Show Logs").then((selection) => {
+    if (selection) {
+      outputChannel.show();
+    }
+  });
 }
 
-async function legacyServerSettingsWarning(settings: string[], outputChannel: LogOutputChannel) {
-  await showWarningMessageWithLogs(
+function legacyServerSettingsWarning(settings: string[], outputChannel: LogOutputChannel) {
+  showWarningMessageWithLogs(
     "Unsupported settings used with the native server. Refer to the logs for more details.",
     outputChannel,
   );
@@ -263,12 +264,12 @@ async function legacyServerSettingsWarning(settings: string[], outputChannel: Lo
   );
 }
 
-async function nativeServerSettingsWarning(
+function nativeServerSettingsWarning(
   settings: string[],
   outputChannel: LogOutputChannel,
   suggestion?: string,
 ) {
-  await showWarningMessageWithLogs(
+  showWarningMessageWithLogs(
     "Unsupported settings used with the legacy server (ruff-lsp). Refer to the logs for more details.",
     outputChannel,
   );
@@ -301,7 +302,7 @@ async function resolveNativeServerSetting(
     case true:
       const legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
       if (legacyServerSettings.length > 0) {
-        await legacyServerSettingsWarning(legacyServerSettings, outputChannel);
+        legacyServerSettingsWarning(legacyServerSettings, outputChannel);
       }
       return { useNativeServer: true, executable };
     case "off":
@@ -309,14 +310,14 @@ async function resolveNativeServerSetting(
       if (!vscode.workspace.isTrusted) {
         const message =
           "Cannot use the legacy server (ruff-lsp) in an untrusted workspace; switching to the native server using the bundled executable.";
-        await vscode.window.showWarningMessage(message);
+        vscode.window.showWarningMessage(message);
         traceWarn(message);
         return { useNativeServer: true, executable };
       }
 
       let nativeServerSettings = getUserSetNativeServerSettings(serverId, workspace);
       if (nativeServerSettings.length > 0) {
-        await nativeServerSettingsWarning(nativeServerSettings, outputChannel);
+        nativeServerSettingsWarning(nativeServerSettings, outputChannel);
       }
       return { useNativeServer: false, executable };
     case "auto":
@@ -346,7 +347,7 @@ async function resolveNativeServerSetting(
         );
         let nativeServerSettings = getUserSetNativeServerSettings(serverId, workspace);
         if (nativeServerSettings.length > 0) {
-          await nativeServerSettingsWarning(
+          nativeServerSettingsWarning(
             nativeServerSettings,
             outputChannel,
             "Please remove these settings or set 'nativeServer' to 'on' to use the native server",
