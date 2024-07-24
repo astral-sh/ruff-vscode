@@ -88,58 +88,57 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     restartInProgress = true;
 
-    const projectRoot = await getProjectRoot();
-    const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
+    try {
+      const projectRoot = await getProjectRoot();
+      const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
 
-    if (vscode.workspace.isTrusted) {
-      if (workspaceSettings.interpreter.length === 0) {
-        updateStatus(
-          vscode.l10n.t("Please select a Python interpreter."),
-          vscode.LanguageStatusSeverity.Error,
-        );
-        traceError(
-          "Python interpreter missing:\r\n" +
-            "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
-            `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
-            "Please use Python 3.7 or greater.",
-        );
+      if (vscode.workspace.isTrusted) {
+        if (workspaceSettings.interpreter.length === 0) {
+          updateStatus(
+            vscode.l10n.t("Please select a Python interpreter."),
+            vscode.LanguageStatusSeverity.Error,
+          );
+          traceError(
+            "Python interpreter missing:\r\n" +
+              "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
+              `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
+              "Please use Python 3.7 or greater.",
+          );
+          return;
+        }
 
-        restartInProgress = false;
-        return;
+        traceLog(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
+        const resolvedEnvironment = await resolveInterpreter(workspaceSettings.interpreter);
+        if (resolvedEnvironment === undefined) {
+          updateStatus(
+            vscode.l10n.t("Python interpreter not found."),
+            vscode.LanguageStatusSeverity.Error,
+          );
+          traceError(
+            "Unable to find any Python environment for the interpreter path:",
+            workspaceSettings.interpreter.join(" "),
+          );
+          return;
+        } else if (!checkVersion(resolvedEnvironment)) {
+          return;
+        }
       }
 
-      traceLog(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
-      const resolvedEnvironment = await resolveInterpreter(workspaceSettings.interpreter);
-      if (resolvedEnvironment === undefined) {
-        updateStatus(
-          vscode.l10n.t("Python interpreter not found."),
-          vscode.LanguageStatusSeverity.Error,
-        );
-        traceError(
-          "Unable to find any Python environment for the interpreter path:",
-          workspaceSettings.interpreter.join(" "),
-        );
-        restartInProgress = false;
-        return;
-      } else if (!checkVersion(resolvedEnvironment)) {
-        restartInProgress = false;
-        return;
+      lsClient = await restartServer(
+        projectRoot,
+        workspaceSettings,
+        serverId,
+        serverName,
+        outputChannel,
+        lsClient,
+      );
+    } finally {
+      // Ensure that we reset the flag in case of an error, early return, or success.
+      restartInProgress = false;
+      if (restartQueued) {
+        restartQueued = false;
+        await runServer();
       }
-    }
-
-    lsClient = await restartServer(
-      projectRoot,
-      workspaceSettings,
-      serverId,
-      serverName,
-      outputChannel,
-      lsClient,
-    );
-
-    restartInProgress = false;
-    if (restartQueued) {
-      restartQueued = false;
-      await runServer();
     }
   };
 
