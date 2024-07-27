@@ -283,9 +283,9 @@ following conditions are met:
 
 1. The `ruff` executable is at least version `0.5.3`
 2. The `ruff.nativeServer` setting is set to `auto` (default)
-3. None of the settings that are specific to the Python-based language server
-   are enabled. These settings include those that are marked with `[1]` in the
-   [Settings](#settings) section.
+3. None of the settings that are exclusive to the Python-based language server
+   are enabled (i.e., those that are marked as "unused by the native language server" in the
+   [_Settings_](https://docs.astral.sh/ruff/editors/settings/#vs-code-specific) documentation).
 
 You can explicitly enable or disable the Rust-based language server by setting
 the `nativeServer` setting to `on` or `off`. If set to `off`, the extension
