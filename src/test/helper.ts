@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import { platform } from "os";
 
 const EXTENSION_ID = "charliermarsh.ruff";
 
@@ -25,4 +26,8 @@ export const getDocumentPath = (p: string) => {
 
 export const getDocumentUri = (p: string) => {
   return vscode.Uri.file(getDocumentPath(p));
+};
+
+export const isWindows = () => {
+  return platform() === "win32";
 };

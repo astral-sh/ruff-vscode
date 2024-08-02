@@ -51,7 +51,7 @@ export type IInitializationOptions = {
  * @param file
  * @returns
  */
-function shellModeRequired(file: string) {
+export function execFileShellModeRequired(file: string) {
   return platform() === "win32" && file.toLowerCase().endsWith(".cmd");
 }
 
@@ -61,7 +61,7 @@ function shellModeRequired(file: string) {
  * @returns
  */
 function quoteFilename(file: string) {
-  if (shellModeRequired(file)) {
+  if (execFileShellModeRequired(file)) {
     return `"${file}"`;
   }
   return file;
@@ -75,7 +75,7 @@ function executeFile(file: string, args: string[] = []): Promise<string> {
     execFile(
       quoteFilename(file),
       args,
-      { shell: shellModeRequired(file) },
+      { shell: execFileShellModeRequired(file) },
       (error, stdout, stderr) => {
         if (error) {
           reject(new Error(stderr || error.message));
