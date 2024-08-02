@@ -1,5 +1,6 @@
 import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
+import { platform } from "os";
 import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
 import { State } from "vscode-languageclient";
 import {
@@ -45,17 +46,44 @@ export type IInitializationOptions = {
 };
 
 /**
+ * Check if shell mode is required for execFile.
+ * Note: This is only the case for Windows OS when using .cmd instead of .exe extension to start the interpreter.
+ * @param file
+ * @returns
+ */
+function shellModeRequired(file: string) {
+  return platform() === "win32" && file.toLowerCase().endsWith(".cmd");
+}
+
+/**
+ * Quote given file if shell mode is required
+ * @param file
+ * @returns
+ */
+function quoteFilename(file: string) {
+  if (shellModeRequired(file)) {
+    return `"${file}"`;
+  }
+  return file;
+}
+
+/**
  * Function to execute a command and return the stdout.
  */
 function executeFile(file: string, args: string[] = []): Promise<string> {
   return new Promise((resolve, reject) => {
-    execFile(file, args, (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(stderr || error.message));
-      } else {
-        resolve(stdout);
-      }
-    });
+    execFile(
+      quoteFilename(file),
+      args,
+      { shell: shellModeRequired(file) },
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(new Error(stderr || error.message));
+        } else {
+          resolve(stdout);
+        }
+      },
+    );
   });
 }
 
