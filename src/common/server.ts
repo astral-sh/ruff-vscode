@@ -163,17 +163,21 @@ async function createNativeServer(
 
   traceInfo(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
 
-  if (!supportsNativeServer(ruffVersion)) {
-    const message = `Native server requires Ruff ${versionToString(
-      MINIMUM_NATIVE_SERVER_VERSION,
-    )}, but found ${versionToString(ruffVersion)} at ${ruffBinaryPath} instead`;
-    traceError(message);
-    vscode.window.showErrorMessage(message);
-    return Promise.reject();
+  if (!ruffBinaryPath.endsWith("red_knot")) {
+    if (!supportsNativeServer(ruffVersion)) {
+      const message = `Native server requires Ruff ${versionToString(
+        MINIMUM_NATIVE_SERVER_VERSION,
+      )}, but found ${versionToString(ruffVersion)} at ${ruffBinaryPath} instead`;
+      traceError(message);
+      vscode.window.showErrorMessage(message);
+      return Promise.reject();
+    }
   }
 
   let ruffServerArgs: string[];
-  if (supportsStableNativeServer(ruffVersion)) {
+  if (ruffBinaryPath.endsWith("red_knot")) {
+    ruffServerArgs = [RUFF_SERVER_SUBCOMMAND];
+  } else if (supportsStableNativeServer(ruffVersion)) {
     ruffServerArgs = [RUFF_SERVER_SUBCOMMAND];
   } else {
     ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_PREVIEW_ARGS];
