@@ -1,5 +1,6 @@
 import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
+import { platform } from "os";
 import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
 import { State } from "vscode-languageclient";
 import {
@@ -45,11 +46,24 @@ export type IInitializationOptions = {
 };
 
 /**
+ * Check if shell mode is required for `execFile`.
+ *
+ * The conditions are:
+ * - Windows OS
+ * - File extension is `.cmd` or `.bat`
+ */
+export function execFileShellModeRequired(file: string) {
+  file = file.toLowerCase();
+  return platform() === "win32" && (file.endsWith(".cmd") || file.endsWith(".bat"));
+}
+
+/**
  * Function to execute a command and return the stdout.
  */
 function executeFile(file: string, args: string[] = []): Promise<string> {
+  const shell = execFileShellModeRequired(file);
   return new Promise((resolve, reject) => {
-    execFile(file, args, (error, stdout, stderr) => {
+    execFile(shell ? `"${file}"` : file, args, { shell }, (error, stdout, stderr) => {
       if (error) {
         reject(new Error(stderr || error.message));
       } else {
