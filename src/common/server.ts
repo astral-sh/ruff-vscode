@@ -46,41 +46,30 @@ export type IInitializationOptions = {
 };
 
 /**
- * Check if shell mode is required for execFile.
- * Note: This is only the case for Windows OS when using .cmd instead of .exe extension to start the interpreter.
+ * Check if shell mode is required for `execFile`.
+ *
+ * The conditions are:
+ * - Windows OS
+ * - File extension is `.cmd` or `.bat`
  */
 export function execFileShellModeRequired(file: string) {
-  const lfile = file.toLowerCase();
-  return platform() === "win32" && (lfile.endsWith(".cmd") || lfile.endsWith(".bat"));
-}
-
-/**
- * Quote given file if shell mode is required
- */
-function quoteFilename(file: string) {
-  if (execFileShellModeRequired(file)) {
-    return `"${file}"`;
-  }
-  return file;
+  file = file.toLowerCase();
+  return platform() === "win32" && (file.endsWith(".cmd") || file.endsWith(".bat"));
 }
 
 /**
  * Function to execute a command and return the stdout.
  */
 function executeFile(file: string, args: string[] = []): Promise<string> {
+  const shell = execFileShellModeRequired(file);
   return new Promise((resolve, reject) => {
-    execFile(
-      quoteFilename(file),
-      args,
-      { shell: execFileShellModeRequired(file) },
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(new Error(stderr || error.message));
-        } else {
-          resolve(stdout);
-        }
-      },
-    );
+    execFile(shell ? `"${file}"` : file, args, { shell }, (error, stdout, stderr) => {
+      if (error) {
+        reject(new Error(stderr || error.message));
+      } else {
+        resolve(stdout);
+      }
+    });
   });
 }
 

@@ -16,12 +16,12 @@ suite("Utils tests", () => {
     );
     assert.strictEqual(
       execFileShellModeRequired("C:\\random\\python.cmd"),
-      isWindows() ? true : false,
+      isWindows(),
       "Shell mode should be required for .cmd files",
     );
     assert.strictEqual(
       execFileShellModeRequired("C:\\random\\python.bat"),
-      isWindows() ? true : false,
+      isWindows(),
       "Shell mode should be required for .bat files",
     );
   });
