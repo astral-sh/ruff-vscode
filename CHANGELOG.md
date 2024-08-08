@@ -1,6 +1,15 @@
 # Changelog
 
-See [here](https://github.com/charliermarsh/ruff/releases) for the Ruff release notes.
+See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
+
+## 2024.38.0
+
+This release upgrades the bundled Ruff version to `v0.5.7`, which includes a number of bug fixes
+and improvements to `ruff server`.
+
+In addition, it also adds support for `.cmd` and `.bat` files in the `ruff.interpreter` setting.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.36.0...2024.38.0
 
 ## 2024.36.0
 
