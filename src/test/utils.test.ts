@@ -19,5 +19,10 @@ suite("Utils tests", () => {
       isWindows() ? true : false,
       "Shell mode should be required for .cmd files",
     );
+    assert.strictEqual(
+      execFileShellModeRequired("C:\\random\\python.bat"),
+      isWindows() ? true : false,
+      "Shell mode should be required for .bat files",
+    );
   });
 });

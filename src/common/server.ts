@@ -48,17 +48,14 @@ export type IInitializationOptions = {
 /**
  * Check if shell mode is required for execFile.
  * Note: This is only the case for Windows OS when using .cmd instead of .exe extension to start the interpreter.
- * @param file
- * @returns
  */
 export function execFileShellModeRequired(file: string) {
-  return platform() === "win32" && file.toLowerCase().endsWith(".cmd");
+  const lfile = file.toLowerCase();
+  return platform() === "win32" && (lfile.endsWith(".cmd") || lfile.endsWith(".bat"));
 }
 
 /**
  * Quote given file if shell mode is required
- * @param file
- * @returns
  */
 function quoteFilename(file: string) {
   if (execFileShellModeRequired(file)) {
