@@ -2,6 +2,16 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2024.40.0
+
+The previous release failed to upload some artifacts to the Open VSX registry due to
+the registry being down. This release is a re-release of `2024.38.0` to ensure that
+users of that registry aren't affected.
+
+**Note**: The VS Code marketplace contains all the artifacts for `2024.38.0`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.38.0...2024.40.0
+
 ## 2024.38.0
 
 This release upgrades the bundled Ruff version to `v0.5.7`, which includes a number of bug fixes
