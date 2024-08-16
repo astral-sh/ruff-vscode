@@ -35,7 +35,7 @@ if __name__ == "__main__":
     #
     # But not all paths are representable by the local encoding.
     # The node process calling this script defaults to UTF8, so let's do the same here.
-    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore We never reconfigure stdout, thus it is guaranteed to not be Any
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore [attr-defined] # We never reconfigure stdout, thus it is guaranteed to not be Any
 
     ruff_binary_path = find_ruff_binary_path()
     if ruff_binary_path:
