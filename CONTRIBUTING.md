@@ -31,9 +31,6 @@ and Python log messages in the debug console under "Python Server".
 
 - Bump the version in `package.json` and `pyproject.toml` (use even numbers for stable releases).
 - Bump the `ruff` and `ruff-lsp` versions in `pyproject.toml`.
-- Update the `ruff` version in the README.md
-  - in the Base URLs
-  - in "The extension ships with `ruff==...`"
 - Make sure you use Python 3.7 installed and as your default Python.
 - Run `python -m venv .venv` to create a venv and activate it.
 - Run `python -m pip install pip-tools` to install `pip-tools`.
