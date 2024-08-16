@@ -358,7 +358,7 @@ async function resolveNativeServerSetting(
       }
 
       const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
-        const ruffVersion = await getRuffVersion(ruffBinaryPath);
+      const ruffVersion = await getRuffVersion(ruffBinaryPath);
 
       if (supportsStableNativeServer(ruffVersion)) {
         const legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
