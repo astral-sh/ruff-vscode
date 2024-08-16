@@ -11,7 +11,7 @@ export const EXTENSION_ROOT_DIR =
 /**
  * Name of the `ruff` binary based on the current platform.
  */
-export const RUFF_BINARY_NAME = process.platform == "win32" ? "ruff.exe" : "ruff";
+export const RUFF_BINARY_NAME = process.platform === "win32" ? "ruff.exe" : "ruff";
 
 /**
  * Path to the directory containing the bundled Python scripts.

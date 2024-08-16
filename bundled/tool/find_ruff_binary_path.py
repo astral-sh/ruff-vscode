@@ -30,6 +30,13 @@ def find_ruff_binary_path() -> Optional[Path]:
 
 
 if __name__ == "__main__":
+    # Python defaults to the system's local encoding for stdout on Windows.
+    # source: https://docs.python.org/3/library/sys.html#sys.stdout
+    #
+    # But not all paths are representable by the local encoding.
+    # The node process calling this script defaults to UTF8, so let's do the same here.
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore [attr-defined] # We never reconfigure stdout, thus it is guaranteed to not be Any
+
     ruff_binary_path = find_ruff_binary_path()
     if ruff_binary_path:
-        print(os.fsdecode(str(ruff_binary_path)), flush=True)
+        print(ruff_binary_path, flush=True)
