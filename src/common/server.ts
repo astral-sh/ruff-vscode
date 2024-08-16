@@ -84,6 +84,20 @@ async function getRuffVersion(executable: string): Promise<VersionInfo> {
 }
 
 /**
+ * Validate and log executable from given path.
+ */
+async function validateUsingExecutable(executable: string, strategy: string) {
+  try {
+    await getRuffVersion(executable);
+    traceInfo(`Using ${strategy}: ${executable}`);
+    return true;
+  } catch (ex) {
+    traceInfo(`Skip invalid executable from ${strategy}: ${executable}`);
+    return false;
+  }
+}
+
+/**
  * Finds the Ruff binary path and returns it.
  *
  * The strategy is as follows:
@@ -110,8 +124,7 @@ async function findRuffBinaryPath(
   // 'path' setting takes priority over everything.
   if (settings.path.length > 0) {
     for (const path of settings.path) {
-      if (await fsapi.pathExists(path)) {
-        traceInfo(`Using 'path' setting: ${path}`);
+      if (await fsapi.pathExists(path) && await validateUsingExecutable(path, "'path' setting")) {
         return path;
       }
     }
@@ -142,16 +155,14 @@ async function findRuffBinaryPath(
     traceError(`Error while trying to find the Ruff binary: ${err}`);
   }
 
-  if (ruffBinaryPath && ruffBinaryPath.length > 0) {
-    // First choice: the executable found by the script.
-    traceInfo(`Using the Ruff binary: ${ruffBinaryPath}`);
+  // First choice: the executable found by the script.
+  if (ruffBinaryPath && ruffBinaryPath.length > 0 && await validateUsingExecutable(ruffBinaryPath, "the Ruff binary")) {
     return ruffBinaryPath;
   }
 
   // Second choice: the executable in the global environment.
   const environmentPath = await which(RUFF_BINARY_NAME, { nothrow: true });
-  if (environmentPath) {
-    traceInfo(`Using environment executable: ${environmentPath}`);
+  if (environmentPath && await validateUsingExecutable(environmentPath, "environment executable")) {
     return environmentPath;
   }
 
@@ -347,7 +358,7 @@ async function resolveNativeServerSetting(
       }
 
       const ruffBinaryPath = await findRuffBinaryPath(settings, outputChannel);
-      const ruffVersion = await getRuffVersion(ruffBinaryPath);
+        const ruffVersion = await getRuffVersion(ruffBinaryPath);
 
       if (supportsStableNativeServer(ruffVersion)) {
         const legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
