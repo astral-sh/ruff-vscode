@@ -62,7 +62,7 @@
   "scripts": {
     "fmt": "prettier -w .",
     "fmt-check": "prettier --check .",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src --ext ts --max-warnings=0",
     "compile": "webpack",
     "compile-tests": "tsc -p . --outDir out",
     "tsc": "tsc --noEmit",
