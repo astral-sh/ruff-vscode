@@ -1,4 +1,3 @@
-import io
 import os
 import sys
 import sysconfig
@@ -36,9 +35,8 @@ if __name__ == "__main__":
     #
     # But not all paths are representable by the local encoding.
     # The node process calling this script defaults to UTF8, so let's do the same here.
-    if isinstance(sys.stdout, io.TextIOWrapper):
-        sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore We never reconfigure stdout, thus it is guaranteed to not be Any
 
     ruff_binary_path = find_ruff_binary_path()
     if ruff_binary_path:
-        print(os.fsdecode(ruff_binary_path), flush=True)
+        print(ruff_binary_path, flush=True)
