@@ -70,17 +70,18 @@ This requires Ruff version `v0.1.3` or later.
 
 ### Native Server
 
-Jupyter Notebook support was stabilized in [Ruff `0.6.0`](https://astral.sh/blog/ruff-v0.6.0). Prior to this version, and unlike `ruff-lsp`, the native server requires
-the user to explicitly include Jupyter Notebooks in the set of files to lint and format. This can be done by
-updating the [`extend-include`](https://docs.astral.sh/ruff/settings/#extend-include) setting in the Ruff configuration file.
+Jupyter Notebook support was stabilized in [Ruff `0.6.0`](https://astral.sh/blog/ruff-v0.6.0#jupyter-notebooks-are-now-linted-and-formatted-by-default) and
+is now linted and formatted by default. Before this version, the native server required users to explicitly include Jupyter Notebooks 
+in the set of files to be linted and formatted. This can be done by updating the [`extend-include`](https://docs.astral.sh/ruff/settings/#extend-include) 
+setting in the Ruff configuration file.
 
 ```toml
 [tool.ruff]
 extend-include = ["*.ipynb"]
 ```
 
-Refer to the [Jupyter Notebook discovery](https://docs.astral.sh/ruff/configuration/#jupyter-notebook-discovery) section
-of the Ruff documentation for more information.
+For more information, refer to the [Jupyter Notebook discovery](https://docs.astral.sh/ruff/configuration/#jupyter-notebook-discovery) section
+of the Ruff documentation.
 
 [notebook document synchronization]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#notebookDocument_synchronization
 
