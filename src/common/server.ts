@@ -31,6 +31,8 @@ import {
   supportsNativeServer,
   versionToString,
   VersionInfo,
+  MINIMUM_SUPPORTED_EXECUTABLE_VERSION,
+  supportsExecutable,
   MINIMUM_NATIVE_SERVER_VERSION,
   supportsStableNativeServer,
   NATIVE_SERVER_STABLE_VERSION,
@@ -88,7 +90,15 @@ async function getRuffVersion(executable: string): Promise<VersionInfo> {
  */
 async function validateUsingExecutable(executable: string, strategy: string) {
   try {
-    await getRuffVersion(executable);
+    const ruffVersion = await getRuffVersion(executable);
+    if (!supportsExecutable(ruffVersion)) {
+      var message = `Skip unsupported executable from ${strategy}: ${executable}`;
+      message += `(Reqiuired at least ${versionToString(
+        MINIMUM_SUPPORTED_EXECUTABLE_VERSION,
+      )}, but found ${versionToString(ruffVersion)} instead)`;
+      traceError(message);
+      return false;
+    }
     traceInfo(`Using ${strategy}: ${executable}`);
     return true;
   } catch (ex) {
