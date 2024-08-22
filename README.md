@@ -70,9 +70,8 @@ This requires Ruff version `v0.1.3` or later.
 
 ### Native Server
 
-The native server supports Jupyter Notebooks out of the box as long as the verion of Ruff used is at least `v0.6.0`.
-
-The older Ruff versions require the user to explicitly include Jupyter Notebooks in the set of files to lint and format. This can be done by
+Jupyter Notebook support was stabilized in [Ruff `0.6.0`](https://astral.sh/blog/ruff-v0.6.0). Prior to this version, and unlike `ruff-lsp`, the native server requires
+the user to explicitly include Jupyter Notebooks in the set of files to lint and format. This can be done by
 updating the [`extend-include`](https://docs.astral.sh/ruff/settings/#extend-include) setting in the Ruff configuration file.
 
 ```toml
