@@ -1,9 +1,9 @@
 # Ruff extension for Visual Studio Code
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![image](https://img.shields.io/pypi/v/ruff/0.5.7.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/l/ruff/0.5.7.svg)](https://pypi.python.org/pypi/ruff)
-[![image](https://img.shields.io/pypi/pyversions/ruff/0.5.7.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/v/ruff/0.6.1.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/l/ruff/0.6.1.svg)](https://pypi.python.org/pypi/ruff)
+[![image](https://img.shields.io/pypi/pyversions/ruff/0.6.1.svg)](https://pypi.python.org/pypi/ruff)
 [![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
 
 > [!NOTE]
@@ -21,7 +21,7 @@ Python linter and code formatter, written in Rust. Available on the [Visual Stud
 Ruff can be used to replace Flake8 (plus dozens of plugins), Black, isort, pyupgrade, and more,
 all while executing tens or hundreds of times faster than any individual tool.
 
-The extension ships with `ruff==0.5.7`.
+The extension ships with `ruff==0.6.1`.
 
 ## Highlights
 
@@ -70,17 +70,18 @@ This requires Ruff version `v0.1.3` or later.
 
 ### Native Server
 
-The native server supports Jupyter Notebooks out of the box. Unlike `ruff-lsp`, the native server requires
-the user to explicitly include Jupyter Notebooks in the set of files to lint and format. This can be done by
-updating the [`extend-include`](https://docs.astral.sh/ruff/settings/#extend-include) setting in the Ruff configuration file.
+Jupyter Notebook support was stabilized in [Ruff `0.6.0`](https://astral.sh/blog/ruff-v0.6.0#jupyter-notebooks-are-now-linted-and-formatted-by-default) and
+is now linted and formatted by default. Before this version, the native server required users to explicitly include Jupyter Notebooks
+in the set of files to be linted and formatted. This can be done by updating the [`extend-include`](https://docs.astral.sh/ruff/settings/#extend-include)
+setting in the Ruff configuration file.
 
 ```toml
 [tool.ruff]
 extend-include = ["*.ipynb"]
 ```
 
-Refer to the [Jupyter Notebook discovery](https://docs.astral.sh/ruff/configuration/#jupyter-notebook-discovery) section
-of the Ruff documentation for more information.
+For more information, refer to the [Jupyter Notebook discovery](https://docs.astral.sh/ruff/configuration/#jupyter-notebook-discovery) section
+of the Ruff documentation.
 
 [notebook document synchronization]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#notebookDocument_synchronization
 
