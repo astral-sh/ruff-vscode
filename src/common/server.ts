@@ -92,8 +92,7 @@ async function validateUsingExecutable(executable: string, strategy: string) {
   try {
     const ruffVersion = await getRuffVersion(executable);
     if (!supportsExecutable(ruffVersion)) {
-      var message = `Skip unsupported executable from ${strategy}: ${executable}`;
-      message += `(Reqiuired at least ${versionToString(
+      const message = `Skip unsupported executable from ${strategy}: ${executable} (Reqiuired at least ${versionToString(
         MINIMUM_SUPPORTED_EXECUTABLE_VERSION,
       )}, but found ${versionToString(ruffVersion)} instead)`;
       traceError(message);
