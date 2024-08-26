@@ -79,7 +79,7 @@ function executeFile(file: string, args: string[] = []): Promise<string> {
  * Get the version of the Ruff executable at the given path.
  */
 async function getRuffVersion(executable: string): Promise<VersionInfo> {
-  const stdout = await executeFile(executable, ["--version"]);
+  const stdout = await executeFile(executable, ["version"]);
   const version = stdout.trim().split(" ")[1];
   const [major, minor, patch] = version.split(".").map((x) => parseInt(x, 10));
   return { major, minor, patch };
