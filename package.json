@@ -321,13 +321,13 @@
             "debug",
             "trace"
           ],
-          "scope": "window",
+          "scope": "application",
           "type": "string"
         },
         "ruff.logFile": {
           "default": null,
           "markdownDescription": "Path to the log file for the language server.\n\n**This setting is used only by the native server.**",
-          "scope": "window",
+          "scope": "application",
           "type": "string"
         },
         "ruff.trace.server": {
