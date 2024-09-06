@@ -2,6 +2,16 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2024.44.0
+
+This release upgrades the bundled Ruff version to `v0.6.4`, and the bundled `ruff-lsp`
+version to `0.0.56`.
+
+- Use "application" scope for global only settings (`ruff.logLevel`, `ruff.logFile`) (#594)
+- Always include "Show Logs" button in Ruff notification (#600)
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.42.0...2024.44.0
+
 ## 2024.42.0
 
 This release upgrades the bundled Ruff version to `v0.6.1`, and the bundled `ruff-lsp`
