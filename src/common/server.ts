@@ -441,6 +441,7 @@ export async function startServer(
   traceInfo(`Server: Start requested.`);
   try {
     await newLSClient.start();
+    updateStatus(undefined, LanguageStatusSeverity.Information, false);
   } catch (ex) {
     updateStatus(l10n.t("Server failed to start."), LanguageStatusSeverity.Error);
     traceError(`Server: Start failed: ${ex}`);
