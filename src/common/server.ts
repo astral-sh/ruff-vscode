@@ -439,14 +439,6 @@ export async function startServer(
     },
   );
   traceInfo(`Server: Start requested.`);
-  try {
-    await newLSClient.start();
-    updateStatus(undefined, LanguageStatusSeverity.Information, false);
-  } catch (ex) {
-    updateStatus(l10n.t("Server failed to start."), LanguageStatusSeverity.Error);
-    traceError(`Server: Start failed: ${ex}`);
-    return undefined;
-  }
 
   _disposables.push(
     newLSClient.onDidChangeState((e) => {
@@ -478,12 +470,25 @@ export async function startServer(
     }),
   );
 
+  try {
+    await newLSClient.start();
+  } catch (ex) {
+    updateStatus(l10n.t("Server failed to start."), LanguageStatusSeverity.Error);
+    traceError(`Server: Start failed: ${ex}`);
+    dispose();
+    return undefined;
+  }
+
   return newLSClient;
 }
 
 export async function stopServer(lsClient: LanguageClient): Promise<void> {
   traceInfo(`Server: Stop requested`);
   await lsClient.stop();
+  dispose();
+}
+
+function dispose(): void {
   _disposables.forEach((d) => d.dispose());
   _disposables = [];
 }
