@@ -2,6 +2,15 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2024.48.0
+
+This previous release failed to publish the artifacts to the Open VSX registry. This
+release is a re-release of `2024.46.0` to ensure that users of that registry aren't affected.
+Additionally, the publish step has been split into two separate steps to avoid the issue
+in the future.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.46.0...2024.48.0
+
 ## 2024.46.0
 
 This release fixes a regression from the last release where the loading spinner would not disappear after
