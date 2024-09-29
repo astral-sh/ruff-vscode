@@ -2,6 +2,39 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2024.50.0
+
+This release upgrades the bundled Ruff version to `v0.6.6`, and the bundled `ruff-lsp`
+version to `0.0.57`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.48.0...2024.50.0
+
+## 2024.48.0
+
+This previous release failed to publish the artifacts to the Open VSX registry. This
+release is a re-release of `2024.46.0` to ensure that users of that registry aren't affected.
+Additionally, the publish step has been split into two separate steps to avoid the issue
+in the future.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.46.0...2024.48.0
+
+## 2024.46.0
+
+This release fixes a regression from the last release where the loading spinner would not disappear after
+the extension is successfully activated.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.44.0...2024.46.0
+
+## 2024.44.0
+
+This release upgrades the bundled Ruff version to `v0.6.4`, and the bundled `ruff-lsp`
+version to `0.0.56`.
+
+- Use "application" scope for global only settings (`ruff.logLevel`, `ruff.logFile`) (#594)
+- Always include "Show Logs" button in Ruff notification (#600)
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.42.0...2024.44.0
+
 ## 2024.42.0
 
 This release upgrades the bundled Ruff version to `v0.6.1`, and the bundled `ruff-lsp`

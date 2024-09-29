@@ -2,7 +2,7 @@
   "name": "ruff",
   "displayName": "Ruff",
   "description": "A Visual Studio Code extension with support for the Ruff linter.",
-  "version": "2024.42.0",
+  "version": "2024.50.0",
   "serverInfo": {
     "name": "Ruff",
     "module": "ruff"
@@ -321,13 +321,13 @@
             "debug",
             "trace"
           ],
-          "scope": "window",
+          "scope": "application",
           "type": "string"
         },
         "ruff.logFile": {
           "default": null,
           "markdownDescription": "Path to the log file for the language server.\n\n**This setting is used only by the native server.**",
-          "scope": "window",
+          "scope": "application",
           "type": "string"
         },
         "ruff.trace.server": {

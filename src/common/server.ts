@@ -2,7 +2,7 @@ import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
 import { platform } from "os";
 import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
-import { State } from "vscode-languageclient";
+import { State, ShowMessageNotification, MessageType } from "vscode-languageclient";
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -459,6 +459,7 @@ export async function startServer(
     },
   );
   traceInfo(`Server: Start requested.`);
+
   _disposables.push(
     newLSClient.onDidChangeState((e) => {
       switch (e.newState) {
@@ -474,12 +475,27 @@ export async function startServer(
           break;
       }
     }),
+    newLSClient.onNotification(ShowMessageNotification.type, (params) => {
+      const showMessageMethod =
+        params.type === MessageType.Error
+          ? vscode.window.showErrorMessage
+          : params.type === MessageType.Warning
+          ? vscode.window.showWarningMessage
+          : vscode.window.showInformationMessage;
+      showMessageMethod(params.message, "Show Logs").then((selection) => {
+        if (selection) {
+          outputChannel.show();
+        }
+      });
+    }),
   );
+
   try {
     await newLSClient.start();
   } catch (ex) {
     updateStatus(l10n.t("Server failed to start."), LanguageStatusSeverity.Error);
     traceError(`Server: Start failed: ${ex}`);
+    dispose();
     return undefined;
   }
 
@@ -489,6 +505,10 @@ export async function startServer(
 export async function stopServer(lsClient: LanguageClient): Promise<void> {
   traceInfo(`Server: Stop requested`);
   await lsClient.stop();
+  dispose();
+}
+
+function dispose(): void {
   _disposables.forEach((d) => d.dispose());
   _disposables = [];
 }
