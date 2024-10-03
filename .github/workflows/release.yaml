@@ -62,6 +62,10 @@ jobs:
             target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
             arch: armv7
+          - os: ubuntu-20.04
+            target: ppc64le-unknown-linux-gnu
+            code-target: linux-ppc64le
+            arch: ppc64le
           - os: macos-latest
             target: x86_64-apple-darwin
             code-target: darwin-x64
@@ -266,6 +270,10 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: dist-arm-unknown-linux-gnueabihf
+          path: dist
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist-ppc64le-unknown-linux-gnu
           path: dist
       - uses: actions/download-artifact@v3
         with:
