@@ -457,6 +457,7 @@
     "eslint": "^8.30.0",
     "eslint-plugin-prettier": "^4.2.1",
     "glob": "^10.2.2",
+    "ovsx": "^0.9.4",
     "prettier": "^2.8.8",
     "ts-loader": "^9.4.2",
     "typescript": "^5.1.3",
