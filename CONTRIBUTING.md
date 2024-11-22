@@ -38,7 +38,7 @@ and Python log messages in the debug console under "Python Server".
 - Make sure you have Python 3.7 installed
 - Run `uv venv --python 3.7 && source .venv/bin/activate` to create a Python 3.7 venv and activate it.
 - Run `rm requirements.txt requirements-dev.txt && just lock` to update `ruff` and `ruff-lsp`.
-- Create a new PR and merge it.
 - Update the Changelog
+- Create a new PR and merge it.
 - [Create a new Release](https://github.com/astral-sh/ruff-vscode/releases/new), enter `x.x.x` (where `x.x.x` is the new version) into the _Choose a tag_ selector. Click _Generate release notes_, curate the release notes and publish the release.
 - The Release workflow publishes the extension to the VS Code marketplace.
