@@ -211,6 +211,10 @@ def commit_changes(versions: RuffVersions) -> None:
 
     new_branch = f"release-{versions.new_vscode_version}"
 
+    commit_body = (
+        f"Bump ruff to {versions.latest_ruff} "
+        f"and ruff-lsp to {versions.latest_ruff_lsp}"
+    )
     commit_command = [
         "git",
         "commit",
@@ -218,10 +222,7 @@ def commit_changes(versions: RuffVersions) -> None:
         "-m",
         f"Release {versions.new_vscode_version}",
         "-m",
-        (
-            f"Bump ruff to {versions.latest_ruff} "
-            f"and ruff-lsp to {versions.latest_ruff_lsp}"
-        ),
+        commit_body,
     ]
 
     try:
