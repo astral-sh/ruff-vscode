@@ -335,7 +335,7 @@ To use a custom configuration file, set the `ruff.configuration` setting to the 
 ```
 
 Finally, to use a common Ruff configuration across all projects, consider creating a user-specific
-`pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#does-ruff-support-numpy-or-google-style-docstrings).
+`pyproject.toml` or `ruff.toml` file as described in the [FAQ](https://docs.astral.sh/ruff/faq/#how-can-i-change-ruffs-default-configuration).
 
 #### Python-based language server (`ruff-lsp`)
 
