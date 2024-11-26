@@ -68,17 +68,23 @@ def latest_pypi_version(project_name: str) -> Version:
     return Version(pypi_json.json()["info"]["version"])
 
 
-def get_ruff_versions() -> RuffVersions:
+def get_ruff_versions(
+    *,
+    new_ruff_vscode_version: Version | None,
+    new_ruff_version: Version | None,
+    new_ruff_lsp_version: Version | None,
+) -> RuffVersions:
     """
     Obtain metadata about the project; figure out what the new metadata should be.
     """
     with PYPROJECT_TOML_PATH.open("rb") as pyproject_file:
         pyproject_toml = tomli.load(pyproject_file)
 
-    existing_vscode_version = pyproject_toml["project"]["version"]
+    existing_ruff_vscode_version = Version(pyproject_toml["project"]["version"])
 
-    major, minor, patch = Version(existing_vscode_version).release
-    new_vscode_version = Version(f"{major}.{minor + 2}.{patch}")
+    if new_ruff_vscode_version is None:
+        major, minor, _ = existing_ruff_vscode_version.release
+        new_ruff_vscode_version = Version(f"{major}.{minor + 2}.0")
 
     dependencies = {
         requirement.name: requirement.specifier
@@ -86,12 +92,12 @@ def get_ruff_versions() -> RuffVersions:
     }
 
     return RuffVersions(
-        existing_vscode_version=existing_vscode_version,
-        new_vscode_version=new_vscode_version,
+        existing_vscode_version=existing_ruff_vscode_version,
+        new_vscode_version=new_ruff_vscode_version,
         existing_ruff_pin=existing_dependency_pin(dependencies, "ruff"),
-        latest_ruff=latest_pypi_version("ruff"),
+        latest_ruff=(new_ruff_version or latest_pypi_version("ruff")),
         existing_ruff_lsp_pin=existing_dependency_pin(dependencies, "ruff-lsp"),
-        latest_ruff_lsp=latest_pypi_version("ruff-lsp"),
+        latest_ruff_lsp=(new_ruff_lsp_version or latest_pypi_version("ruff-lsp")),
     )
 
 
@@ -226,9 +232,8 @@ def commit_changes(versions: RuffVersions) -> None:
         raise
 
 
-def prepare_release(*, prepare_pr: bool) -> None:
+def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
     """Make all necessary changes for a new `ruff-vscode` release."""
-    versions = get_ruff_versions()
     update_pyproject_toml(versions)
     bump_package_json_version(versions.new_vscode_version)
     update_readme(versions.latest_ruff)
@@ -247,8 +252,37 @@ def main() -> None:
         action="store_true",
         help="After preparing the release, commit the results to a new branch",
     )
+    parser.add_argument(
+        "--new-version",
+        type=Version,
+        help=(
+            "The version to set for this release. "
+            "Defaults to `${CURRENT_MAJOR}.${CURRENT_MINOR + 2}.0`"
+        ),
+    )
+    parser.add_argument(
+        "--new-ruff",
+        type=Version,
+        help=(
+            "Which version to bump the `ruff` dependency pin to. "
+            "Defaults to the latest version available on PyPI."
+        ),
+    )
+    parser.add_argument(
+        "--new-ruff-lsp",
+        type=Version,
+        help=(
+            "Which version to bump the `ruff-lsp` dependency pin to. "
+            "Defaults to the latest version available on PyPI."
+        ),
+    )
     args = parser.parse_args()
-    prepare_release(prepare_pr=args.prepare_pr)
+    versions = get_ruff_versions(
+        new_ruff_vscode_version=args.new_version,
+        new_ruff_version=args.new_ruff,
+        new_ruff_lsp_version=args.new_ruff_lsp,
+    )
+    prepare_release(versions, prepare_pr=args.prepare_pr)
 
 
 if __name__ == "__main__":
