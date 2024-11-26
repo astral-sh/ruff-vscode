@@ -77,8 +77,8 @@ def get_ruff_versions() -> RuffVersions:
 
     existing_vscode_version = pyproject_toml["project"]["version"]
 
-    major, minor, micro = Version(existing_vscode_version).release
-    new_vscode_version = Version(f"{major}.{minor + 2}.{micro}")
+    major, minor, patch = Version(existing_vscode_version).release
+    new_vscode_version = Version(f"{major}.{minor + 2}.{patch}")
 
     dependencies = {
         requirement.name: requirement.specifier
@@ -150,22 +150,30 @@ def update_changelog(versions: RuffVersions) -> None:
     with CHANGELOG_PATH.open() as changelog_file:
         changelog_lines = list(changelog_file)
 
-    assert (
-        changelog_lines[4] == f"## {versions.existing_vscode_version}\n"
-    ), f"Unexpected content in CHANGELOG.md ({changelog_lines[4]!r}) -- perhaps the release script is out of date?"
+    assert changelog_lines[4] == f"## {versions.existing_vscode_version}\n", (
+        f"Unexpected content in CHANGELOG.md ({changelog_lines[4]!r}) "
+        f"-- perhaps the release script is out of date?"
+    )
 
     if (
         versions.latest_ruff != versions.existing_ruff_pin
         and versions.latest_ruff_lsp != versions.existing_ruff_lsp_pin
     ):
         changelog_entry_middle = (
-            f"This release upgrades the bundled Ruff version to `v{versions.latest_ruff}`, and the bundled `ruff-lsp` "
-            f"version to `{versions.latest_ruff_lsp}`."
+            f"This release upgrades the bundled Ruff version "
+            f"to `v{versions.latest_ruff}`, and the bundled `ruff-lsp` version "
+            f"to `{versions.latest_ruff_lsp}`."
         )
     elif versions.latest_ruff != versions.existing_ruff_pin:
-        changelog_entry_middle = f"This release upgrades the bundled Ruff version to `v{versions.latest_ruff}`."
+        changelog_entry_middle = (
+            f"This release upgrades the bundled Ruff version "
+            f"to `v{versions.latest_ruff}`."
+        )
     elif versions.latest_ruff_lsp != versions.existing_ruff_lsp_pin:
-        changelog_entry_middle = f"This release upgrades the bundled `ruff-lsp` version to `v{versions.latest_ruff_lsp}`."
+        changelog_entry_middle = (
+            f"This release upgrades the bundled `ruff-lsp` version "
+            f"to `v{versions.latest_ruff_lsp}`."
+        )
     else:
         changelog_entry_middle = ""
 
@@ -204,7 +212,10 @@ def commit_changes(versions: RuffVersions) -> None:
         "-m",
         f"Release {versions.new_vscode_version}",
         "-m",
-        f"Bump ruff to {versions.latest_ruff} and ruff-lsp to {versions.latest_ruff_lsp}",
+        (
+            f"Bump ruff to {versions.latest_ruff} "
+            f"and ruff-lsp to {versions.latest_ruff_lsp}"
+        ),
     ]
 
     try:
