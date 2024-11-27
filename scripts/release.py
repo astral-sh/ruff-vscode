@@ -18,6 +18,7 @@ This script does the following things:
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import re
 import subprocess
@@ -83,8 +84,9 @@ def get_ruff_versions(
     existing_ruff_vscode_version = Version(pyproject_toml["project"]["version"])
 
     if new_ruff_vscode_version is None:
-        major, minor, _ = existing_ruff_vscode_version.release
-        new_ruff_vscode_version = Version(f"{major}.{minor + 2}.0")
+        major = dt.datetime.now(dt.timezone.utc).year
+        minor = existing_ruff_vscode_version.minor + 2
+        new_ruff_vscode_version = Version(f"{major}.{minor}.0")
 
     dependencies = {
         requirement.name: requirement.specifier
