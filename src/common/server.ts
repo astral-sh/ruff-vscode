@@ -482,6 +482,72 @@ export async function startServer(
   return newLSClient;
 }
 
+export async function startKnotServer(
+  workspaceSettings: ISettings,
+  outputChannel: LogOutputChannel,
+): Promise<LanguageClient | undefined> {
+  const serverId = "red-knot";
+  const serverName = "Red knot";
+
+  let serverOptions = {
+    command: "/Users/dhruv/work/astral/ruff/target/debug/red_knot",
+    args: ["server"],
+    options: { cwd: workspaceSettings.cwd, env: process.env },
+  };
+
+  const clientOptions = {
+    // Register the server for python documents
+    documentSelector: getDocumentSelector(),
+    outputChannel: outputChannel,
+    traceOutputChannel: outputChannel,
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
+  };
+
+  let client = new LanguageClient(serverId, serverName, serverOptions, clientOptions);
+  traceInfo(`Server: Start requested.`);
+
+  _disposables.push(
+    client.onDidChangeState((e) => {
+      switch (e.newState) {
+        case State.Stopped:
+          traceVerbose(`Server State: Stopped`);
+          break;
+        case State.Starting:
+          traceVerbose(`Server State: Starting`);
+          break;
+        case State.Running:
+          traceVerbose(`Server State: Running`);
+          updateStatus(undefined, LanguageStatusSeverity.Information, false);
+          break;
+      }
+    }),
+    client.onNotification(ShowMessageNotification.type, (params) => {
+      const showMessageMethod =
+        params.type === MessageType.Error
+          ? vscode.window.showErrorMessage
+          : params.type === MessageType.Warning
+          ? vscode.window.showWarningMessage
+          : vscode.window.showInformationMessage;
+      showMessageMethod(params.message, "Show Logs").then((selection) => {
+        if (selection) {
+          outputChannel.show();
+        }
+      });
+    }),
+  );
+
+  try {
+    await client.start();
+  } catch (ex) {
+    updateStatus(l10n.t("Server failed to start."), LanguageStatusSeverity.Error);
+    traceError(`Server: Start failed: ${ex}`);
+    dispose();
+    return undefined;
+  }
+
+  return client;
+}
+
 export async function stopServer(lsClient: LanguageClient): Promise<void> {
   traceInfo(`Server: Stop requested`);
   await lsClient.stop();

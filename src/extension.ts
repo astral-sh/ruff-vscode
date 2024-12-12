@@ -1,13 +1,21 @@
 import * as vscode from "vscode";
 import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import { registerLogger, traceError, traceLog, traceVerbose } from "./common/log/logging";
+import {
+  knotTraceLog,
+  knotTraceVerbose,
+  registerKnotLogger,
+  registerLogger,
+  traceError,
+  traceLog,
+  traceVerbose,
+} from "./common/log/logging";
 import {
   checkVersion,
   initializePython,
   onDidChangePythonInterpreter,
   resolveInterpreter,
 } from "./common/python";
-import { startServer, stopServer } from "./common/server";
+import { startKnotServer, startServer, stopServer } from "./common/server";
 import {
   checkIfConfigurationChanged,
   getInterpreterFromSetting,
@@ -28,6 +36,7 @@ import { getProjectRoot } from "./common/utilities";
 const issueTracker = "https://github.com/astral-sh/ruff/issues";
 
 let lsClient: LanguageClient | undefined;
+let knotClient: LanguageClient | undefined;
 let restartInProgress = false;
 let restartQueued = false;
 
@@ -41,11 +50,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // Setup logging
   const outputChannel = createOutputChannel(serverName);
   context.subscriptions.push(outputChannel, registerLogger(outputChannel));
+  const knotOutputChannel = createOutputChannel("Red knot");
+  context.subscriptions.push(knotOutputChannel, registerKnotLogger(knotOutputChannel));
 
   // Log Server information
   traceLog(`Name: ${serverInfo.name}`);
   traceLog(`Module: ${serverInfo.module}`);
   traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
+
+  // Log Server information
+  knotTraceLog(`Name: ${serverInfo.name}`);
+  knotTraceLog(`Module: ${serverInfo.module}`);
+  knotTraceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
   context.subscriptions.push(
     onDidChangeConfiguration((event) => {
@@ -92,6 +108,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (lsClient) {
         await stopServer(lsClient);
       }
+      if (knotClient) {
+        await stopServer(knotClient);
+      }
 
       const projectRoot = await getProjectRoot();
       const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
@@ -135,6 +154,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         serverName,
         outputChannel,
       );
+      knotClient = await startKnotServer(workspaceSettings, knotOutputChannel);
     } finally {
       // Ensure that we reset the flag in case of an error, early return, or success.
       restartInProgress = false;
@@ -272,5 +292,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 export async function deactivate(): Promise<void> {
   if (lsClient) {
     await stopServer(lsClient);
+  }
+  if (knotClient) {
+    await stopServer(knotClient);
   }
 }

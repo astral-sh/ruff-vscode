@@ -70,3 +70,48 @@ export function traceVerbose(...args: Arguments): void {
   }
   channel?.traceVerbose(...args);
 }
+
+let knotChanel: OutputChannelLogger | undefined;
+export function registerKnotLogger(logChannel: LogOutputChannel): Disposable {
+  knotChanel = new OutputChannelLogger(logChannel);
+  return {
+    dispose: () => {
+      knotChanel = undefined;
+    },
+  };
+}
+
+export function knotTraceLog(...args: Arguments): void {
+  if (process.env.CI === "true") {
+    console.log(...args);
+  }
+  channel?.traceLog(...args);
+}
+
+export function knotTraceError(...args: Arguments): void {
+  if (process.env.CI === "true") {
+    console.log(...args);
+  }
+  channel?.traceError(...args);
+}
+
+export function knotTraceWarn(...args: Arguments): void {
+  if (process.env.CI === "true") {
+    console.log(...args);
+  }
+  channel?.traceWarn(...args);
+}
+
+export function knotTraceInfo(...args: Arguments): void {
+  if (process.env.CI === "true") {
+    console.log(...args);
+  }
+  channel?.traceInfo(...args);
+}
+
+export function knotTraceVerbose(...args: Arguments): void {
+  if (process.env.CI === "true") {
+    console.log(...args);
+  }
+  channel?.traceVerbose(...args);
+}
