@@ -7,17 +7,11 @@ import {
   Disposable,
   languages,
   LanguageStatusItem,
-  LogOutputChannel,
-  window,
   workspace,
   WorkspaceConfiguration,
   WorkspaceFolder,
 } from "vscode";
 import { DocumentSelector } from "vscode-languageclient";
-
-export function createOutputChannel(name: string): LogOutputChannel {
-  return window.createOutputChannel(name, { log: true });
-}
 
 export function getConfiguration(
   config: string,

@@ -1,7 +1,7 @@
 {
   "name": "ruff",
   "displayName": "Ruff",
-  "description": "A Visual Studio Code extension with support for the Ruff linter.",
+  "description": "A Visual Studio Code extension with support for the Ruff linter and formatter.",
   "version": "2024.56.0",
   "serverInfo": {
     "name": "Ruff",
@@ -25,6 +25,7 @@
   "keywords": [
     "python",
     "linting",
+    "formatting",
     "ruff"
   ],
   "engines": {
