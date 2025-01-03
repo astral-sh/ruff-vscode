@@ -383,17 +383,38 @@ itself is compatible with Python 3.7 to 3.13.
 ## Troubleshooting
 
 If you encounter any issues with the extension or the language server, please refer to the
-logs in the output panel in VS Code. You can access the logs by running the `Ruff: Show logs`
-command.
+logs in the corresponding output channel in VS Code. The extension logs are in the "Ruff Client"
+output channel and the language server logs are in the "Ruff Language Server" output channel.
 
-By default, the output panel will only contain logs from the extension. To enable logs from the
-language server, set the `trace.server` setting to `messages` in your `settings.json`:
+To open the output panel, use the `Output: Show Output Channels` command in the command palette
+(`Ctrl+Shift+P` or `Cmd+Shift+P`), then select "Ruff Client" or "Ruff Language Server". Alternatively,
+you can use the `Ruff: Show logs` command to open the "Ruff Client" output channel directly.
+
+The default log level for the extension is `info` which can be changed from the output panel using
+the settings icon in the top right corner of the panel.
+
+The default log level for the language server is `warn` which can be changed using the `ruff.logLevel`
+setting in your `settings.json`:
+
+```json
+{
+  "ruff.logLevel": "info"
+}
+```
+
+To fully capture the LSP messages between the editor and the server, set the `ruff.trace.server`
+setting to either `messages` or `verbose` in your `settings.json`:
 
 ```json
 {
   "ruff.trace.server": "messages"
 }
 ```
+
+This will be visible in the "Ruff Language Server Trace" output channel. The difference between
+`messages` and `verbose` is that `messages` will only log the method name for both the request
+and response, while `verbose` will also log the request parameters sent by the client and the
+response result sent by the server.
 
 The trace value can also be set to `verbose` for more detailed logs. If you're using the Rust-based
 language server, you can use the `ruff.logLevel` setting to control the log level of the server and
