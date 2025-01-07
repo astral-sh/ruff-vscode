@@ -42,6 +42,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   logger.info(`Module: ${serverInfo.module}`);
   logger.debug(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
+  context.subscriptions.push(logger.channel);
+
   context.subscriptions.push(
     onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("ruff.enable")) {
