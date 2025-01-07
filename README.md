@@ -402,6 +402,15 @@ setting in your `settings.json`:
 }
 ```
 
+The language server logs can be directed to a file by setting the `ruff.logFile` setting in
+your `settings.json`:
+
+```json
+{
+  "ruff.logFile": "/path/to/ruff.log"
+}
+```
+
 To fully capture the LSP messages between the editor and the server, set the `ruff.trace.server`
 setting to either `messages` or `verbose` in your `settings.json`:
 
@@ -411,19 +420,10 @@ setting to either `messages` or `verbose` in your `settings.json`:
 }
 ```
 
-This will be visible in the "Ruff Language Server" output channel. The difference between
+This will be visible in the "Ruff Language Server Trace" output channel. The difference between
 `messages` and `verbose` is that `messages` will only log the method name for both the request
 and response, while `verbose` will also log the request parameters sent by the client and the
 response result sent by the server.
-
-Additionally, the language server logs can be directed to a file by setting the `ruff.logFile`
-setting in your `settings.json`:
-
-```json
-{
-  "ruff.logFile": "/path/to/ruff.log"
-}
-```
 
 The extension also displays certain information in the status bar. This can be pinned to the status
 bar as a permanent item.
