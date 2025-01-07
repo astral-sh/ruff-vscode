@@ -5,7 +5,7 @@
     "lib": ["ES2020"],
     "sourceMap": true,
     "rootDir": "src",
-    "resolveJsonModule": true,
+    "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedParameters": true
