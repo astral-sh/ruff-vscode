@@ -162,7 +162,6 @@ async function createNativeServer(
   serverId: string,
   serverName: string,
   outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
   initializationOptions: IInitializationOptions,
   ruffExecutable?: RuffExecutable,
 ): Promise<LanguageClient> {
@@ -206,7 +205,7 @@ async function createNativeServer(
     // Register the server for python documents
     documentSelector: getDocumentSelector(),
     outputChannel,
-    traceOutputChannel,
+    traceOutputChannel: outputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     initializationOptions,
   };
@@ -379,7 +378,6 @@ async function createServer(
   serverId: string,
   serverName: string,
   outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
   initializationOptions: IInitializationOptions,
 ): Promise<LanguageClient> {
   const { useNativeServer, executable } = await resolveNativeServerSetting(
@@ -395,7 +393,6 @@ async function createServer(
       serverId,
       serverName,
       outputChannel,
-      traceOutputChannel,
       initializationOptions,
       executable,
     );
@@ -414,13 +411,9 @@ export async function startServer(
 ): Promise<LanguageClient | undefined> {
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
 
-  // Create output channels for the server and trace logs
+  // Create output channels for the server logs
   const outputChannel = vscode.window.createOutputChannel(`${serverName} Language Server`);
   _disposables.push(outputChannel);
-  const traceOutputChannel = vscode.window.createOutputChannel(
-    `${serverName} Language Server Trace`,
-  );
-  _disposables.push(traceOutputChannel);
 
   const extensionSettings = await getExtensionSettings(serverId);
   const globalSettings = await getGlobalSettings(serverId);
@@ -431,7 +424,6 @@ export async function startServer(
     serverId,
     serverName,
     outputChannel,
-    traceOutputChannel,
     {
       settings: extensionSettings,
       globalSettings: globalSettings,
