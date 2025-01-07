@@ -2,47 +2,70 @@ import * as util from "util";
 import * as vscode from "vscode";
 
 class ExtensionLogger {
+  /**
+   * The output channel used to log messages for the extension.
+   */
   readonly channel = vscode.window.createOutputChannel("Ruff", { log: true });
+
+  /**
+   * Whether the extension is running in a CI environment.
+   */
   private readonly isCI = process.env.CI === "true";
 
-  error(...messages: unknown[]): void {
+  /**
+   * Logs messages to the console if the extension is running in a CI environment.
+   */
+  private logForCI(...messages: unknown[]): void {
     if (this.isCI) {
       console.log(...messages);
     }
+  }
+
+  error(...messages: unknown[]): void {
+    this.logForCI(...messages);
     this.channel.error(util.format(...messages));
   }
 
   warn(...messages: unknown[]): void {
-    if (this.isCI) {
-      console.log(...messages);
-    }
+    this.logForCI(...messages);
     this.channel.warn(util.format(...messages));
   }
 
   info(...messages: unknown[]): void {
-    if (this.isCI) {
-      console.log(...messages);
-    }
+    this.logForCI(...messages);
     this.channel.info(util.format(...messages));
   }
 
   debug(...messages: unknown[]): void {
-    if (this.isCI) {
-      console.log(...messages);
-    }
+    this.logForCI(...messages);
     this.channel.debug(util.format(...messages));
   }
 
   trace(...messages: unknown[]): void {
-    if (this.isCI) {
-      console.log(...messages);
-    }
+    this.logForCI(...messages);
     this.channel.trace(util.format(...messages));
   }
 }
 
+/**
+ * The logger used by the extension.
+ *
+ * This will log the messages to the "Ruff" output channel, optionally logging them
+ * to the console if the extension is running in a CI environment (e.g., GitHub Actions).
+ *
+ * This should mainly be used for logging messages that are intended for the user.
+ */
 export const logger = new ExtensionLogger();
 
+/**
+ * A VS Code output channel that is lazily created when it is first accessed.
+ *
+ * This is useful when the messages are only logged when the extension is configured
+ * to log them, as it avoids creating an empty output channel.
+ *
+ * This is currently being used to create the trace output channel for the language server
+ * as it is only created when the user enables trace logging.
+ */
 export class LazyOutputChannel implements vscode.OutputChannel {
   name: string;
   _channel: vscode.OutputChannel | undefined;
@@ -71,9 +94,7 @@ export class LazyOutputChannel implements vscode.OutputChannel {
   }
 
   clear(): void {
-    if (this._channel) {
-      this._channel.clear();
-    }
+    this._channel?.clear();
   }
 
   show(preserveFocus?: boolean): void;
@@ -83,14 +104,10 @@ export class LazyOutputChannel implements vscode.OutputChannel {
   }
 
   hide(): void {
-    if (this._channel) {
-      this._channel.hide();
-    }
+    this._channel?.hide();
   }
 
   dispose(): void {
-    if (this._channel) {
-      this._channel.dispose();
-    }
+    this._channel?.dispose();
   }
 }

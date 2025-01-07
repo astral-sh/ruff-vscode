@@ -388,7 +388,8 @@ output channel and the language server logs are in the "Ruff Language Server" ou
 
 To open the output panel, use the `Output: Show Output Channels` command in the command palette
 (`Ctrl+Shift+P` or `Cmd+Shift+P`), then select "Ruff" or "Ruff Language Server". Alternatively,
-you can use the `Ruff: Show logs` command to open the "Ruff" output channel directly.
+you can use the `Ruff: Show client logs` and `Ruff: Show server logs` command to open the "Ruff"
+and "Ruff Language Server" output channel respectively.
 
 The default log level for the extension is `info` which can be changed from the output panel using
 the settings icon in the top right corner of the panel.
@@ -411,7 +412,7 @@ your `settings.json`:
 }
 ```
 
-To fully capture the LSP messages between the editor and the server, set the `ruff.trace.server`
+To capture the LSP messages between the editor and the server, set the `ruff.trace.server`
 setting to either `messages` or `verbose` in your `settings.json`:
 
 ```json
@@ -421,8 +422,8 @@ setting to either `messages` or `verbose` in your `settings.json`:
 ```
 
 This will be visible in the "Ruff Language Server Trace" output channel. The difference between
-`messages` and `verbose` is that `messages` will only log the method name for both the request
-and response, while `verbose` will also log the request parameters sent by the client and the
+`messages` and `verbose` is that `messages` only logs the method name for both the request
+and response, while `verbose` also logs the request parameters sent by the client and the
 response result sent by the server.
 
 The extension also displays certain information in the status bar. This can be pinned to the status

@@ -39,6 +39,7 @@ import { updateServerKind, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
 import which = require("which");
+import { registerCommand } from "./vscodeapi";
 
 export type IInitializationOptions = {
   settings: ISettings[];
@@ -219,6 +220,7 @@ async function createLegacyServer(
   serverId: string,
   serverName: string,
   outputChannel: OutputChannel,
+  traceOutputChannel: OutputChannel,
   initializationOptions: IInitializationOptions,
 ): Promise<LanguageClient> {
   const command = settings.interpreter[0];
@@ -254,7 +256,7 @@ async function createLegacyServer(
     // Register the server for python documents
     documentSelector: getDocumentSelector(),
     outputChannel: outputChannel,
-    traceOutputChannel: outputChannel,
+    traceOutputChannel: traceOutputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     initializationOptions,
   };
@@ -400,7 +402,14 @@ async function createServer(
       executable,
     );
   } else {
-    return createLegacyServer(settings, serverId, serverName, outputChannel, initializationOptions);
+    return createLegacyServer(
+      settings,
+      serverId,
+      serverName,
+      outputChannel,
+      traceOutputChannel,
+      initializationOptions,
+    );
   }
 }
 
@@ -419,6 +428,8 @@ export async function startServer(
   _disposables.push(outputChannel);
   const traceOutputChannel = new LazyOutputChannel(`${serverName} Language Server Trace`);
   _disposables.push(traceOutputChannel);
+  // And, a command to show the server logs
+  _disposables.push(registerCommand(`${serverId}.showServerLogs`, () => outputChannel.show()));
 
   const extensionSettings = await getExtensionSettings(serverId);
   const globalSettings = await getGlobalSettings(serverId);

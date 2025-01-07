@@ -432,9 +432,14 @@
         "command": "ruff.restart"
       },
       {
-        "title": "Show logs",
+        "title": "Show client logs",
         "category": "Ruff",
         "command": "ruff.showLogs"
+      },
+      {
+        "title": "Show server logs",
+        "category": "Ruff",
+        "command": "ruff.showServerLogs"
       }
     ]
   },
