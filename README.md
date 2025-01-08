@@ -383,11 +383,37 @@ itself is compatible with Python 3.7 to 3.13.
 ## Troubleshooting
 
 If you encounter any issues with the extension or the language server, please refer to the
-logs in the output panel in VS Code. You can access the logs by running the `Ruff: Show logs`
-command.
+logs in the corresponding output channel in VS Code. The extension logs are in the "Ruff"
+output channel and the language server logs are in the "Ruff Language Server" output channel.
 
-By default, the output panel will only contain logs from the extension. To enable logs from the
-language server, set the `trace.server` setting to `messages` in your `settings.json`:
+To open the output panel, use the `Output: Show Output Channels` command in the command palette
+(`Ctrl+Shift+P` or `Cmd+Shift+P`), then select "Ruff" or "Ruff Language Server". Alternatively,
+you can use the `Ruff: Show client logs` and `Ruff: Show server logs` command to open the "Ruff"
+and "Ruff Language Server" output channel respectively.
+
+The default log level for the extension is `info` which can be changed from the output panel using
+the settings icon in the top right corner of the panel.
+
+The default log level for the language server is `info` which can be changed using the `ruff.logLevel`
+setting in your `settings.json`:
+
+```json
+{
+  "ruff.logLevel": "info"
+}
+```
+
+The language server logs can be directed to a file by setting the `ruff.logFile` setting in
+your `settings.json`:
+
+```json
+{
+  "ruff.logFile": "/path/to/ruff.log"
+}
+```
+
+To capture the LSP messages between the editor and the server, set the `ruff.trace.server`
+setting to either `messages` or `verbose` in your `settings.json`:
 
 ```json
 {
@@ -395,9 +421,10 @@ language server, set the `trace.server` setting to `messages` in your `settings.
 }
 ```
 
-The trace value can also be set to `verbose` for more detailed logs. If you're using the Rust-based
-language server, you can use the `ruff.logLevel` setting to control the log level of the server and
-`ruff.logFile` to write logs to a file instead of the output panel.
+This will be visible in the "Ruff Language Server Trace" output channel. The difference between
+`messages` and `verbose` is that `messages` only logs the method name for both the request
+and response, while `verbose` also logs the request parameters sent by the client and the
+response result sent by the server.
 
 The extension also displays certain information in the status bar. This can be pinned to the status
 bar as a permanent item.
