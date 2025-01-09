@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import { registerLogger, traceError, traceLog, traceVerbose } from "./common/log/logging";
+import { logger } from "./common/logger";
 import {
   checkVersion,
   initializePython,
@@ -17,7 +17,6 @@ import {
 import { loadServerDefaults } from "./common/setup";
 import { registerLanguageStatusItem, updateStatus } from "./common/status";
 import {
-  createOutputChannel,
   getConfiguration,
   onDidChangeConfiguration,
   onDidGrantWorkspaceTrust,
@@ -38,14 +37,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const serverName = serverInfo.name;
   const serverId = serverInfo.module;
 
-  // Setup logging
-  const outputChannel = createOutputChannel(serverName);
-  context.subscriptions.push(outputChannel, registerLogger(outputChannel));
-
   // Log Server information
-  traceLog(`Name: ${serverInfo.name}`);
-  traceLog(`Module: ${serverInfo.module}`);
-  traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
+  logger.info(`Name: ${serverInfo.name}`);
+  logger.info(`Module: ${serverInfo.module}`);
+  logger.debug(`Full Server Info: ${JSON.stringify(serverInfo)}`);
+
+  context.subscriptions.push(logger.channel);
 
   context.subscriptions.push(
     onDidChangeConfiguration((event) => {
@@ -59,7 +56,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const { enable } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
-    traceLog(
+    logger.info(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
     );
     return;
@@ -68,7 +65,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (restartInProgress) {
     if (!restartQueued) {
       // Schedule a new restart after the current restart.
-      traceLog(`Triggered ${serverName} restart while restart is in progress; queuing a restart.`);
+      logger.info(
+        `Triggered ${serverName} restart while restart is in progress; queuing a restart.`,
+      );
       restartQueued = true;
     }
     return;
@@ -78,7 +77,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (restartInProgress) {
       if (!restartQueued) {
         // Schedule a new restart after the current restart.
-        traceLog(
+        logger.info(
           `Triggered ${serverName} restart while restart is in progress; queuing a restart.`,
         );
         restartQueued = true;
@@ -102,7 +101,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             vscode.l10n.t("Please select a Python interpreter."),
             vscode.LanguageStatusSeverity.Error,
           );
-          traceError(
+          logger.error(
             "Python interpreter missing:\r\n" +
               "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
               `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
@@ -111,14 +110,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           return;
         }
 
-        traceLog(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
+        logger.info(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
         const resolvedEnvironment = await resolveInterpreter(workspaceSettings.interpreter);
         if (resolvedEnvironment === undefined) {
           updateStatus(
             vscode.l10n.t("Python interpreter not found."),
             vscode.LanguageStatusSeverity.Error,
           );
-          traceError(
+          logger.error(
             "Unable to find any Python environment for the interpreter path:",
             workspaceSettings.interpreter.join(" "),
           );
@@ -128,13 +127,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
       }
 
-      lsClient = await startServer(
-        projectRoot,
-        workspaceSettings,
-        serverId,
-        serverName,
-        outputChannel,
-      );
+      lsClient = await startServer(projectRoot, workspaceSettings, serverId, serverName);
     } finally {
       // Ensure that we reset the flag in case of an error, early return, or success.
       restartInProgress = false;
@@ -158,7 +151,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await runServer();
     }),
     registerCommand(`${serverId}.showLogs`, async () => {
-      outputChannel.show();
+      logger.channel.show();
     }),
     registerCommand(`${serverId}.restart`, async () => {
       await runServer();
@@ -259,9 +252,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (vscode.workspace.isTrusted) {
       const interpreter = getInterpreterFromSetting(serverId);
       if (interpreter === undefined || interpreter.length === 0) {
-        traceLog(`Python extension loading`);
+        logger.info(`Python extension loading`);
         await initializePython(context.subscriptions);
-        traceLog(`Python extension loaded`);
+        logger.info(`Python extension loaded`);
         return; // The `onDidChangePythonInterpreter` event will trigger the server start.
       }
     }

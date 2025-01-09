@@ -20,16 +20,17 @@ e2e-tests: setup
   npm run tests
 
 check:
-  ruff check ./bundled/tool ./build ./tests
-  ruff format --check ./bundled/tool ./build ./tests
+  ruff check ./bundled/tool ./build ./tests ./scripts
+  ruff format --check ./bundled/tool ./build ./tests ./scripts
+  uvx --with=types-requests --with=tomli --with=tomlkit --with=packaging --with=rich-argparse mypy scripts/release.py --strict --warn-unreachable --enable-error-code=possibly-undefined --enable-error-code=redundant-expr --enable-error-code=truthy-bool
   mypy ./bundled/tool ./build ./tests
   npm run fmt-check
   npm run lint
   npm run tsc
 
 fmt:
-  ruff check --fix ./bundled/tool ./build ./tests
-  ruff format ./bundled/tool ./build ./tests
+  ruff check --fix ./bundled/tool ./build ./tests ./scripts
+  ruff format ./bundled/tool ./build ./tests ./scripts
   npm run fmt
 
 build-package: setup
@@ -41,3 +42,6 @@ clean:
   rm -rf node_modules
   rm -rf .vscode-test
   rm -rf bundled/libs
+
+release:
+  uv run --python=3.7 scripts/release.py

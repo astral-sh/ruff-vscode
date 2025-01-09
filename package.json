@@ -1,8 +1,8 @@
 {
   "name": "ruff",
   "displayName": "Ruff",
-  "description": "A Visual Studio Code extension with support for the Ruff linter.",
-  "version": "2024.50.0",
+  "description": "A Visual Studio Code extension with support for the Ruff linter and formatter.",
+  "version": "2024.56.0",
   "serverInfo": {
     "name": "Ruff",
     "module": "ruff"
@@ -25,6 +25,7 @@
   "keywords": [
     "python",
     "linting",
+    "formatting",
     "ruff"
   ],
   "engines": {
@@ -431,9 +432,14 @@
         "command": "ruff.restart"
       },
       {
-        "title": "Show logs",
+        "title": "Show client logs",
         "category": "Ruff",
         "command": "ruff.showLogs"
+      },
+      {
+        "title": "Show server logs",
+        "category": "Ruff",
+        "command": "ruff.showServerLogs"
       }
     ]
   },
@@ -453,10 +459,11 @@
     "@typescript-eslint/parser": "^5.59.2",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^2.19.0",
+    "@vscode/vsce": "^3.1.1",
     "eslint": "^8.30.0",
     "eslint-plugin-prettier": "^4.2.1",
     "glob": "^10.2.2",
+    "ovsx": "^0.10.0",
     "prettier": "^2.8.8",
     "ts-loader": "^9.4.2",
     "typescript": "^5.1.3",

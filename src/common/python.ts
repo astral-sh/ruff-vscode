@@ -1,5 +1,5 @@
 import { commands, Disposable, Event, EventEmitter, Uri } from "vscode";
-import { traceError, traceLog } from "./log/logging";
+import { logger } from "./logger";
 import { PythonExtension, ResolvedEnvironment } from "@vscode/python-extension";
 
 export interface IInterpreterDetails {
@@ -31,11 +31,11 @@ export async function initializePython(disposables: Disposable[]): Promise<void>
         }),
       );
 
-      traceLog("Waiting for interpreter from python extension.");
+      logger.info("Waiting for interpreter from python extension.");
       onDidChangePythonInterpreterEvent.fire(await getInterpreterDetails());
     }
   } catch (error) {
-    traceError("Error initializing python: ", error);
+    logger.error("Error initializing python: ", error);
   }
 }
 
@@ -72,8 +72,8 @@ export function checkVersion(resolved: ResolvedEnvironment): boolean {
   if (version?.major === 3 && version?.minor >= 7) {
     return true;
   }
-  traceError(`Python version ${version?.major}.${version?.minor} is not supported.`);
-  traceError(`Selected python path: ${resolved.executable.uri?.fsPath}`);
-  traceError("Supported versions are 3.7 and above.");
+  logger.error(`Python version ${version?.major}.${version?.minor} is not supported.`);
+  logger.error(`Selected python path: ${resolved.executable.uri?.fsPath}`);
+  logger.error("Supported versions are 3.7 and above.");
   return false;
 }
