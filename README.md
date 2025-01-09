@@ -366,14 +366,15 @@ Finally, to use a common Ruff configuration across all projects, consider creati
 
 ## Commands
 
-| Command                                            | Description                                      |
-| -------------------------------------------------- | ------------------------------------------------ |
-| Ruff: Fix all auto-fixable problems                | Fix all auto-fixable problems.                   |
-| Ruff: Format Imports                               | Organize imports.                                |
-| Ruff: Format Document                              | Format the entire document.                      |
-| Ruff: Restart Server                               | Force restart the linter server.                 |
-| Ruff: Print debug information (native server only) | Print debug information about the native server. |
-| Ruff: Show logs                                    | Open the Ruff output channel.                    |
+| Command                                            | Description                                     |
+| -------------------------------------------------- | ----------------------------------------------- |
+| Ruff: Fix all auto-fixable problems                | Fix all auto-fixable problems                   |
+| Ruff: Format Imports                               | Organize imports                                |
+| Ruff: Format Document                              | Format the entire document                      |
+| Ruff: Restart Server                               | Force restart the linter server                 |
+| Ruff: Print debug information (native server only) | Print debug information about the native server |
+| Ruff: Show client logs                             | Open the Ruff output channel                    |
+| Ruff: Show server logs                             | Open the Ruff Language Server output channel    |
 
 ## Requirements
 
