@@ -96,13 +96,13 @@ async function validateUsingExecutable(executable: string, strategy: string) {
       const message = `Skip unsupported executable from ${strategy}: ${executable} (Reqiuired at least ${versionToString(
         MINIMUM_SUPPORTED_EXECUTABLE_VERSION,
       )}, but found ${versionToString(ruffVersion)} instead)`;
-      traceError(message);
+      logger.error(message);
       return false;
     }
-    traceInfo(`Using ${strategy}: ${executable}`);
+    logger.info(`Using ${strategy}: ${executable}`);
     return true;
   } catch (ex) {
-    traceInfo(`Skip invalid executable from ${strategy}: ${executable}`);
+    logger.info(`Skip invalid executable from ${strategy}: ${executable}`);
     return false;
   }
 }
