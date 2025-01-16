@@ -131,7 +131,10 @@ async function findRuffBinaryPath(settings: ISettings): Promise<string> {
   // 'path' setting takes priority over everything.
   if (settings.path.length > 0) {
     for (const path of settings.path) {
-      if (await fsapi.pathExists(path) && await validateUsingExecutable(path, "'path' setting")) {
+      if (
+        (await fsapi.pathExists(path)) &&
+        (await validateUsingExecutable(path, "'path' setting"))
+      ) {
         return path;
       }
     }
@@ -163,13 +166,20 @@ async function findRuffBinaryPath(settings: ISettings): Promise<string> {
   }
 
   // First choice: the executable found by the script.
-  if (ruffBinaryPath && ruffBinaryPath.length > 0 && await validateUsingExecutable(ruffBinaryPath, "the Ruff binary")) {
+  if (
+    ruffBinaryPath &&
+    ruffBinaryPath.length > 0 &&
+    (await validateUsingExecutable(ruffBinaryPath, "the Ruff binary"))
+  ) {
     return ruffBinaryPath;
   }
 
   // Second choice: the executable in the global environment.
   const environmentPath = await which(RUFF_BINARY_NAME, { nothrow: true });
-  if (environmentPath && await validateUsingExecutable(environmentPath, "environment executable")) {
+  if (
+    environmentPath &&
+    (await validateUsingExecutable(environmentPath, "environment executable"))
+  ) {
     return environmentPath;
   }
 
@@ -387,7 +397,8 @@ async function resolveNativeServerSetting(
       }
 
       logger.info(
-        `Resolved '${serverId}.nativeServer: auto' to use the ${useNativeServer ? "native" : "legacy (ruff-lsp)"
+        `Resolved '${serverId}.nativeServer: auto' to use the ${
+          useNativeServer ? "native" : "legacy (ruff-lsp)"
         } server`,
       );
       return { useNativeServer, executable: { path: ruffBinaryPath, version: ruffVersion } };
