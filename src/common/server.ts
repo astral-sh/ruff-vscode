@@ -387,8 +387,7 @@ async function resolveNativeServerSetting(
       }
 
       logger.info(
-        `Resolved '${serverId}.nativeServer: auto' to use the ${
-          useNativeServer ? "native" : "legacy (ruff-lsp)"
+        `Resolved '${serverId}.nativeServer: auto' to use the ${useNativeServer ? "native" : "legacy (ruff-lsp)"
         } server`,
       );
       return { useNativeServer, executable: { path: ruffBinaryPath, version: ruffVersion } };
