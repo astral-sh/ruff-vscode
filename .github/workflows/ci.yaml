@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, skip-invalid]
   pull_request:
     branches: [main]
 
