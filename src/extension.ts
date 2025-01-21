@@ -127,7 +127,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
       }
 
-      lsClient = await startServer(projectRoot, workspaceSettings, serverId, serverName);
+      lsClient = await startServer(context, projectRoot, workspaceSettings, serverId, serverName);
     } finally {
       // Ensure that we reset the flag in case of an error, early return, or success.
       restartInProgress = false;
