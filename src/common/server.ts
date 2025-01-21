@@ -416,6 +416,7 @@ async function createServer(
 let _disposables: Disposable[] = [];
 
 export async function startServer(
+  context: vscode.ExtensionContext,
   projectRoot: vscode.WorkspaceFolder,
   workspaceSettings: ISettings,
   serverId: string,
@@ -425,11 +426,13 @@ export async function startServer(
 
   // Create output channels for the server and trace logs
   const outputChannel = vscode.window.createOutputChannel(`${serverName} Language Server`);
-  _disposables.push(outputChannel);
+  context.subscriptions.push(outputChannel);
   const traceOutputChannel = new LazyOutputChannel(`${serverName} Language Server Trace`);
-  _disposables.push(traceOutputChannel);
+  context.subscriptions.push(traceOutputChannel);
   // And, a command to show the server logs
-  _disposables.push(registerCommand(`${serverId}.showServerLogs`, () => outputChannel.show()));
+  context.subscriptions.push(
+    registerCommand(`${serverId}.showServerLogs`, () => outputChannel.show()),
+  );
 
   const extensionSettings = await getExtensionSettings(serverId);
   const globalSettings = await getGlobalSettings(serverId);
