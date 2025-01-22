@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import { logger } from "./common/logger";
+import { LazyOutputChannel, logger } from "./common/logger";
 import {
   checkVersion,
   initializePython,
@@ -42,6 +42,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   logger.info(`Module: ${serverInfo.module}`);
   logger.debug(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
+  // Create output channels for the server and trace logs
+  const outputChannel = vscode.window.createOutputChannel(`${serverName} Language Server`);
+  const traceOutputChannel = new LazyOutputChannel(`${serverName} Language Server Trace`);
+
+  // Make sure that these channels are disposed when the extension is deactivated.
+  context.subscriptions.push(outputChannel);
+  context.subscriptions.push(traceOutputChannel);
   context.subscriptions.push(logger.channel);
 
   context.subscriptions.push(
@@ -127,7 +134,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
       }
 
-      lsClient = await startServer(context, projectRoot, workspaceSettings, serverId, serverName);
+      lsClient = await startServer(
+        projectRoot,
+        workspaceSettings,
+        serverId,
+        serverName,
+        outputChannel,
+        traceOutputChannel,
+      );
     } finally {
       // Ensure that we reset the flag in case of an error, early return, or success.
       restartInProgress = false;
@@ -150,8 +164,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     onDidGrantWorkspaceTrust(async () => {
       await runServer();
     }),
-    registerCommand(`${serverId}.showLogs`, async () => {
+    registerCommand(`${serverId}.showLogs`, () => {
       logger.channel.show();
+    }),
+    registerCommand(`${serverId}.showServerLogs`, () => {
+      outputChannel.show();
     }),
     registerCommand(`${serverId}.restart`, async () => {
       await runServer();

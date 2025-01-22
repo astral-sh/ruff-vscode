@@ -18,7 +18,7 @@ import {
   FIND_RUFF_BINARY_SCRIPT_PATH,
   RUFF_BINARY_NAME,
 } from "./constants";
-import { LazyOutputChannel, logger } from "./logger";
+import { logger } from "./logger";
 import { getDebuggerPath } from "./python";
 import {
   getExtensionSettings,
@@ -39,7 +39,6 @@ import { updateServerKind, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
 import which = require("which");
-import { registerCommand } from "./vscodeapi";
 
 export type IInitializationOptions = {
   settings: ISettings[];
@@ -416,23 +415,14 @@ async function createServer(
 let _disposables: Disposable[] = [];
 
 export async function startServer(
-  context: vscode.ExtensionContext,
   projectRoot: vscode.WorkspaceFolder,
   workspaceSettings: ISettings,
   serverId: string,
   serverName: string,
+  outputChannel: OutputChannel,
+  traceOutputChannel: OutputChannel,
 ): Promise<LanguageClient | undefined> {
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
-
-  // Create output channels for the server and trace logs
-  const outputChannel = vscode.window.createOutputChannel(`${serverName} Language Server`);
-  context.subscriptions.push(outputChannel);
-  const traceOutputChannel = new LazyOutputChannel(`${serverName} Language Server Trace`);
-  context.subscriptions.push(traceOutputChannel);
-  // And, a command to show the server logs
-  context.subscriptions.push(
-    registerCommand(`${serverId}.showServerLogs`, () => outputChannel.show()),
-  );
 
   const extensionSettings = await getExtensionSettings(serverId);
   const globalSettings = await getGlobalSettings(serverId);
