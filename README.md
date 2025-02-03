@@ -339,6 +339,12 @@ Finally, to use a common Ruff configuration across all projects, consider creati
 
 #### Python-based language server (`ruff-lsp`)
 
+> [!WARNING]
+>
+> [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) is deprecated and will be
+> removed in a future release. Please switch to the Rust-based language server
+> (`ruff server`) instead.
+
 If you're using the default Python-based language server, you can use the `ruff.lint.args` and
 `ruff.format.args` settings in `settings.json` to pass command-line arguments to Ruff.
 
