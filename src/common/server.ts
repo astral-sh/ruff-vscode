@@ -271,6 +271,19 @@ function showWarningMessageWithLogs(message: string) {
   });
 }
 
+function legacyServerDeprecationWarning(ruffVersion: VersionInfo) {
+  const message =
+    "`ruff-lsp` is deprecated:\r\n" +
+    `[Option 1] Upgrade the Ruff version to >= 0.3.5 (found ${versionToString(ruffVersion)})\r\n` +
+    "[Option 2] [Pin the extension version](https://stackoverflow.com/questions/42626065/vs-code-how-to-rollback-extension-install-specific-extension-version) to 2025.4.0 to keep using ruff-lsp\r\n" +
+    "Refer to the [setup guide](https://docs.astral.sh/ruff/editors/setup/) on " +
+    "how to set up the native language server and the " +
+    "[migration guide](https://docs.astral.sh/ruff/editors/migration/) on how to migrate the settings. " +
+    "Feel free to comment on the [GitHub discussion](https://github.com/astral-sh/ruff/discussions/15991) to ask questions or share feedback.";
+  showWarningMessageWithLogs(message);
+  logger.warn(message);
+}
+
 function legacyServerSettingsWarning(settings: string[]) {
   showWarningMessageWithLogs(
     "Unsupported settings used with the native server. Refer to the logs for more details.",
@@ -306,6 +319,8 @@ async function resolveNativeServerSetting(
 ): Promise<{ useNativeServer: boolean; executable: RuffExecutable | undefined }> {
   let useNativeServer: boolean;
   let executable: RuffExecutable | undefined;
+  let ruffBinaryPath: string;
+  let ruffVersion: VersionInfo;
 
   switch (settings.nativeServer) {
     case "on":
@@ -325,11 +340,19 @@ async function resolveNativeServerSetting(
         return { useNativeServer: true, executable };
       }
 
+      ruffBinaryPath = await findRuffBinaryPath(settings);
+      ruffVersion = await getRuffVersion(ruffBinaryPath);
+
+      // For versions >= 0.3.5, `ruff-lsp` will show the deprecation warning.
+      if (!supportsNativeServer(ruffVersion)) {
+        legacyServerDeprecationWarning(ruffVersion);
+      }
+
       let nativeServerSettings = getUserSetNativeServerSettings(serverId, workspace);
       if (nativeServerSettings.length > 0) {
         nativeServerSettingsWarning(nativeServerSettings);
       }
-      return { useNativeServer: false, executable };
+      return { useNativeServer: false, executable: { path: ruffBinaryPath, version: ruffVersion } };
     case "auto":
       if (!vscode.workspace.isTrusted) {
         logger.info(
@@ -338,8 +361,8 @@ async function resolveNativeServerSetting(
         return { useNativeServer: true, executable };
       }
 
-      const ruffBinaryPath = await findRuffBinaryPath(settings);
-      const ruffVersion = await getRuffVersion(ruffBinaryPath);
+      ruffBinaryPath = await findRuffBinaryPath(settings);
+      ruffVersion = await getRuffVersion(ruffBinaryPath);
 
       if (supportsStableNativeServer(ruffVersion)) {
         const legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
@@ -363,6 +386,13 @@ async function resolveNativeServerSetting(
           );
         }
         useNativeServer = false;
+      }
+
+      if (!useNativeServer) {
+        // For versions >= 0.3.5, `ruff-lsp` will show the deprecation warning.
+        if (!supportsNativeServer(ruffVersion)) {
+          legacyServerDeprecationWarning(ruffVersion);
+        }
       }
 
       logger.info(
