@@ -19,7 +19,7 @@ jobs:
       NIGHTLY_BUILD_ID: ${{ steps.nightly-build-id-generator.outputs.BUILD_ID }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.FETCH_DEPTH }}
       - uses: actions/setup-python@v5
@@ -84,7 +84,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
@@ -160,7 +160,7 @@ jobs:
 
       # Upload the extension.
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.target }}
           path: ./dist
@@ -177,44 +177,44 @@ jobs:
           node-version: 22
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
       # Download all built artifacts.
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-apple-darwin
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-apple-darwin
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-unknown-linux-gnu
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-unknown-linux-gnu
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-arm-unknown-linux-gnueabihf
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-pc-windows-msvc
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-pc-windows-msvc
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-unknown-linux-musl
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-unknown-linux-musl
           path: dist
@@ -242,44 +242,44 @@ jobs:
           node-version: 22
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
       # Download all built artifacts.
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-apple-darwin
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-apple-darwin
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-unknown-linux-gnu
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-unknown-linux-gnu
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-arm-unknown-linux-gnueabihf
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-pc-windows-msvc
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-pc-windows-msvc
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-unknown-linux-musl
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-aarch64-unknown-linux-musl
           path: dist
