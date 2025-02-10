@@ -241,6 +241,8 @@ async function createLegacyServer(
 
   // Set notification type
   newEnv.LS_SHOW_NOTIFICATION = settings.showNotifications;
+  // Signal `ruff-lsp` to not show deprecation warning as it's handled by the extension.
+  newEnv.LS_SHOW_DEPRECATION_WARNING = "False";
 
   const args =
     newEnv.USE_DEBUGPY === "False" || !isDebugScript
@@ -281,9 +283,9 @@ type RuffExecutable = {
   version: VersionInfo;
 };
 
-const ruffLspUrl = "https://github.com/astral-sh/ruff-lsp";
-const migrationUrl = "https://docs.astral.sh/ruff/editors/migration/";
-const gitHubDiscussionMessage =
+const RUFF_LSP_URL = "https://github.com/astral-sh/ruff-lsp";
+const LSP_MIGRATION_URL = "https://docs.astral.sh/ruff/editors/migration/";
+const LSP_DEPRECATION_DISCUSSION_MESSAGE =
   "Feel free to comment on the [GitHub discussion](https://github.com/astral-sh/ruff/discussions/15991) to ask questions or share feedback.";
 
 async function resolveNativeServerSetting(
@@ -302,10 +304,10 @@ async function resolveNativeServerSetting(
       if (legacyServerSettings.length > 0) {
         // User has explicitly set the native server to 'on' but still has legacy server settings.
         showWarningMessage(
-          `Following settings have been deprecated in the native server: ${JSON.stringify(
+          `The following settings have been deprecated in the native server: ${JSON.stringify(
             legacyServerSettings,
-          )}. Please [migrate](${migrationUrl}) to the new settings or remove them. ` +
-            gitHubDiscussionMessage,
+          )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. ` +
+            LSP_DEPRECATION_DISCUSSION_MESSAGE,
         );
       }
       return { useNativeServer: true, executable };
@@ -313,7 +315,7 @@ async function resolveNativeServerSetting(
     case false:
       if (!vscode.workspace.isTrusted) {
         const message =
-          `Cannot use the legacy server ([ruff-lsp](${ruffLspUrl})) in an untrusted workspace; ` +
+          `Cannot use the legacy server ([ruff-lsp](${RUFF_LSP_URL})) in an untrusted workspace; ` +
           "switching to the native server using the bundled executable.";
         vscode.window.showWarningMessage(message);
         logger.warn(message);
@@ -322,16 +324,16 @@ async function resolveNativeServerSetting(
 
       // User has explicitly set the native server to 'off'. Recommend them to upgrade to the native server ...
       let message =
-        `Legacy server ([ruff-lsp](${ruffLspUrl})) has been deprecated. ` +
+        `The legacy server ([ruff-lsp](${RUFF_LSP_URL})) has been deprecated. ` +
         `Please consider using the native server instead by removing '${serverId}.nativeServer' or setting it to 'on'. `;
       legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
       if (legacyServerSettings.length > 0) {
         // ... and update the message if they have legacy server settings.
-        message += `Following settings are not supported with the native server and have been deprecated: ${JSON.stringify(
+        message += `The following settings are not supported with the native server and have been deprecated: ${JSON.stringify(
           legacyServerSettings,
-        )}. Please [migrate](${migrationUrl}) to the new settings or remove them. `;
+        )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. `;
       }
-      message += gitHubDiscussionMessage;
+      message += LSP_DEPRECATION_DISCUSSION_MESSAGE;
       showWarningMessage(message);
 
       return { useNativeServer: false, executable };
@@ -353,7 +355,9 @@ async function resolveNativeServerSetting(
         logger.info(
           `Stable version of the native server requires Ruff ${versionToString(
             NATIVE_SERVER_STABLE_VERSION,
-          )}, but found ${versionToString(ruffVersion)} at ${ruffBinaryPath} instead`,
+          )}, but found ${versionToString(
+            ruffVersion,
+          )} at ${ruffBinaryPath} instead; using the legacy server (ruff-lsp)`,
         );
         // Ruff version does not include the stable native server.
         useNativeServer = false;
@@ -366,15 +370,13 @@ async function resolveNativeServerSetting(
       }
 
       if (!useNativeServer) {
-        let message =
-          `Legacy server ([ruff-lsp](${ruffLspUrl})) has been deprecated. ` +
-          `Please consider using the native server instead by setting '${serverId}.nativeServer' to 'on'. `;
+        let message = `The legacy server ([ruff-lsp](${RUFF_LSP_URL})) has been deprecated. `;
         if (legacyServerSettings.length > 0) {
-          message += `Following settings are not supported with the native server and have been deprecated: ${JSON.stringify(
+          message += `The following settings were only supported by the legacy server and has been deprecated: ${JSON.stringify(
             legacyServerSettings,
-          )}. Please [migrate](${migrationUrl}) to the new settings or remove them. `;
+          )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. `;
         }
-        message += gitHubDiscussionMessage;
+        message += LSP_DEPRECATION_DISCUSSION_MESSAGE;
         showWarningMessage(message);
       }
 
