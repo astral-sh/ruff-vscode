@@ -13,6 +13,7 @@ import {
   getInterpreterFromSetting,
   getWorkspaceSettings,
   ISettings,
+  checkNotebookCodeActionsOnSave,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
 import { registerLanguageStatusItem, updateStatus } from "./common/status";
@@ -264,6 +265,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
     registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),
   );
+
+  checkNotebookCodeActionsOnSave(serverId);
 
   setImmediate(async () => {
     if (vscode.workspace.isTrusted) {
