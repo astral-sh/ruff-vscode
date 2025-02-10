@@ -334,39 +334,19 @@ function getPreferredGlobalSetting<T>(
 
 /**
  * Get the settings that were explicitly set by the user that are only relevant
- * to the native server.
- */
-export function getUserSetNativeServerSettings(
-  namespace: string,
-  workspace: WorkspaceFolder,
-): string[] {
-  const settings = [
-    "configuration",
-    "configurationPreference",
-    "exclude",
-    "lineLength",
-    "lint.preview",
-    "lint.select",
-    "lint.extendSelect",
-    "lint.ignore",
-    "lint.extendIgnore",
-    "format.preview",
-  ];
-  const config = getConfiguration(namespace, workspace);
-  return settings
-    .filter((s) => isSettingExplicitlySetByUser(config, s))
-    .map((s) => `${namespace}.${s}`);
-}
-
-/**
- * Get the settings that were explicitly set by the user that are only relevant
  * to the legacy server.
  */
 export function getUserSetLegacyServerSettings(
   namespace: string,
   workspace: WorkspaceFolder,
 ): string[] {
-  const settings = ["ignoreStandardLibrary", "lint.run", "lint.args", "format.args"];
+  const settings = [
+    "showNotifications",
+    "ignoreStandardLibrary",
+    "lint.run",
+    "lint.args",
+    "format.args",
+  ];
   const config = getConfiguration(namespace, workspace);
   return settings
     .filter((s) => isSettingExplicitlySetByUser(config, s))
