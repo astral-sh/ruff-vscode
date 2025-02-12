@@ -344,9 +344,9 @@ export type LegacyServerSetting = {
  * Represents the location where a setting was explicitly set by the user.
  */
 export enum SettingLocation {
-  Global = "user settings",
-  Workspace = "workspace settings",
-  WorkspaceFolder = "workspace folder settings",
+  global = "user settings",
+  workspace = "workspace settings",
+  workspaceFolder = "workspace folder settings",
 }
 
 /**
@@ -383,13 +383,13 @@ function settingLocationExplicitlySetByUser(
 ): SettingLocation | null {
   const inspect = config.inspect(section);
   if (inspect?.workspaceFolderValue !== undefined) {
-    return SettingLocation.WorkspaceFolder;
+    return SettingLocation.workspaceFolder;
   }
   if (inspect?.workspaceValue !== undefined) {
-    return SettingLocation.Workspace;
+    return SettingLocation.workspace;
   }
   if (inspect?.globalValue !== undefined) {
-    return SettingLocation.Global;
+    return SettingLocation.global;
   }
   return null;
 }
