@@ -333,13 +333,30 @@ function getPreferredGlobalSetting<T>(
 }
 
 /**
+ * Represents the legacy server settings that were explicitly set by the user.
+ */
+export type LegacyServerSetting = {
+  key: string;
+  location: SettingLocation;
+};
+
+/**
+ * Represents the location where a setting was explicitly set by the user.
+ */
+export enum SettingLocation {
+  Global = "user settings",
+  Workspace = "workspace settings",
+  WorkspaceFolder = "workspace folder settings",
+}
+
+/**
  * Get the settings that were explicitly set by the user that are only relevant
  * to the legacy server.
  */
 export function getUserSetLegacyServerSettings(
   namespace: string,
   workspace: WorkspaceFolder,
-): string[] {
+): LegacyServerSetting[] {
   const settings = [
     "showNotifications",
     "ignoreStandardLibrary",
@@ -349,18 +366,30 @@ export function getUserSetLegacyServerSettings(
   ];
   const config = getConfiguration(namespace, workspace);
   return settings
-    .filter((s) => isSettingExplicitlySetByUser(config, s))
-    .map((s) => `${namespace}.${s}`);
+    .map((setting) => {
+      const location = settingLocationExplicitlySetByUser(config, setting);
+      return location !== null ? { key: `${namespace}.${setting}`, location } : null;
+    })
+    .filter((setting): setting is LegacyServerSetting => setting !== null);
 }
 
 /**
- * Check if a setting was explicitly set by the user.
+ * Return the location where a setting was explicitly set by the user or `null`
+ * if it was not explicitly set.
  */
-function isSettingExplicitlySetByUser(config: WorkspaceConfiguration, section: string): boolean {
+function settingLocationExplicitlySetByUser(
+  config: WorkspaceConfiguration,
+  section: string,
+): SettingLocation | null {
   const inspect = config.inspect(section);
-  return (
-    inspect?.globalValue !== undefined ||
-    inspect?.workspaceValue !== undefined ||
-    inspect?.workspaceFolderValue !== undefined
-  );
+  if (inspect?.workspaceFolderValue !== undefined) {
+    return SettingLocation.WorkspaceFolder;
+  }
+  if (inspect?.workspaceValue !== undefined) {
+    return SettingLocation.Workspace;
+  }
+  if (inspect?.globalValue !== undefined) {
+    return SettingLocation.Global;
+  }
+  return null;
 }
