@@ -25,6 +25,7 @@ import {
   getGlobalSettings,
   getUserSetLegacyServerSettings,
   ISettings,
+  LegacyServerSetting,
 } from "./settings";
 import {
   supportsNativeServer,
@@ -288,6 +289,10 @@ const LSP_MIGRATION_URL = "https://docs.astral.sh/ruff/editors/migration/";
 const LSP_DEPRECATION_DISCUSSION_MESSAGE =
   "Feel free to comment on the [GitHub discussion](https://github.com/astral-sh/ruff/discussions/15991) to ask questions or share feedback.";
 
+function formatLegacyServerSettings(settings: LegacyServerSetting[]): string {
+  return settings.map((s) => `'${s.key}' in ${s.location}`).join(", ");
+}
+
 async function resolveNativeServerSetting(
   settings: ISettings,
   workspace: vscode.WorkspaceFolder,
@@ -295,7 +300,7 @@ async function resolveNativeServerSetting(
 ): Promise<{ useNativeServer: boolean; executable: RuffExecutable | undefined }> {
   let useNativeServer: boolean;
   let executable: RuffExecutable | undefined;
-  let legacyServerSettings: string[];
+  let legacyServerSettings: LegacyServerSetting[];
 
   switch (settings.nativeServer) {
     case "on":
@@ -304,7 +309,7 @@ async function resolveNativeServerSetting(
       if (legacyServerSettings.length > 0) {
         // User has explicitly set the native server to 'on' but still has legacy server settings.
         showWarningMessage(
-          `The following settings have been deprecated in the native server: ${JSON.stringify(
+          `The following settings have been deprecated in the native server: ${formatLegacyServerSettings(
             legacyServerSettings,
           )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. ` +
             LSP_DEPRECATION_DISCUSSION_MESSAGE,
@@ -329,7 +334,7 @@ async function resolveNativeServerSetting(
       legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
       if (legacyServerSettings.length > 0) {
         // ... and update the message if they have legacy server settings.
-        message += `The following settings are not supported with the native server and have been deprecated: ${JSON.stringify(
+        message += `The following settings are not supported with the native server and have been deprecated: ${formatLegacyServerSettings(
           legacyServerSettings,
         )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. `;
       }
@@ -372,7 +377,7 @@ async function resolveNativeServerSetting(
       if (!useNativeServer) {
         let message = `The legacy server ([ruff-lsp](${RUFF_LSP_URL})) has been deprecated. `;
         if (legacyServerSettings.length > 0) {
-          message += `The following settings were only supported by the legacy server and has been deprecated: ${JSON.stringify(
+          message += `The following settings were only supported by the legacy server and has been deprecated: ${formatLegacyServerSettings(
             legacyServerSettings,
           )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. `;
         }
