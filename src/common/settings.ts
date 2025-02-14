@@ -7,6 +7,7 @@ import {
 } from "vscode";
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
+import { logger } from "./logger";
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
 
@@ -330,6 +331,56 @@ function getPreferredGlobalSetting<T>(
   }
 
   return newSettings?.defaultValue;
+}
+
+/**
+ * Check if the user have configured `notebook.codeActionsOnSave` with non-notebook prefixed code actions.
+ */
+export function checkNotebookCodeActionsOnSave(serverId: string) {
+  getWorkspaceFolders().forEach((workspace) => {
+    let codeActionsOnSave: string[] = (() => {
+      const value = getConfiguration("notebook", workspace.uri).get<string[] | object>(
+        "codeActionsOnSave",
+        [],
+      );
+      if (typeof value === "object") {
+        return Object.keys(value);
+      }
+      return value;
+    })();
+
+    const genericCodeActions = codeActionsOnSave.filter(
+      (action) => action === "source.organizeImports" || action === "source.fixAll",
+    );
+
+    const ruffCodeActions = codeActionsOnSave.filter(
+      (action) =>
+        action === `source.organizeImports.${serverId}` || action === `source.fixAll.${serverId}`,
+    );
+
+    if (genericCodeActions.length > 0) {
+      // This is at info level because other extensions might be using these code actions but we still want to inform the user.
+      logger.info(
+        `The following code actions in 'notebook.codeActionsOnSave' could lead to unexpected behavior: ${JSON.stringify(
+          genericCodeActions,
+        )}. Consider using ${JSON.stringify(
+          genericCodeActions.map((action) => `notebook.${action}`),
+        )} instead.`,
+      );
+    }
+
+    if (ruffCodeActions.length > 0) {
+      const message = `The following code actions in 'notebook.codeActionsOnSave' will lead to unexpected behavior: ${JSON.stringify(
+        ruffCodeActions,
+      )}. Please use ${JSON.stringify(
+        ruffCodeActions.map((action) => `notebook.${action}`),
+      )} instead.`;
+
+      logger.warn(message);
+      // Only show a warning if there are Ruff-specific code actions configured.
+      vscode.window.showWarningMessage(message);
+    }
+  });
 }
 
 /**
