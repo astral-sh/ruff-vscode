@@ -365,7 +365,7 @@ export function checkNotebookCodeActionsOnSave(serverId: string) {
           genericCodeActions,
         )}. Consider using ${JSON.stringify(
           genericCodeActions.map((action) => `notebook.${action}`),
-        )} instead.`,
+        )} instead. For more information, refer to [this FAQ section](https://docs.astral.sh/ruff/faq/#source-code-actions-in-notebooks).`,
       );
     }
 
@@ -374,7 +374,7 @@ export function checkNotebookCodeActionsOnSave(serverId: string) {
         ruffCodeActions,
       )}. Please use ${JSON.stringify(
         ruffCodeActions.map((action) => `notebook.${action}`),
-      )} instead.`;
+      )} instead. For more information, refer to [this FAQ section](https://docs.astral.sh/ruff/faq/#source-code-actions-in-notebooks).`;
 
       logger.warn(message);
       // Only show a warning if there are Ruff-specific code actions configured.
