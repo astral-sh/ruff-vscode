@@ -194,8 +194,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         return;
       }
 
+      const editor = vscode.window.activeTextEditor;
       const params = {
         command: `${serverId}.printDebugInformation`,
+        arguments: [
+          {
+            textDocument: editor ? { uri: editor.document.uri.toString() } : null,
+          },
+        ],
       };
 
       await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
