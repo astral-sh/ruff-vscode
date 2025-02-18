@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
+import { LanguageClient } from "vscode-languageclient/node";
 import { LazyOutputChannel, logger } from "./common/logger";
 import {
   checkVersion,
@@ -24,11 +24,20 @@ import {
   registerCommand,
 } from "./common/vscodeapi";
 import { getProjectRoot } from "./common/utilities";
-import { executeAutofix, executeFormat, executeOrganizeImports } from "./common/commands";
+import {
+  executeAutofix,
+  executeFormat,
+  executeOrganizeImports,
+  createDebugInformationProvider,
+} from "./common/commands";
 
 let lsClient: LanguageClient | undefined;
 let restartInProgress = false;
 let restartQueued = false;
+
+function getClient(): LanguageClient | undefined {
+  return lsClient;
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // This is required to get server name and module. This should be
@@ -188,26 +197,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await executeOrganizeImports(lsClient, serverId);
       }
     }),
-    registerCommand(`${serverId}.debugInformation`, async () => {
-      let configuration = getConfiguration(serverId) as unknown as ISettings;
-      if (!lsClient || !configuration.nativeServer) {
-        return;
-      }
-
-      const editor = vscode.window.activeTextEditor;
-      const params = {
-        command: `${serverId}.printDebugInformation`,
-        arguments: [
-          {
-            textDocument: editor ? { uri: editor.document.uri.toString() } : null,
-          },
-        ],
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage("Failed to print debug information.");
-      });
-    }),
+    registerCommand(
+      `${serverId}.debugInformation`,
+      createDebugInformationProvider(getClient, serverId, context),
+    ),
     registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),
   );
 
