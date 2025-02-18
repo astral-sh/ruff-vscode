@@ -67,12 +67,17 @@ export function createDebugInformationProvider(
       if (!lsClient) {
         return "";
       }
-      const editor = vscode.window.activeTextEditor;
+      const textEditor = vscode.window.activeTextEditor;
+      const notebookEditor = vscode.window.activeNotebookEditor;
       const params = {
         command: `${serverId}.printDebugInformation`,
         arguments: [
           {
-            textDocument: editor ? { uri: editor.document.uri.toString() } : null,
+            textDocument: notebookEditor
+              ? { uri: notebookEditor.notebook.uri.toString() }
+              : textEditor
+              ? { uri: textEditor.document.uri.toString() }
+              : undefined,
           },
         ],
       };
