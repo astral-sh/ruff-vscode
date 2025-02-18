@@ -39,6 +39,11 @@ async function executeCommand(lsClient: LanguageClient, command: string) {
   });
 }
 
+/**
+ * Creates a debug information provider for the `ruff.printDebugInformation` command.
+ *
+ * This will open a new editor window with the debug information considering the active editor.
+ */
 export function createDebugInformationProvider(
   getClient: () => LanguageClient | undefined,
   serverId: string,
@@ -62,15 +67,21 @@ export function createDebugInformationProvider(
       if (!lsClient) {
         return "";
       }
+      const editor = vscode.window.activeTextEditor;
       const params = {
         command: `${serverId}.printDebugInformation`,
-        arguments: [{ uri: vscode.window.activeTextEditor?.document.uri.toString() }],
+        arguments: [
+          {
+            textDocument: editor ? { uri: editor.document.uri.toString() } : null,
+          },
+        ],
       };
       return await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(
         (result) => {
           if (typeof result === "string") {
             return result;
           }
+          // For older Ruff version, we don't return a string but log the information.
           return "";
         },
         async () => {
