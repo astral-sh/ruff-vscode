@@ -23,8 +23,7 @@ import {
   registerCommand,
 } from "./common/vscodeapi";
 import { getProjectRoot } from "./common/utilities";
-
-const issueTracker = "https://github.com/astral-sh/ruff/issues";
+import { executeAutofix, executeFormat, executeOrganizeImports } from "./common/commands";
 
 let lsClient: LanguageClient | undefined;
 let restartInProgress = false;
@@ -174,79 +173,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await runServer();
     }),
     registerCommand(`${serverId}.executeAutofix`, async () => {
-      if (!lsClient) {
-        return;
+      if (lsClient) {
+        await executeAutofix(lsClient, serverId);
       }
-
-      const textEditor = vscode.window.activeTextEditor;
-      if (!textEditor) {
-        return;
-      }
-
-      const textDocument = {
-        uri: textEditor.document.uri.toString(),
-        version: textEditor.document.version,
-      };
-      const params = {
-        command: `${serverId}.applyAutofix`,
-        arguments: [textDocument],
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage(
-          "Failed to apply Ruff fixes to the document. Please consider opening an issue with steps to reproduce.",
-        );
-      });
     }),
     registerCommand(`${serverId}.executeFormat`, async () => {
-      if (!lsClient) {
-        return;
+      if (lsClient) {
+        await executeFormat(lsClient, serverId);
       }
-
-      const textEditor = vscode.window.activeTextEditor;
-      if (!textEditor) {
-        return;
-      }
-
-      const textDocument = {
-        uri: textEditor.document.uri.toString(),
-        version: textEditor.document.version,
-      };
-      const params = {
-        command: `${serverId}.applyFormat`,
-        arguments: [textDocument],
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage(
-          "Failed to apply Ruff formatting to the document. Please consider opening an issue with steps to reproduce.",
-        );
-      });
     }),
     registerCommand(`${serverId}.executeOrganizeImports`, async () => {
-      if (!lsClient) {
-        return;
+      if (lsClient) {
+        await executeOrganizeImports(lsClient, serverId);
       }
-
-      const textEditor = vscode.window.activeTextEditor;
-      if (!textEditor) {
-        return;
-      }
-
-      const textDocument = {
-        uri: textEditor.document.uri.toString(),
-        version: textEditor.document.version,
-      };
-      const params = {
-        command: `${serverId}.applyOrganizeImports`,
-        arguments: [textDocument],
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage(
-          `Failed to apply Ruff fixes to the document. Please consider opening an issue at ${issueTracker} with steps to reproduce.`,
-        );
-      });
     }),
     registerCommand(`${serverId}.debugInformation`, async () => {
       let configuration = getConfiguration(serverId) as unknown as ISettings;
