@@ -396,7 +396,8 @@ output channel and the language server logs are in the "Ruff Language Server" ou
 To open the output panel, use the `Output: Show Output Channels` command in the command palette
 (`Ctrl+Shift+P` or `Cmd+Shift+P`), then select "Ruff" or "Ruff Language Server". Alternatively,
 you can use the `Ruff: Show client logs` and `Ruff: Show server logs` command to open the "Ruff"
-and "Ruff Language Server" output channel respectively.
+and "Ruff Language Server" output channel respectively. The `Ruff: Print debug information` command
+can be used to print debug information which can include details about the current open file.
 
 The default log level for the extension is `info` which can be changed from the output panel using
 the settings icon in the top right corner of the panel.
