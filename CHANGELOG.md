@@ -6,9 +6,9 @@ See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release note
 
 This release upgrades the bundled Ruff version to `v0.9.7` and includes some additional improvements:
 
-* Include the location of the deprecated setting in the warning message ([#688](https://github.com/astral-sh/ruff-vscode/pull/688))
-* Provide a warning if `notebook.codeActionsOnSave` has `source.fixAll.ruff` or `source.organizeImports.ruff` ([#686](https://github.com/astral-sh/ruff-vscode/pull/686))
-* Enhance `Ruff: Print Debug Information` command to include useful information; it now opens in a separate window ([#694](https://github.com/astral-sh/ruff-vscode/pull/694))
+- Include the location of the deprecated setting in the warning message ([#688](https://github.com/astral-sh/ruff-vscode/pull/688))
+- Provide a warning if `notebook.codeActionsOnSave` has `source.fixAll.ruff` or `source.organizeImports.ruff` ([#686](https://github.com/astral-sh/ruff-vscode/pull/686))
+- Enhance `Ruff: Print Debug Information` command to include useful information; it now opens in a separate window ([#694](https://github.com/astral-sh/ruff-vscode/pull/694))
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.8.0...2025.10.0
 
