@@ -275,7 +275,7 @@ jobs:
         with:
           name: dist-ppc64le-unknown-linux-gnu
           path: dist
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist-x86_64-pc-windows-msvc
           path: dist
