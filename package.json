@@ -1,8 +1,8 @@
 {
   "name": "ruff",
   "displayName": "Ruff",
-  "description": "A Visual Studio Code extension with support for the Ruff linter.",
-  "version": "2024.56.0",
+  "description": "A Visual Studio Code extension with support for the Ruff linter and formatter.",
+  "version": "2025.10.0",
   "serverInfo": {
     "name": "Ruff",
     "module": "ruff"
@@ -25,6 +25,7 @@
   "keywords": [
     "python",
     "linting",
+    "formatting",
     "ruff"
   ],
   "engines": {
@@ -119,6 +120,8 @@
         "ruff.lint.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff check`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.\n\n**This setting is not supported by the native server.**",
+          "markdownDeprecationMessage": "**Deprecated**: This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is deprecated in favor of the native language server. Refer to the [migration guide](https://docs.astral.sh/ruff/editors/migration) for more information.",
+          "deprecationMessage": "Deprecated: This setting is only used by ruff-lsp which is deprecated in favor of the native language server.",
           "items": {
             "type": "string"
           },
@@ -193,6 +196,8 @@
             "Run Ruff on every keystroke.",
             "Run Ruff on save."
           ],
+          "markdownDeprecationMessage": "**Deprecated**: This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is deprecated in favor of the native language server. Refer to the [migration guide](https://docs.astral.sh/ruff/editors/migration) for more information.",
+          "deprecationMessage": "Deprecated: This setting is only used by ruff-lsp which is deprecated in favor of the native language server.",
           "scope": "window",
           "type": "string"
         },
@@ -205,6 +210,8 @@
         "ruff.format.args": {
           "default": [],
           "markdownDescription": "Additional command-line arguments to pass to `ruff format`, e.g., `\"args\": [\"--config=/path/to/pyproject.toml\"]`. Supports a subset of Ruff's command-line arguments, ignoring those that are required to operate the LSP, like `--force-exclude` and `--verbose`.\n\n**This setting is not supported by the native server.**",
+          "markdownDeprecationMessage": "**Deprecated**: This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is deprecated in favor of the native language server. Refer to the [migration guide](https://docs.astral.sh/ruff/editors/migration) for more information.",
+          "deprecationMessage": "Deprecated: This setting is only used by ruff-lsp which is deprecated in favor of the native language server.",
           "items": {
             "type": "string"
           },
@@ -242,7 +249,7 @@
         },
         "ruff.interpreter": {
           "default": [],
-          "markdownDescription": "Path to a Python interpreter to use to run the LSP server.",
+          "markdownDescription": "Path to a Python interpreter to use to find the `ruff` executable.",
           "scope": "resource",
           "items": {
             "type": "string"
@@ -308,6 +315,8 @@
         "ruff.ignoreStandardLibrary": {
           "default": true,
           "markdownDescription": "Whether to ignore files that are inferred to be part of the Python standard library.",
+          "markdownDeprecationMessage": "**Deprecated**: This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is deprecated in favor of the native language server. Refer to the [migration guide](https://docs.astral.sh/ruff/editors/migration) for more information.",
+          "deprecationMessage": "Deprecated: This setting is only used by ruff-lsp which is deprecated in favor of the native language server.",
           "scope": "window",
           "type": "boolean"
         },
@@ -343,6 +352,8 @@
         "ruff.showNotifications": {
           "default": "off",
           "markdownDescription": "Controls when notifications are shown by this extension.",
+          "markdownDeprecationMessage": "**Deprecated**: This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is deprecated in favor of the native language server. Refer to the [migration guide](https://docs.astral.sh/ruff/editors/migration) for more information.",
+          "deprecationMessage": "Deprecated: This setting is only used by ruff-lsp which is deprecated in favor of the native language server.",
           "enum": [
             "off",
             "onError",
@@ -431,9 +442,14 @@
         "command": "ruff.restart"
       },
       {
-        "title": "Show logs",
+        "title": "Show client logs",
         "category": "Ruff",
         "command": "ruff.showLogs"
+      },
+      {
+        "title": "Show server logs",
+        "category": "Ruff",
+        "command": "ruff.showServerLogs"
       }
     ]
   },

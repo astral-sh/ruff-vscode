@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import { registerLogger, traceError, traceLog, traceVerbose } from "./common/log/logging";
+import { LanguageClient } from "vscode-languageclient/node";
+import { LazyOutputChannel, logger } from "./common/logger";
 import {
   checkVersion,
   initializePython,
@@ -13,23 +13,31 @@ import {
   getInterpreterFromSetting,
   getWorkspaceSettings,
   ISettings,
+  checkNotebookCodeActionsOnSave,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
 import { registerLanguageStatusItem, updateStatus } from "./common/status";
 import {
-  createOutputChannel,
   getConfiguration,
   onDidChangeConfiguration,
   onDidGrantWorkspaceTrust,
   registerCommand,
 } from "./common/vscodeapi";
 import { getProjectRoot } from "./common/utilities";
-
-const issueTracker = "https://github.com/astral-sh/ruff/issues";
+import {
+  executeAutofix,
+  executeFormat,
+  executeOrganizeImports,
+  createDebugInformationProvider,
+} from "./common/commands";
 
 let lsClient: LanguageClient | undefined;
 let restartInProgress = false;
 let restartQueued = false;
+
+function getClient(): LanguageClient | undefined {
+  return lsClient;
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // This is required to get server name and module. This should be
@@ -38,14 +46,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const serverName = serverInfo.name;
   const serverId = serverInfo.module;
 
-  // Setup logging
-  const outputChannel = createOutputChannel(serverName);
-  context.subscriptions.push(outputChannel, registerLogger(outputChannel));
-
   // Log Server information
-  traceLog(`Name: ${serverInfo.name}`);
-  traceLog(`Module: ${serverInfo.module}`);
-  traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
+  logger.info(`Name: ${serverInfo.name}`);
+  logger.info(`Module: ${serverInfo.module}`);
+  logger.debug(`Full Server Info: ${JSON.stringify(serverInfo)}`);
+
+  // Create output channels for the server and trace logs
+  const outputChannel = vscode.window.createOutputChannel(`${serverName} Language Server`);
+  const traceOutputChannel = new LazyOutputChannel(`${serverName} Language Server Trace`);
+
+  // Make sure that these channels are disposed when the extension is deactivated.
+  context.subscriptions.push(outputChannel);
+  context.subscriptions.push(traceOutputChannel);
+  context.subscriptions.push(logger.channel);
 
   context.subscriptions.push(
     onDidChangeConfiguration((event) => {
@@ -59,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const { enable } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
-    traceLog(
+    logger.info(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
     );
     return;
@@ -68,7 +81,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (restartInProgress) {
     if (!restartQueued) {
       // Schedule a new restart after the current restart.
-      traceLog(`Triggered ${serverName} restart while restart is in progress; queuing a restart.`);
+      logger.info(
+        `Triggered ${serverName} restart while restart is in progress; queuing a restart.`,
+      );
       restartQueued = true;
     }
     return;
@@ -78,7 +93,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (restartInProgress) {
       if (!restartQueued) {
         // Schedule a new restart after the current restart.
-        traceLog(
+        logger.info(
           `Triggered ${serverName} restart while restart is in progress; queuing a restart.`,
         );
         restartQueued = true;
@@ -102,7 +117,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             vscode.l10n.t("Please select a Python interpreter."),
             vscode.LanguageStatusSeverity.Error,
           );
-          traceError(
+          logger.error(
             "Python interpreter missing:\r\n" +
               "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
               `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
@@ -111,14 +126,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           return;
         }
 
-        traceLog(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
+        logger.info(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
         const resolvedEnvironment = await resolveInterpreter(workspaceSettings.interpreter);
         if (resolvedEnvironment === undefined) {
           updateStatus(
             vscode.l10n.t("Python interpreter not found."),
             vscode.LanguageStatusSeverity.Error,
           );
-          traceError(
+          logger.error(
             "Unable to find any Python environment for the interpreter path:",
             workspaceSettings.interpreter.join(" "),
           );
@@ -134,6 +149,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         serverId,
         serverName,
         outputChannel,
+        traceOutputChannel,
       );
     } finally {
       // Ensure that we reset the flag in case of an error, early return, or success.
@@ -157,111 +173,46 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     onDidGrantWorkspaceTrust(async () => {
       await runServer();
     }),
-    registerCommand(`${serverId}.showLogs`, async () => {
+    registerCommand(`${serverId}.showLogs`, () => {
+      logger.channel.show();
+    }),
+    registerCommand(`${serverId}.showServerLogs`, () => {
       outputChannel.show();
     }),
     registerCommand(`${serverId}.restart`, async () => {
       await runServer();
     }),
     registerCommand(`${serverId}.executeAutofix`, async () => {
-      if (!lsClient) {
-        return;
+      if (lsClient) {
+        await executeAutofix(lsClient, serverId);
       }
-
-      const textEditor = vscode.window.activeTextEditor;
-      if (!textEditor) {
-        return;
-      }
-
-      const textDocument = {
-        uri: textEditor.document.uri.toString(),
-        version: textEditor.document.version,
-      };
-      const params = {
-        command: `${serverId}.applyAutofix`,
-        arguments: [textDocument],
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage(
-          "Failed to apply Ruff fixes to the document. Please consider opening an issue with steps to reproduce.",
-        );
-      });
     }),
     registerCommand(`${serverId}.executeFormat`, async () => {
-      if (!lsClient) {
-        return;
+      if (lsClient) {
+        await executeFormat(lsClient, serverId);
       }
-
-      const textEditor = vscode.window.activeTextEditor;
-      if (!textEditor) {
-        return;
-      }
-
-      const textDocument = {
-        uri: textEditor.document.uri.toString(),
-        version: textEditor.document.version,
-      };
-      const params = {
-        command: `${serverId}.applyFormat`,
-        arguments: [textDocument],
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage(
-          "Failed to apply Ruff formatting to the document. Please consider opening an issue with steps to reproduce.",
-        );
-      });
     }),
     registerCommand(`${serverId}.executeOrganizeImports`, async () => {
-      if (!lsClient) {
-        return;
+      if (lsClient) {
+        await executeOrganizeImports(lsClient, serverId);
       }
-
-      const textEditor = vscode.window.activeTextEditor;
-      if (!textEditor) {
-        return;
-      }
-
-      const textDocument = {
-        uri: textEditor.document.uri.toString(),
-        version: textEditor.document.version,
-      };
-      const params = {
-        command: `${serverId}.applyOrganizeImports`,
-        arguments: [textDocument],
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage(
-          `Failed to apply Ruff fixes to the document. Please consider opening an issue at ${issueTracker} with steps to reproduce.`,
-        );
-      });
     }),
-    registerCommand(`${serverId}.debugInformation`, async () => {
-      let configuration = getConfiguration(serverId) as unknown as ISettings;
-      if (!lsClient || !configuration.nativeServer) {
-        return;
-      }
-
-      const params = {
-        command: `${serverId}.printDebugInformation`,
-      };
-
-      await lsClient.sendRequest(ExecuteCommandRequest.type, params).then(undefined, async () => {
-        vscode.window.showErrorMessage("Failed to print debug information.");
-      });
-    }),
+    registerCommand(
+      `${serverId}.debugInformation`,
+      createDebugInformationProvider(getClient, serverId, context),
+    ),
     registerLanguageStatusItem(serverId, serverName, `${serverId}.showLogs`),
   );
+
+  checkNotebookCodeActionsOnSave(serverId);
 
   setImmediate(async () => {
     if (vscode.workspace.isTrusted) {
       const interpreter = getInterpreterFromSetting(serverId);
       if (interpreter === undefined || interpreter.length === 0) {
-        traceLog(`Python extension loading`);
+        logger.info(`Python extension loading`);
         await initializePython(context.subscriptions);
-        traceLog(`Python extension loaded`);
+        logger.info(`Python extension loaded`);
         return; // The `onDidChangePythonInterpreter` event will trigger the server start.
       }
     }

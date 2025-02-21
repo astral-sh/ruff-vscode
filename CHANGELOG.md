@@ -2,6 +2,52 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2025.10.0
+
+This release upgrades the bundled Ruff version to `v0.9.7` and includes some additional improvements:
+
+- Include the location of the deprecated setting in the warning message ([#688](https://github.com/astral-sh/ruff-vscode/pull/688))
+- Provide a warning if `notebook.codeActionsOnSave` has `source.fixAll.ruff` or `source.organizeImports.ruff` ([#686](https://github.com/astral-sh/ruff-vscode/pull/686))
+- Enhance `Ruff: Print Debug Information` command to include useful information; it now opens in a separate window ([#694](https://github.com/astral-sh/ruff-vscode/pull/694))
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.8.0...2025.10.0
+
+## 2025.8.0
+
+This release upgrades the bundled Ruff version to `v0.9.6`, and the bundled `ruff-lsp` version to `0.0.62`.
+
+Additionally, it improves deprecation warning messages for the now deprecated `ruff-lsp`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.6.0...2025.8.0
+
+## 2025.6.0
+
+This release upgrades the bundled Ruff version to `v0.9.5`, and the bundled `ruff-lsp` version to `0.0.61`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.4.0...2025.6.0
+
+## 2025.4.0
+
+This release upgrades the bundled Ruff version to `v0.9.3`.
+
+Additionally, it fixes an issue where the extension might have multiple "Ruff
+Language Server" output channels if the server has been restarted multiple
+times.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.2.0...2025.4.0
+
+## 2025.2.0
+
+This release upgrades the bundled Ruff version to `v0.9.1`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.0.0...2025.2.0
+
+## 2025.0.0
+
+This release upgrades the bundled Ruff version to `v0.9.0`, and the bundled `ruff-lsp` version to `0.0.60`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2024.56.0...2025.0.0
+
 ## 2024.56.0
 
 This release upgrades the bundled Ruff version to `v0.8.0`, and the bundled `ruff-lsp`

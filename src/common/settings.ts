@@ -7,6 +7,7 @@ import {
 } from "vscode";
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
+import { logger } from "./logger";
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
 
@@ -333,29 +334,70 @@ function getPreferredGlobalSetting<T>(
 }
 
 /**
- * Get the settings that were explicitly set by the user that are only relevant
- * to the native server.
+ * Check if the user have configured `notebook.codeActionsOnSave` with non-notebook prefixed code actions.
  */
-export function getUserSetNativeServerSettings(
-  namespace: string,
-  workspace: WorkspaceFolder,
-): string[] {
-  const settings = [
-    "configuration",
-    "configurationPreference",
-    "exclude",
-    "lineLength",
-    "lint.preview",
-    "lint.select",
-    "lint.extendSelect",
-    "lint.ignore",
-    "lint.extendIgnore",
-    "format.preview",
-  ];
-  const config = getConfiguration(namespace, workspace);
-  return settings
-    .filter((s) => isSettingExplicitlySetByUser(config, s))
-    .map((s) => `${namespace}.${s}`);
+export function checkNotebookCodeActionsOnSave(serverId: string) {
+  getWorkspaceFolders().forEach((workspace) => {
+    let codeActionsOnSave: string[] = (() => {
+      const value = getConfiguration("notebook", workspace.uri).get<string[] | object>(
+        "codeActionsOnSave",
+        [],
+      );
+      if (typeof value === "object") {
+        return Object.keys(value);
+      }
+      return value;
+    })();
+
+    const genericCodeActions = codeActionsOnSave.filter(
+      (action) => action === "source.organizeImports" || action === "source.fixAll",
+    );
+
+    const ruffCodeActions = codeActionsOnSave.filter(
+      (action) =>
+        action === `source.organizeImports.${serverId}` || action === `source.fixAll.${serverId}`,
+    );
+
+    if (genericCodeActions.length > 0) {
+      // This is at info level because other extensions might be using these code actions but we still want to inform the user.
+      logger.info(
+        `The following code actions in 'notebook.codeActionsOnSave' could lead to unexpected behavior: ${JSON.stringify(
+          genericCodeActions,
+        )}. Consider using ${JSON.stringify(
+          genericCodeActions.map((action) => `notebook.${action}`),
+        )} instead. For more information, refer to [this FAQ section](https://docs.astral.sh/ruff/faq/#source-code-actions-in-notebooks).`,
+      );
+    }
+
+    if (ruffCodeActions.length > 0) {
+      const message = `The following code actions in 'notebook.codeActionsOnSave' will lead to unexpected behavior: ${JSON.stringify(
+        ruffCodeActions,
+      )}. Please use ${JSON.stringify(
+        ruffCodeActions.map((action) => `notebook.${action}`),
+      )} instead. For more information, refer to [this FAQ section](https://docs.astral.sh/ruff/faq/#source-code-actions-in-notebooks).`;
+
+      logger.warn(message);
+      // Only show a warning if there are Ruff-specific code actions configured.
+      vscode.window.showWarningMessage(message);
+    }
+  });
+}
+
+/**
+ * Represents the legacy server settings that were explicitly set by the user.
+ */
+export type LegacyServerSetting = {
+  key: string;
+  location: SettingLocation;
+};
+
+/**
+ * Represents the location where a setting was explicitly set by the user.
+ */
+export enum SettingLocation {
+  global = "user settings",
+  workspace = "workspace settings",
+  workspaceFolder = "workspace folder settings",
 }
 
 /**
@@ -365,22 +407,40 @@ export function getUserSetNativeServerSettings(
 export function getUserSetLegacyServerSettings(
   namespace: string,
   workspace: WorkspaceFolder,
-): string[] {
-  const settings = ["ignoreStandardLibrary", "lint.run", "lint.args", "format.args"];
+): LegacyServerSetting[] {
+  const settings = [
+    "showNotifications",
+    "ignoreStandardLibrary",
+    "lint.run",
+    "lint.args",
+    "format.args",
+  ];
   const config = getConfiguration(namespace, workspace);
   return settings
-    .filter((s) => isSettingExplicitlySetByUser(config, s))
-    .map((s) => `${namespace}.${s}`);
+    .map((setting) => {
+      const location = settingLocationExplicitlySetByUser(config, setting);
+      return location !== null ? { key: `${namespace}.${setting}`, location } : null;
+    })
+    .filter((setting): setting is LegacyServerSetting => setting !== null);
 }
 
 /**
- * Check if a setting was explicitly set by the user.
+ * Return the location where a setting was explicitly set by the user or `null`
+ * if it was not explicitly set.
  */
-function isSettingExplicitlySetByUser(config: WorkspaceConfiguration, section: string): boolean {
+function settingLocationExplicitlySetByUser(
+  config: WorkspaceConfiguration,
+  section: string,
+): SettingLocation | null {
   const inspect = config.inspect(section);
-  return (
-    inspect?.globalValue !== undefined ||
-    inspect?.workspaceValue !== undefined ||
-    inspect?.workspaceFolderValue !== undefined
-  );
+  if (inspect?.workspaceFolderValue !== undefined) {
+    return SettingLocation.workspaceFolder;
+  }
+  if (inspect?.workspaceValue !== undefined) {
+    return SettingLocation.workspace;
+  }
+  if (inspect?.globalValue !== undefined) {
+    return SettingLocation.global;
+  }
+  return null;
 }
