@@ -174,8 +174,8 @@ async function createNativeServer(
   const { path: ruffBinaryPath, version: ruffVersion } = ruffExecutable;
 
   logger.info(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
-  
-  const isRedKnot = ruffBinaryPath.endsWith('red_knot') || ruffBinaryPath.endsWith('red_knot.exe');
+
+  const isRedKnot = ruffBinaryPath.endsWith("red_knot") || ruffBinaryPath.endsWith("red_knot.exe");
 
   if (!isRedKnot) {
     if (!supportsNativeServer(ruffVersion)) {
