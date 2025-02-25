@@ -8,6 +8,12 @@ import {
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 import { logger } from "./logger";
+import {
+  INLINE_CONFIGURATION_VERSION,
+  VersionInfo,
+  supportsInlineConfiguration,
+  versionToString,
+} from "./version";
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
 
@@ -331,6 +337,25 @@ function getPreferredGlobalSetting<T>(
   }
 
   return newSettings?.defaultValue;
+}
+
+export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: string) {
+  if (supportsInlineConfiguration(ruffVersion)) {
+    return;
+  }
+
+  getWorkspaceFolders().forEach((workspace) => {
+    const config = getConfiguration(serverId, workspace.uri).get<string | object>("configuration");
+    if (typeof config === "object") {
+      const message = `Inline configuration support was added in Ruff ${versionToString(
+        INLINE_CONFIGURATION_VERSION,
+      )} (current version is ${versionToString(
+        ruffVersion,
+      )}). Please update your Ruff version to use this feature.`;
+      logger.warn(message);
+      vscode.window.showWarningMessage(message);
+    }
+  });
 }
 
 /**

@@ -21,6 +21,7 @@ import {
 import { logger } from "./logger";
 import { getDebuggerPath } from "./python";
 import {
+  checkInlineConfigSupport,
   getExtensionSettings,
   getGlobalSettings,
   getUserSetLegacyServerSettings,
@@ -189,6 +190,8 @@ async function createNativeServer(
       vscode.window.showErrorMessage(message);
       return Promise.reject();
     }
+
+    checkInlineConfigSupport(ruffVersion, serverId);
   }
 
   let ruffServerArgs: string[];

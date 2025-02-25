@@ -115,7 +115,7 @@
             },
             {
               "type": "object",
-              "markdownDescription": "Set of TOML `<KEY> = <VALUE>` pairs (such as you might find in a `ruff.toml` configuration file) overriding configuration from the filesystem."
+              "markdownDescription": "Inline JSON configuration for Ruff settings (e.g., `{ \"line-length\": 100 }`). *Added in Ruff 0.9.8.*"
             }
           ]
         },
