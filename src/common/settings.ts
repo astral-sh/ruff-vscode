@@ -345,8 +345,9 @@ export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: str
   }
 
   getWorkspaceFolders().forEach((workspace) => {
-    const config = getConfiguration(serverId, workspace.uri).get<string | object>("configuration");
-    if (typeof config === "object") {
+    const config =
+      getConfiguration(serverId, workspace.uri).get<string | object>("configuration") ?? null;
+    if (config !== null && typeof config === "object") {
       const message = `Inline configuration support was added in Ruff ${versionToString(
         INLINE_CONFIGURATION_VERSION,
       )} (current version is ${versionToString(
