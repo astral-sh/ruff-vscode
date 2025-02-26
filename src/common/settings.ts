@@ -8,6 +8,12 @@ import {
 import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 import { logger } from "./logger";
+import {
+  INLINE_CONFIGURATION_VERSION,
+  VersionInfo,
+  supportsInlineConfiguration,
+  versionToString,
+} from "./version";
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
 
@@ -50,7 +56,7 @@ export interface ISettings {
   path: string[];
   ignoreStandardLibrary: boolean;
   interpreter: string[];
-  configuration: string | null;
+  configuration: string | object | null;
   importStrategy: ImportStrategy;
   codeAction: CodeAction;
   enable: boolean;
@@ -135,8 +141,8 @@ export async function getWorkspaceSettings(
     interpreter = resolveVariables(interpreter, workspace);
   }
 
-  let configuration = config.get<string>("configuration") ?? null;
-  if (configuration !== null) {
+  let configuration = config.get<string | object>("configuration") ?? null;
+  if (configuration !== null && typeof configuration === "string") {
     configuration = resolveVariables(configuration, workspace);
   }
 
@@ -199,7 +205,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     path: getGlobalValue<string[]>(config, "path", []),
     ignoreStandardLibrary: getGlobalValue<boolean>(config, "ignoreStandardLibrary", true),
     interpreter: [],
-    configuration: getGlobalValue<string | null>(config, "configuration", null),
+    configuration: getGlobalValue<string | object | null>(config, "configuration", null),
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
     lint: {
@@ -331,6 +337,25 @@ function getPreferredGlobalSetting<T>(
   }
 
   return newSettings?.defaultValue;
+}
+
+export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: string) {
+  if (supportsInlineConfiguration(ruffVersion)) {
+    return;
+  }
+
+  getWorkspaceFolders().forEach((workspace) => {
+    const config = getConfiguration(serverId, workspace.uri).get<string | object>("configuration");
+    if (typeof config === "object") {
+      const message = `Inline configuration support was added in Ruff ${versionToString(
+        INLINE_CONFIGURATION_VERSION,
+      )} (current version is ${versionToString(
+        ruffVersion,
+      )}). Please update your Ruff version to use this feature.`;
+      logger.warn(message);
+      vscode.window.showWarningMessage(message);
+    }
+  });
 }
 
 /**

@@ -58,3 +58,15 @@ export const NATIVE_SERVER_STABLE_VERSION: VersionInfo = { major: 0, minor: 5, p
 export function supportsStableNativeServer(version: VersionInfo): boolean {
   return versionGte(version, NATIVE_SERVER_STABLE_VERSION);
 }
+
+/**
+ * The minimum version of the Ruff executable that supports inline configuration.
+ */
+export const INLINE_CONFIGURATION_VERSION: VersionInfo = { major: 0, minor: 9, patch: 8 };
+
+/**
+ * Check if the given version of the Ruff executable supports inline configuration.
+ */
+export function supportsInlineConfiguration(version: VersionInfo): boolean {
+  return versionGte(version, INLINE_CONFIGURATION_VERSION);
+}

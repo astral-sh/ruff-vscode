@@ -102,9 +102,22 @@
         },
         "ruff.configuration": {
           "default": null,
-          "markdownDescription": "Path to a `ruff.toml` or `pyproject.toml` file to use for configuration. By default, Ruff will discover configuration for each project from the filesystem, mirroring the behavior of the Ruff CLI.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Configuration overrides for Ruff. See [the documentation](https://docs.astral.sh/ruff/editors/settings/#configuration) for more details.\n\n**This setting is used only by the native server.**",
           "scope": "window",
-          "type": "string"
+          "type": [
+            "string",
+            "object"
+          ],
+          "oneOf": [
+            {
+              "type": "string",
+              "markdownDescription": "Path to a `ruff.toml` or `pyproject.toml` file to use for configuration."
+            },
+            {
+              "type": "object",
+              "markdownDescription": "Inline JSON configuration for Ruff settings (e.g., `{ \"line-length\": 100 }`). *Added in Ruff 0.9.8.*"
+            }
+          ]
         },
         "ruff.args": {
           "default": [],
