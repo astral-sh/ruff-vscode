@@ -2,6 +2,14 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2025.12.0
+
+This release upgrades the bundled Ruff version to `v0.9.8` and includes some additional improvements:
+- Allow arbitrary config keys in `ruff.configuration` ([#702](https://github.com/astral-sh/ruff-vscode/pull/702))
+- Make it easier for Windows users to test red-knot ([#703](https://github.com/astral-sh/ruff-vscode/pull/703))
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.10.0...2025.12.0
+
 ## 2025.10.0
 
 This release upgrades the bundled Ruff version to `v0.9.7` and includes some additional improvements:
