@@ -361,14 +361,8 @@ async function resolveNativeServerSetting(
       // Start with the assumption that the native server will be used.
       useNativeServer = true;
 
-      if (!supportsStableNativeServer(ruffVersion)) {
-        logger.info(
-          `Stable version of the native server requires Ruff ${versionToString(
-            NATIVE_SERVER_STABLE_VERSION,
-          )}, but found ${versionToString(
-            ruffVersion,
-          )} at ${ruffBinaryPath} instead; using the legacy server (ruff-lsp)`,
-        );
+      const isStableNativeServer = supportsStableNativeServer(ruffVersion);
+      if (!isStableNativeServer) {
         // Ruff version does not include the stable native server.
         useNativeServer = false;
       }
@@ -385,6 +379,12 @@ async function resolveNativeServerSetting(
           message += `The following settings were only supported by the legacy server and has been deprecated: ${formatLegacyServerSettings(
             legacyServerSettings,
           )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. `;
+        } else if (!isStableNativeServer) {
+          message += `Stable version of the native server requires Ruff ${versionToString(
+            NATIVE_SERVER_STABLE_VERSION,
+          )}, but found ${versionToString(
+            ruffVersion,
+          )} at ${ruffBinaryPath} instead. Please upgrade Ruff to use the native server; using the legacy server (ruff-lsp) for now. `;
         }
         message += LSP_DEPRECATION_DISCUSSION_MESSAGE;
         showWarningMessage(message);
