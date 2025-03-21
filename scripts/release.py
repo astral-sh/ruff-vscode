@@ -143,7 +143,7 @@ def update_readme(latest_ruff: Version) -> None:
     """Ensure the README is up to date with respect to our pinned Ruff version."""
     readme_text = README_PATH.read_text()
     readme_text = re.sub(
-        r"The extension ships with `ruff==\d\.\d\.\d`\.",
+        r"The extension ships with `ruff==\d*\.\d*\.\d*`\.",
         f"The extension ships with `ruff=={latest_ruff}`.",
         readme_text,
     )
