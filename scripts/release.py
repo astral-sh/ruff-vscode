@@ -139,17 +139,36 @@ def bump_package_json_version(new_version: Version) -> None:
         package_json_file.write("\n")
 
 
+README_DESCRIPTION_REGEX = re.compile(
+    r"The extension ships with `ruff==\d+\.\d+\.\d+`\."
+)
+README_SVG_REGEX = re.compile(r"ruff/\d+\.\d+\.\d+\.svg")
+
+
 def update_readme(latest_ruff: Version) -> None:
     """Ensure the README is up to date with respect to our pinned Ruff version."""
     readme_text = README_PATH.read_text()
-    readme_text = re.sub(
-        r"The extension ships with `ruff==\d+\.\d+\.\d+`\.",
-        f"The extension ships with `ruff=={latest_ruff}`.",
-        readme_text,
+
+    description_matches = list(README_DESCRIPTION_REGEX.finditer(readme_text))
+    assert len(description_matches) == 1, (
+        f"Unexpected number of matches for `README_DESCRIPTION_REGEX` "
+        f"found in README.md ({len(description_matches)}). Perhaps the release script "
+        f"is out of date?"
     )
-    readme_text = re.sub(
-        r"ruff/\d+\.\d+\.\d+\.svg", f"ruff/{latest_ruff}.svg", readme_text
+    readme_text = "".join(
+        [
+            readme_text[: description_matches[0].start()],
+            f"The extension ships with `ruff=={latest_ruff}`.",
+            readme_text[description_matches[0].end() :],
+        ]
     )
+
+    assert README_SVG_REGEX.search(readme_text), (
+        "No matches found for `README_SVG_REGEX` in README.md. "
+        "Perhaps the release script is out of date?"
+    )
+    readme_text = README_SVG_REGEX.sub(f"ruff/{latest_ruff}.svg", readme_text)
+
     README_PATH.write_text(readme_text)
 
 
