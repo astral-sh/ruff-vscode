@@ -179,7 +179,7 @@ export async function getWorkspaceSettings(
     exclude: config.get<string[]>("exclude"),
     lineLength: config.get<number>("lineLength"),
     configurationPreference:
-      config.get<ConfigPreference>("configurationPreference") ?? "editorFirst",
+      config.get<ConfigPreference>("configurationPreference") ?? "filesystemFirst",
     showSyntaxErrors: config.get<boolean>("showSyntaxErrors") ?? true,
     logLevel: config.get<LogLevel>("logLevel"),
     logFile: config.get<string>("logFile"),
