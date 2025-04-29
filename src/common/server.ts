@@ -450,7 +450,11 @@ export async function startServer(
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
 
   const extensionSettings = await getExtensionSettings(serverId);
+  for (const settings of extensionSettings) {
+    logger.info(`Workspace settings for ${settings.cwd}: ${JSON.stringify(settings, null, 4)}`);
+  }
   const globalSettings = await getGlobalSettings(serverId);
+  logger.info(`Global settings: ${JSON.stringify(globalSettings, null, 4)}`);
 
   let newLSClient = await createServer(
     workspaceSettings,
