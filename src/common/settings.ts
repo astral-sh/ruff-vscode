@@ -212,6 +212,9 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
 
   let configuration = getGlobalValue<string | object | null>(config, "configuration", null);
   if (typeof configuration === "string" && configuration.search(/\$\{workspaceFolder/) !== -1) {
+    logger.info(
+      `Resetting '${namespace}.configuration' to null in global settings because it contains workspace specific variables`,
+    );
     configuration = null;
   }
 
