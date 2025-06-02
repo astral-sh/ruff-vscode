@@ -17,6 +17,7 @@ class ExtensionLogger {
    */
   private logForCI(...messages: unknown[]): void {
     if (this.isCI) {
+      // eslint-disable-next-line no-console
       console.log(...messages);
     }
   }
