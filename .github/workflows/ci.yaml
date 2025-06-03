@@ -17,11 +17,11 @@ jobs:
       - uses: extractions/setup-just@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
-      - uses: actions/checkout@v4
       - name: Install dependencies
         run: just install
       - name: Run checks
