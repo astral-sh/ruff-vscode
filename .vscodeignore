@@ -11,8 +11,6 @@
 *.pyc
 *.ts
 .editorconfig
-.eslintignore
-.eslintrc.json
 .gitignore
 .prettierignore
 .prettierrc.json
@@ -27,3 +25,6 @@ out/
 .vscode-test/
 tsconfig.json
 webpack.config.js
+eslint.config.mjs
+pyproject.toml
+.mypy_cache/

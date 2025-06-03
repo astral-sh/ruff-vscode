@@ -12,6 +12,7 @@ export async function activateExtension() {
   try {
     await extension.activate();
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error(`Failed to activate the extension: ${e}`);
   }
 }

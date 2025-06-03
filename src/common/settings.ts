@@ -142,7 +142,7 @@ export async function getWorkspaceSettings(
   }
 
   let configuration = config.get<string | object>("configuration") ?? null;
-  if (configuration !== null && typeof configuration === "string") {
+  if (configuration != null && typeof configuration === "string") {
     configuration = resolveVariables(configuration, workspace);
   }
 
@@ -196,8 +196,28 @@ function getOptionalGlobalValue<T>(config: WorkspaceConfiguration, key: string):
   return inspect?.globalValue;
 }
 
+/**
+ * Returns the global settings for the extension.
+ *
+ * ## Notes
+ *
+ * The global settings do not belong to a specific workspace. This means that
+ * variables such as `${workspaceFolder}` or `${workspaceFolder:...}` are not
+ * resolved. The language server does not support these variables, so they are
+ * filtered out. For example, if `configuration` has either of these variables,
+ * it will be set to `null`.
+ */
 export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   const config = getConfiguration(namespace);
+
+  let configuration = getGlobalValue<string | object | null>(config, "configuration", null);
+  if (typeof configuration === "string" && configuration.search(/\$\{workspaceFolder/) !== -1) {
+    logger.info(
+      `Resetting '${namespace}.configuration' to null in global settings because it contains workspace specific variables`,
+    );
+    configuration = null;
+  }
+
   return {
     nativeServer: getGlobalValue<NativeServer>(config, "nativeServer", "auto"),
     cwd: process.cwd(),
@@ -205,7 +225,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     path: getGlobalValue<string[]>(config, "path", []),
     ignoreStandardLibrary: getGlobalValue<boolean>(config, "ignoreStandardLibrary", true),
     interpreter: [],
-    configuration: getGlobalValue<string | object | null>(config, "configuration", null),
+    configuration,
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
     lint: {
@@ -347,7 +367,7 @@ export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: str
   getWorkspaceFolders().forEach((workspace) => {
     const config =
       getConfiguration(serverId, workspace.uri).get<string | object>("configuration") ?? null;
-    if (config !== null && typeof config === "object") {
+    if (config != null && typeof config === "object") {
       const message = `Inline configuration support was added in Ruff ${versionToString(
         INLINE_CONFIGURATION_VERSION,
       )} (current version is ${versionToString(
@@ -364,7 +384,7 @@ export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: str
  */
 export function checkNotebookCodeActionsOnSave(serverId: string) {
   getWorkspaceFolders().forEach((workspace) => {
-    let codeActionsOnSave: string[] = (() => {
+    const codeActionsOnSave: string[] = (() => {
       const value = getConfiguration("notebook", workspace.uri).get<string[] | object>(
         "codeActionsOnSave",
         [],
@@ -445,9 +465,9 @@ export function getUserSetLegacyServerSettings(
   return settings
     .map((setting) => {
       const location = settingLocationExplicitlySetByUser(config, setting);
-      return location !== null ? { key: `${namespace}.${setting}`, location } : null;
+      return location != null ? { key: `${namespace}.${setting}`, location } : null;
     })
-    .filter((setting): setting is LegacyServerSetting => setting !== null);
+    .filter((setting): setting is LegacyServerSetting => setting != null);
 }
 
 /**

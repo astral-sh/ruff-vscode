@@ -39,6 +39,7 @@ import {
 import { updateServerKind, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import which = require("which");
 
 export type IInitializationOptions = {
@@ -210,7 +211,7 @@ async function createNativeServer(
   }
   logger.info(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
 
-  let serverOptions = {
+  const serverOptions = {
     command: ruffBinaryPath,
     args: ruffServerArgs,
     options: { cwd: settings.cwd, env: process.env },
@@ -460,7 +461,7 @@ export async function startServer(
   const globalSettings = await getGlobalSettings(serverId);
   logger.info(`Global settings: ${JSON.stringify(globalSettings, null, 4)}`);
 
-  let newLSClient = await createServer(
+  const newLSClient = await createServer(
     workspaceSettings,
     projectRoot,
     serverId,
@@ -494,8 +495,8 @@ export async function startServer(
         params.type === MessageType.Error
           ? vscode.window.showErrorMessage
           : params.type === MessageType.Warning
-          ? vscode.window.showWarningMessage
-          : vscode.window.showInformationMessage;
+            ? vscode.window.showWarningMessage
+            : vscode.window.showInformationMessage;
       showMessageMethod(params.message, "Show Logs").then((selection) => {
         if (selection) {
           outputChannel.show();
