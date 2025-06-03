@@ -142,7 +142,7 @@ export async function getWorkspaceSettings(
   }
 
   let configuration = config.get<string | object>("configuration") ?? null;
-  if (configuration !== null && typeof configuration === "string") {
+  if (configuration != null && typeof configuration === "string") {
     configuration = resolveVariables(configuration, workspace);
   }
 
@@ -367,7 +367,7 @@ export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: str
   getWorkspaceFolders().forEach((workspace) => {
     const config =
       getConfiguration(serverId, workspace.uri).get<string | object>("configuration") ?? null;
-    if (config !== null && typeof config === "object") {
+    if (config != null && typeof config === "object") {
       const message = `Inline configuration support was added in Ruff ${versionToString(
         INLINE_CONFIGURATION_VERSION,
       )} (current version is ${versionToString(
@@ -384,7 +384,7 @@ export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: str
  */
 export function checkNotebookCodeActionsOnSave(serverId: string) {
   getWorkspaceFolders().forEach((workspace) => {
-    let codeActionsOnSave: string[] = (() => {
+    const codeActionsOnSave: string[] = (() => {
       const value = getConfiguration("notebook", workspace.uri).get<string[] | object>(
         "codeActionsOnSave",
         [],
@@ -465,9 +465,9 @@ export function getUserSetLegacyServerSettings(
   return settings
     .map((setting) => {
       const location = settingLocationExplicitlySetByUser(config, setting);
-      return location !== null ? { key: `${namespace}.${setting}`, location } : null;
+      return location != null ? { key: `${namespace}.${setting}`, location } : null;
     })
-    .filter((setting): setting is LegacyServerSetting => setting !== null);
+    .filter((setting): setting is LegacyServerSetting => setting != null);
 }
 
 /**

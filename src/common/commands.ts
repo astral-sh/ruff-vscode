@@ -49,7 +49,7 @@ export function createDebugInformationProvider(
   serverId: string,
   context: vscode.ExtensionContext,
 ) {
-  let configuration = getConfiguration(serverId) as unknown as ISettings;
+  const configuration = getConfiguration(serverId) as unknown as ISettings;
   if (configuration.nativeServer === false || configuration.nativeServer === "off") {
     return async () => {
       vscode.window.showInformationMessage(
@@ -62,7 +62,7 @@ export function createDebugInformationProvider(
     readonly uri = vscode.Uri.parse("ruff-server-debug://debug");
     readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
 
-    async provideTextDocumentContent(_uri: vscode.Uri): Promise<string> {
+    async provideTextDocumentContent(): Promise<string> {
       const lsClient = getClient();
       if (!lsClient) {
         return "";
@@ -76,8 +76,8 @@ export function createDebugInformationProvider(
             textDocument: notebookEditor
               ? { uri: notebookEditor.notebook.uri.toString() }
               : textEditor
-              ? { uri: textEditor.document.uri.toString() }
-              : undefined,
+                ? { uri: textEditor.document.uri.toString() }
+                : undefined,
           },
         ],
       };
