@@ -1,7 +1,7 @@
 [project]
 name = "ruff-vscode"
 requires-python = ">=3.7"
-dependencies = ["packaging>=23.1", "ruff-lsp==0.0.62", "ruff==0.11.2"]
+dependencies = ["packaging>=23.1", "ruff-lsp==0.0.62", "ruff==0.12.0"]
 
 [project.optional-dependencies]
 dev = ["mypy==1.2.0", "python-lsp-jsonrpc==1.0.0"]
