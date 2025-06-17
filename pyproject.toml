@@ -1,5 +1,6 @@
 [project]
 name = "ruff-vscode"
+version = "2025.24.0"
 requires-python = ">=3.7"
 dependencies = ["packaging>=23.1", "ruff-lsp==0.0.62", "ruff==0.12.0"]
 
