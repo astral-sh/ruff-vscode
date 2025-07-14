@@ -102,7 +102,7 @@ jobs:
         if: ${{ startsWith(matrix.os, 'macos') && startsWith(matrix.target, 'x86_64') }}
 
       # ARM builds on Ubuntu, which should select Ruff's ARM binary.
-      - uses: uraimo/run-on-arch-action@ac33288c3728ca72563c97b8b88dda5a65a84448 # v2
+      - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
         if: ${{ startsWith(matrix.os, 'ubuntu') && !startsWith(matrix.target, 'x86_64') && !endsWith(matrix.target, 'musl') }}
         with:
           arch: ${{ matrix.arch }}
