@@ -1,10 +1,10 @@
-import { commands, Disposable, Event, EventEmitter, Uri } from "vscode";
+import { commands, Disposable, Event, EventEmitter } from "vscode";
 import { logger } from "./logger";
-import { PythonExtension, ResolvedEnvironment } from "@vscode/python-extension";
+import { PythonExtension, ResolvedEnvironment, Resource } from "@vscode/python-extension";
 
 export interface IInterpreterDetails {
   path?: string[];
-  resource?: Uri;
+  resource?: Resource;
 }
 
 const onDidChangePythonInterpreterEvent = new EventEmitter<IInterpreterDetails>();
@@ -27,7 +27,7 @@ export async function initializePython(disposables: Disposable[]): Promise<void>
     if (api) {
       disposables.push(
         api.environments.onDidChangeActiveEnvironmentPath((e) => {
-          onDidChangePythonInterpreterEvent.fire({ path: [e.path], resource: e.resource?.uri });
+          onDidChangePythonInterpreterEvent.fire({ path: [e.path], resource: e.resource });
         }),
       );
 
@@ -46,7 +46,7 @@ export async function resolveInterpreter(
   return api?.environments.resolveEnvironment(interpreter[0]);
 }
 
-export async function getInterpreterDetails(resource?: Uri): Promise<IInterpreterDetails> {
+export async function getInterpreterDetails(resource?: Resource): Promise<IInterpreterDetails> {
   const api = await getPythonExtensionAPI();
   const environment = await api?.environments.resolveEnvironment(
     api?.environments.getActiveEnvironmentPath(resource),
