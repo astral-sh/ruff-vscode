@@ -231,6 +231,20 @@
           "scope": "resource",
           "type": "array"
         },
+        "ruff.format.backend": {
+          "default": "internal",
+          "markdownDescription": "The backend to use for formatting.",
+          "enum": [
+            "internal",
+            "uv"
+          ],
+          "enumDescriptions": [
+            "Use Ruff's built-in formatter.",
+            "Use uv for formatting (requires uv >= 0.8.13)"
+          ],
+          "scope": "resource",
+          "type": "string"
+        },
         "ruff.format.preview": {
           "default": null,
           "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#format_preview) for the formatter; enables unstable formatting.\n\n**This setting is used only by the native server.**",

@@ -25,6 +25,8 @@ type NativeServer = boolean | "on" | "off" | "auto";
 
 type LogLevel = "error" | "warn" | "info" | "debug" | "trace";
 
+type FormatterBackend = "internal" | "uv";
+
 type CodeAction = {
   disableRuleComment?: {
     enable?: boolean;
@@ -47,6 +49,7 @@ type Lint = {
 type Format = {
   args?: string[];
   preview?: boolean;
+  backend?: FormatterBackend;
 };
 
 export interface ISettings {
@@ -171,6 +174,7 @@ export async function getWorkspaceSettings(
     format: {
       args: resolveVariables(config.get<string[]>("format.args") ?? [], workspace),
       preview: config.get<boolean>("format.preview"),
+      backend: config.get<FormatterBackend>("format.backend") ?? "internal",
     },
     enable: config.get<boolean>("enable") ?? true,
     organizeImports: config.get<boolean>("organizeImports") ?? true,
@@ -240,6 +244,7 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
     format: {
       args: getGlobalValue<string[]>(config, "format.args", []),
       preview: getOptionalGlobalValue<boolean>(config, "format.preview"),
+      backend: getGlobalValue<FormatterBackend>(config, "format.backend", "internal"),
     },
     enable: getGlobalValue<boolean>(config, "enable", true),
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
@@ -281,6 +286,7 @@ export function checkIfConfigurationChanged(
     `${namespace}.path`,
     `${namespace}.showNotifications`,
     `${namespace}.format.preview`,
+    `${namespace}.format.backend`,
     `${namespace}.exclude`,
     `${namespace}.lineLength`,
     `${namespace}.configurationPreference`,
