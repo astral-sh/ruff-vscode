@@ -146,6 +146,7 @@ jobs:
 
       # Set the Build ID.
       - name: Set Build ID (release)
+        shell: bash
         if: "startsWith(github.ref, 'refs/tags/')"
         run: |
           python -m build.update_ext_version --build-id "${RELEASE_BUILD_ID}" --for-publishing
