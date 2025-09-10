@@ -9,6 +9,10 @@ env:
 
 permissions: {}
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   # Phase 1: Generate the Build ID.
   # We have to do this ahead-of-time, and store it as a job output,
