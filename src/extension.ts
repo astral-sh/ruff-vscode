@@ -39,6 +39,23 @@ function getClient(): LanguageClient | undefined {
   return lsClient;
 }
 
+function cacheExclusionSetting(enable: boolean) {
+  const filesConfig = vscode.workspace.getConfiguration("files");
+  const searchConfig = vscode.workspace.getConfiguration("search");
+
+  const filesExclude = filesConfig.get<{ [key: string]: boolean }>("exclude");
+  const searchExclude = searchConfig.get<{ [key: string]: boolean }>("exclude");
+  if (enable) {
+    filesExclude!["**/.ruff_cache"] = true;
+    searchExclude!["**/.ruff_cache"] = true;
+  } else {
+    delete filesExclude!["**/.ruff_cache"];
+    delete searchExclude!["**/.ruff_cache"];
+  }
+  filesConfig.update("exclude", filesExclude, vscode.ConfigurationTarget.Global);
+  searchConfig.update("exclude", searchExclude, vscode.ConfigurationTarget.Global);
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // This is required to get server name and module. This should be
   // the first thing that we do in this extension.
@@ -71,6 +88,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
 
   const { enable } = getConfiguration(serverId) as unknown as ISettings;
+  const ruffCacheExclusion = getConfiguration("ruff").get<boolean>("excludeCache", true);
+  cacheExclusionSetting(ruffCacheExclusion);
   if (!enable) {
     logger.info(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
@@ -168,6 +187,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     onDidChangeConfiguration(async (e: vscode.ConfigurationChangeEvent) => {
       if (checkIfConfigurationChanged(e, serverId)) {
         await runServer();
+      }
+    }),
+    onDidChangeConfiguration(async (e: vscode.ConfigurationChangeEvent) => {
+      if (e.affectsConfiguration("ruff.excludeCache")) {
+        const ruffCacheExclusion = getConfiguration("ruff").get<boolean>("excludeCache", true);
+        cacheExclusionSetting(ruffCacheExclusion);
       }
     }),
     onDidGrantWorkspaceTrust(async () => {
