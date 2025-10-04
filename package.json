@@ -439,7 +439,21 @@
           "deprecationMessage": "Deprecated: Formatter capabilities are now always enabled.",
           "scope": "window",
           "type": "boolean"
+        },
+        "ruff.excludeCache": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Exclude `.ruff_cache` from the file explorer and search results.",
+          "scope": "window"
         }
+      }
+    },
+    "configurationDefaults": {
+      "files.exclude": {
+        "**/.ruff_cache": true
+      },
+      "search.exclude": {
+        "**/.ruff_cache": true
       }
     },
     "commands": [
