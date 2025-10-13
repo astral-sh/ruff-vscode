@@ -491,7 +491,7 @@
     "@types/node": "^22.15.29",
     "@types/vscode": "1.75.0",
     "@types/which": "^3.0.4",
-    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.4.2",
     "eslint": "^9.28.0",
