@@ -8,6 +8,10 @@
     "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedParameters": true
-  }
+    "noUnusedParameters": true,
+    // Workaround for a type error within `vscode-jsonrpc`.
+    // See https://github.com/microsoft/vscode-languageserver-node/issues/1590
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"]
 }
