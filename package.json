@@ -488,7 +488,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^22.15.29",
+    "@types/node": "^24.0.0",
     "@types/vscode": "1.75.0",
     "@types/which": "^3.0.4",
     "@vscode/test-cli": "^0.0.12",
