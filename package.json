@@ -103,7 +103,7 @@
         "ruff.configuration": {
           "default": null,
           "markdownDescription": "Configuration overrides for Ruff. See [the documentation](https://docs.astral.sh/ruff/editors/settings/#configuration) for more details.\n\n**This setting is used only by the native server.**",
-          "scope": "window",
+          "scope": "resource",
           "type": [
             "string",
             "object"
