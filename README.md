@@ -6,15 +6,6 @@
 [![image](https://img.shields.io/pypi/pyversions/ruff/0.14.0.svg)](https://pypi.python.org/pypi/ruff)
 [![Actions status](https://github.com/astral-sh/ruff-vscode/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff-vscode/actions)
 
-> [!NOTE]
->
-> **As of Ruff v0.4.5, Ruff ships with a built-in language server written in Rust: ⚡ `ruff server` ⚡**
->
-> **The server was marked as stable in Ruff v0.5.3 and will automatically be used by the extension if
-> available.**
->
-> **See: [_Enabling the Rust-based language server_](#using-the-rust-based-language-server).**
-
 A Visual Studio Code extension for [Ruff](https://github.com/astral-sh/ruff), an extremely fast
 Python linter and code formatter, written in Rust. Available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
@@ -277,33 +268,6 @@ to unset the `editor.defaultFormatter` in `settings.json`:
 }
 ```
 
-### Using the Rust-based language server
-
-The Ruff extension will automatically use the Rust-based language server (`ruff server`) if the
-following conditions are met:
-
-1. The `ruff` executable is at least version `0.5.3`
-2. The `ruff.nativeServer` setting is set to `auto` (default)
-3. None of the settings that are exclusive to the Python-based language server
-   are enabled (i.e., those that are marked as "unused by the native language server" in the
-   [_Settings_](https://docs.astral.sh/ruff/editors/settings/#vs-code-specific) documentation).
-
-You can explicitly enable or disable the Rust-based language server by setting
-the `nativeServer` setting to `on` or `off`. If set to `off`, the extension
-will use the Python-based language server (`ruff-lsp`).
-
-```json
-{
-  "ruff.nativeServer": "on"
-}
-```
-
-The Rust-based language server is built into Ruff directly, and is both faster and more fully-featured
-than the Python-based language server.
-
-Use of the native server may require changes to your VS Code configuration, as some settings are
-unsupported; see [_Configuring Ruff_](#rust-based-language-server) for more information.
-
 ### Configuring Ruff
 
 The Ruff VS Code extension will respect any Ruff configuration as defined in your project's
@@ -312,9 +276,7 @@ In general, we recommend configuring Ruff via `pyproject.toml` or `ruff.toml` so
 configuration is shared between the VS Code extension and the command-line tool, and between all
 contributors to the project.
 
-#### Rust-based language server
-
-If you're using the Rust-based language server (`ruff server`), you can configure some common
+Unless you're using the [Python-based language server](#python-based-language-server-ruff-lsp), you can configure some common
 settings in VS Code directly, like `ruff.lineLength` (to configure the line length for the linter
 and formatter) or `ruff.lint.select` (to configure the enabled lint rules):
 
@@ -345,7 +307,26 @@ Finally, to use a common Ruff configuration across all projects, consider creati
 > removed in a future release. Please switch to the Rust-based language server
 > (`ruff server`) instead.
 
-If you're using the default Python-based language server, you can use the `ruff.lint.args` and
+The Ruff extension will automatically use the Rust-based language server (`ruff server`) if the
+following conditions are met:
+
+1. The `ruff` executable is at least version `0.5.3`
+2. The `ruff.nativeServer` setting is set to `auto` (default)
+3. None of the settings that are exclusive to the Python-based language server
+   are enabled (i.e., those that are marked as "unused by the native language server" in the
+   [_Settings_](https://docs.astral.sh/ruff/editors/settings/#vs-code-specific) documentation).
+
+You can opt-out of the Rust-based language server by setting
+the `nativeServer` setting to `off`. If set to `off`, the extension
+will use the Python-based language server (`ruff-lsp`).
+
+```json
+{
+  "ruff.nativeServer": "off"
+}
+```
+
+You can use the `ruff.lint.args` and
 `ruff.format.args` settings in `settings.json` to pass command-line arguments to Ruff.
 
 For example, to enable the `pyupgrade` rule set in VS Code, add the following to `settings.json`:
