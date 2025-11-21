@@ -4,7 +4,10 @@ See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release note
 
 ## 2025.30.0
 
-This release upgrades the bundled Ruff version to `v0.14.6`.
+This release upgrades the bundled Ruff version to `v0.14.6` and includes some additional improvements:
+
+- Support workspace-level `ruff.configuration` ([#891](https://github.com/astral-sh/ruff-vscode/pull/891))
+- Update the documentation to focus on the native server ([#894](https://github.com/astral-sh/ruff-vscode/pull/894))
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.28.0...2025.30.0
 
