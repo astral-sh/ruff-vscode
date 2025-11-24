@@ -496,7 +496,7 @@
     "@vscode/vsce": "^3.4.2",
     "eslint": "^9.28.0",
     "eslint-plugin-import": "^2.31.0",
-    "glob": "^11.0.2",
+    "glob": "^13.0.0",
     "ovsx": "^0.10.3",
     "prettier": "^3.5.3",
     "ts-loader": "^9.5.2",
