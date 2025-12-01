@@ -3,14 +3,14 @@ default: fmt check
 lock:
   uv pip compile --python-version 3.7.9 --generate-hashes -o ./requirements.txt ./pyproject.toml
   uv pip compile --python-version 3.7.9 --generate-hashes --upgrade --extra dev -o ./requirements-dev.txt ./pyproject.toml
-  npm install --package-lock-only
+  npm install --package-lock-only --ignore-scripts
 
 setup:
   uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
 
 install:
   uv pip sync --require-hashes ./requirements-dev.txt
-  npm ci
+  npm ci --ignore-scripts
 
 test: setup
   python -m unittest
@@ -34,7 +34,7 @@ fmt:
   npm run fmt
 
 build-package: setup
-  npm ci
+  npm ci --ignore-scripts
   npm run vsce-package
 
 clean:
