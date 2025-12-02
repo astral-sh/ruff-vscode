@@ -2,12 +2,11 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   dependencyDashboard: true,
   suppressNotifications: ["prEditedNotification"],
-  extends: ["config:recommended"],
+  extends: ["github>astral-sh/renovate-config"],
   labels: ["internal"],
   schedule: ["before 4am on Monday"],
   semanticCommits: "disabled",
   separateMajorMinor: false,
-  prHourlyLimit: 10,
   enabledManagers: ["github-actions", "npm"],
   packageRules: [
     // Pin GitHub Actions to immutable SHAs.
