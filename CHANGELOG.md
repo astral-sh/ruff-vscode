@@ -2,6 +2,14 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2025.32.0
+
+This release upgrades the bundled Ruff version to `v0.14.8` and includes some additional improvements:
+
+- Improve extension discoverability in VSCode Marketplace ([#897](https://github.com/astral-sh/ruff-vscode/pull/897))
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2025.30.0...2025.32.0
+
 ## 2025.30.0
 
 This release upgrades the bundled Ruff version to `v0.14.6` and includes some additional improvements:
