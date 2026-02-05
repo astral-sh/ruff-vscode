@@ -37,11 +37,13 @@ export async function getProjectRoot(): Promise<WorkspaceFolder> {
 
 export function getDocumentSelector(): DocumentSelector {
   return isVirtualWorkspace()
-    ? [{ language: "python" }]
+    ? [{ language: "python" }, { language: "markdown" }]
     : [
         { scheme: "file", language: "python" },
         { scheme: "untitled", language: "python" },
         { scheme: "vscode-notebook", language: "python" },
         { scheme: "vscode-notebook-cell", language: "python" },
+        { scheme: "file", language: "markdown" },
+        { scheme: "untitled", language: "markdown" },
       ];
 }
