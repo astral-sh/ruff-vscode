@@ -56,8 +56,10 @@
   },
   "activationEvents": [
     "onLanguage:python",
+    "onLanguage:markdown",
     "workspaceContains:*.py",
-    "workspaceContains:*.ipynb"
+    "workspaceContains:*.ipynb",
+    "workspaceContains:*.md"
   ],
   "main": "./dist/extension.js",
   "scripts": {
