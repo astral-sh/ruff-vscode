@@ -271,7 +271,6 @@ export function checkIfConfigurationChanged(
     `${namespace}.codeAction`,
     `${namespace}.configuration`,
     `${namespace}.enable`,
-    `${namespace}.nativeServer`,
     `${namespace}.fixAll`,
     `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
@@ -293,10 +292,10 @@ export function checkIfConfigurationChanged(
     `${namespace}.showSyntaxErrors`,
     `${namespace}.logLevel`,
     `${namespace}.logFile`,
-    // Deprecated settings (prefer `lint.args`, etc.).
+    // Deprecated settings
+    `${namespace}.nativeServer`,
     `${namespace}.args`,
     `${namespace}.run`,
-    // Deprecated settings (will be replaced with specific config options in the future)
     `${namespace}.lint.args`,
     `${namespace}.format.args`,
   ];
@@ -433,66 +432,4 @@ export function checkNotebookCodeActionsOnSave(serverId: string) {
       vscode.window.showWarningMessage(message);
     }
   });
-}
-
-/**
- * Represents the legacy server settings that were explicitly set by the user.
- */
-export type LegacyServerSetting = {
-  key: string;
-  location: SettingLocation;
-};
-
-/**
- * Represents the location where a setting was explicitly set by the user.
- */
-export enum SettingLocation {
-  global = "user settings",
-  workspace = "workspace settings",
-  workspaceFolder = "workspace folder settings",
-}
-
-/**
- * Get the settings that were explicitly set by the user that are only relevant
- * to the legacy server.
- */
-export function getUserSetLegacyServerSettings(
-  namespace: string,
-  workspace: WorkspaceFolder,
-): LegacyServerSetting[] {
-  const settings = [
-    "showNotifications",
-    "ignoreStandardLibrary",
-    "lint.run",
-    "lint.args",
-    "format.args",
-  ];
-  const config = getConfiguration(namespace, workspace);
-  return settings
-    .map((setting) => {
-      const location = settingLocationExplicitlySetByUser(config, setting);
-      return location != null ? { key: `${namespace}.${setting}`, location } : null;
-    })
-    .filter((setting): setting is LegacyServerSetting => setting != null);
-}
-
-/**
- * Return the location where a setting was explicitly set by the user or `null`
- * if it was not explicitly set.
- */
-function settingLocationExplicitlySetByUser(
-  config: WorkspaceConfiguration,
-  section: string,
-): SettingLocation | null {
-  const inspect = config.inspect(section);
-  if (inspect?.workspaceFolderValue !== undefined) {
-    return SettingLocation.workspaceFolder;
-  }
-  if (inspect?.workspaceValue !== undefined) {
-    return SettingLocation.workspace;
-  }
-  if (inspect?.globalValue !== undefined) {
-    return SettingLocation.global;
-  }
-  return null;
 }

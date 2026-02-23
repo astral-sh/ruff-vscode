@@ -144,7 +144,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }
 
       lsClient = await startServer(
-        projectRoot,
         workspaceSettings,
         serverId,
         serverName,
