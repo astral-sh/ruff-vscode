@@ -123,7 +123,9 @@ And, for Jupyter Notebooks:
 }
 ```
 
-And for [Markdown code blocks](https://docs.astral.sh/ruff/formatter/#markdown-code-formatting):
+And for [Markdown code blocks](https://docs.astral.sh/ruff/formatter/#markdown-code-formatting).
+Note that this currently reqiures enabling [preview mode](https://docs.astral.sh/ruff/preview/)
+which will change formatting results:
 
 ```json
 {
