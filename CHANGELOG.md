@@ -2,6 +2,14 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2026.38.0
+
+This release upgrades the bundled Ruff version to `v0.15.7` and includes some additional improvements:
+
+- Declare support for Markdown files ([#950](https://github.com/astral-sh/ruff-vscode/pull/950))
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2026.36.0...2026.38.0
+
 ## 2026.36.0
 
 This release upgrades the bundled Ruff version to `v0.15.0`.
