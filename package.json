@@ -505,7 +505,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.0",
     "webpack": "^5.99.9",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^7.0.0"
   },
   "prettier": {
     "printWidth": 100,
