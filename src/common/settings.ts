@@ -96,11 +96,22 @@ function resolveVariables(
     substitutions.set("${userHome}", home);
   }
   if (workspace) {
-    substitutions.set("${workspaceFolder}", workspace.uri.fsPath);
+    // For virtual workspaces, fsPath may not be meaningful, but we still
+    // set it for variable substitution — the VirtualFileCache will translate
+    // actual URIs. If the scheme is not 'file', use the URI path as-is.
+    if (workspace.uri.scheme === "file") {
+      substitutions.set("${workspaceFolder}", workspace.uri.fsPath);
+    } else {
+      substitutions.set("${workspaceFolder}", workspace.uri.path);
+    }
   }
   substitutions.set("${cwd}", process.cwd());
   getWorkspaceFolders().forEach((w) => {
-    substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
+    if (w.uri.scheme === "file") {
+      substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
+    } else {
+      substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.path);
+    }
   });
   for (const [key, value] of Object.entries(process.env)) {
     if (value !== undefined) {
@@ -149,9 +160,14 @@ export async function getWorkspaceSettings(
     configuration = resolveVariables(configuration, workspace);
   }
 
+  // For virtual workspaces, use the URI path instead of fsPath.
+  // The VirtualFileCache will later override cwd with the local cache root.
+  const workspaceCwd =
+    workspace.uri.scheme === "file" ? workspace.uri.fsPath : workspace.uri.path;
+
   return {
     nativeServer: config.get<NativeServer>("nativeServer") ?? "auto",
-    cwd: workspace.uri.fsPath,
+    cwd: workspaceCwd,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
     ignoreStandardLibrary: config.get<boolean>("ignoreStandardLibrary") ?? true,
