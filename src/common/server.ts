@@ -9,6 +9,13 @@ import {
   RevealOutputChannelOn,
   ServerOptions,
 } from "vscode-languageclient/node";
+import { isVirtualWorkspace } from "./vscodeapi";
+import { getRegisteredTranslator } from "./uriTranslator";
+import {
+  initializeTranslator,
+  configureVfsClientOptions,
+  translateInitializationSettings,
+} from "./vfsSupport";
 import {
   BUNDLED_RUFF_EXECUTABLE,
   DEBUG_SERVER_SCRIPT_PATH,
@@ -103,6 +110,13 @@ async function getRuffVersion(executable: string): Promise<VersionInfo> {
 async function findRuffBinaryPath(settings: ISettings): Promise<string> {
   if (!vscode.workspace.isTrusted) {
     logger.info(`Workspace is not trusted, using bundled executable: ${BUNDLED_RUFF_EXECUTABLE}`);
+    return BUNDLED_RUFF_EXECUTABLE;
+  }
+
+  // In virtual workspaces, use the bundled executable since user-configured
+  // paths are not accessible on a virtual file system.
+  if (isVirtualWorkspace()) {
+    logger.info(`Using bundled executable for virtual workspace: ${BUNDLED_RUFF_EXECUTABLE}`);
     return BUNDLED_RUFF_EXECUTABLE;
   }
 
@@ -217,7 +231,7 @@ async function createNativeServer(
     options: { cwd: settings.cwd, env: process.env },
   };
 
-  const clientOptions = {
+  const clientOptions: LanguageClientOptions = {
     // Register the server for python documents
     documentSelector: getDocumentSelector(),
     outputChannel,
@@ -226,7 +240,22 @@ async function createNativeServer(
     initializationOptions,
   };
 
-  return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
+  // If a VFS translator is registered, initialize it and configure the
+  // LanguageClient for URI translation between virtual and local paths.
+  const translator = getRegisteredTranslator();
+  if (translator) {
+    const translatedCwd = await initializeTranslator();
+    serverOptions.options.cwd = translatedCwd ?? process.cwd();
+    configureVfsClientOptions(clientOptions, translator, () => _vfsClient);
+  }
+
+  const client = new LanguageClient(serverId, serverName, serverOptions, clientOptions);
+
+  if (translator) {
+    _vfsClient = client;
+  }
+
+  return client;
 }
 
 async function createLegacyServer(
@@ -443,6 +472,7 @@ async function createServer(
 }
 
 let _disposables: Disposable[] = [];
+let _vfsClient: LanguageClient | undefined;
 
 export async function startServer(
   projectRoot: vscode.WorkspaceFolder,
@@ -460,6 +490,9 @@ export async function startServer(
   }
   const globalSettings = await getGlobalSettings(serverId);
   logger.info(`Global settings: ${JSON.stringify(globalSettings, null, 4)}`);
+
+  // Translate virtual workspace paths in settings before sending to the server.
+  translateInitializationSettings(workspaceSettings, extensionSettings, globalSettings);
 
   const newLSClient = await createServer(
     workspaceSettings,

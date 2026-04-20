@@ -19,6 +19,7 @@ import { loadServerDefaults } from "./common/setup";
 import { registerLanguageStatusItem, updateStatus } from "./common/status";
 import {
   getConfiguration,
+  isVirtualWorkspace,
   onDidChangeConfiguration,
   onDidGrantWorkspaceTrust,
   registerCommand,
@@ -30,6 +31,12 @@ import {
   executeOrganizeImports,
   createDebugInformationProvider,
 } from "./common/commands";
+import {
+  createExtensionApi,
+  clearRegisteredTranslator,
+  getRegisteredTranslator,
+  RuffExtensionApi,
+} from "./common/uriTranslator";
 
 let lsClient: LanguageClient | undefined;
 let restartInProgress = false;
@@ -39,7 +46,7 @@ function getClient(): LanguageClient | undefined {
   return lsClient;
 }
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
+export async function activate(context: vscode.ExtensionContext): Promise<RuffExtensionApi> {
   // This is required to get server name and module. This should be
   // the first thing that we do in this extension.
   const serverInfo = loadServerDefaults();
@@ -70,12 +77,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
   );
 
+  // Create the extension API early so all code paths can return it.
+  // runServer is defined below but the API closure captures the reference.
+  // eslint-disable-next-line prefer-const
+  let runServer: () => Promise<void>;
+  const extensionApi = createExtensionApi(async () => {
+    logger.info("[UriTranslator] VFS translator registered, restarting server...");
+    try {
+      await runServer();
+    } catch (err) {
+      logger.error(`[UriTranslator] runServer() failed: ${err}`);
+    }
+  });
+
   const { enable } = getConfiguration(serverId) as unknown as ISettings;
   if (!enable) {
     logger.info(
       "Extension is disabled. To enable, change `ruff.enable` to `true` and restart VS Code.",
     );
-    return;
+    return extensionApi;
   }
 
   if (restartInProgress) {
@@ -86,10 +106,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       );
       restartQueued = true;
     }
-    return;
+    return extensionApi;
   }
 
-  const runServer = async () => {
+  runServer = async () => {
+    // In virtual workspaces, don't start until a translator is registered.
+    if (isVirtualWorkspace() && !getRegisteredTranslator()) {
+      return;
+    }
+
     if (restartInProgress) {
       if (!restartQueued) {
         // Schedule a new restart after the current restart.
@@ -111,7 +136,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const projectRoot = await getProjectRoot();
       const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
 
-      if (vscode.workspace.isTrusted) {
+      if (vscode.workspace.isTrusted && !isVirtualWorkspace()) {
         if (workspaceSettings.interpreter.length === 0) {
           updateStatus(
             vscode.l10n.t("Please select a Python interpreter."),
@@ -207,6 +232,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   checkNotebookCodeActionsOnSave(serverId);
 
   setImmediate(async () => {
+    if (isVirtualWorkspace()) {
+      // In virtual workspaces, don't start the server immediately.
+      // Wait for a VFS provider to register a URI translator via the API.
+      // The registration callback will trigger runServer() automatically.
+      logger.info(
+        "[VFS] Virtual workspace detected. Waiting for a VFS provider to register a URI translator...",
+      );
+      return;
+    }
+
     if (vscode.workspace.isTrusted) {
       const interpreter = getInterpreterFromSetting(serverId);
       if (interpreter === undefined || interpreter.length === 0) {
@@ -218,10 +253,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
     await runServer();
   });
+
+  return extensionApi;
 }
 
 export async function deactivate(): Promise<void> {
   if (lsClient) {
     await stopServer(lsClient);
   }
+  clearRegisteredTranslator();
 }
