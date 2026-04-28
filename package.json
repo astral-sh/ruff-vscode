@@ -100,11 +100,13 @@
             "Automatically select between the native language server and [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) based on the following conditions:\n1. If the Ruff version is >= `0.5.3`, use the native language server unless any deprecated settings are detected. In that case, show a warning and use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) instead.\n2. If the Ruff version is < `0.5.3`, use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp). A warning will be displayed if settings specific to the native server are detected.",
             "Same as `on`.",
             "Same as `off`."
-          ]
+          ],
+          "markdownDeprecationMessage": "**Deprecated**: Please remove this setting as the extension now always uses the native language server.",
+          "deprecationMessage": "Deprecated: Please remove this setting as the extension now always uses the native language server."
         },
         "ruff.configuration": {
           "default": null,
-          "markdownDescription": "Configuration overrides for Ruff. See [the documentation](https://docs.astral.sh/ruff/editors/settings/#configuration) for more details.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Configuration overrides for Ruff. See [the documentation](https://docs.astral.sh/ruff/editors/settings/#configuration) for more details.",
           "scope": "resource",
           "type": [
             "string",
@@ -145,13 +147,13 @@
         },
         "ruff.lint.preview": {
           "default": null,
-          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#lint_preview) for the linter; enables unstable rules and fixes.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#lint_preview) for the linter; enables unstable rules and fixes.",
           "scope": "resource",
           "type": "boolean"
         },
         "ruff.lint.select": {
           "default": null,
-          "markdownDescription": "Set rule codes to enable. Use `ALL` to enable all rules. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select) for more details.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Set rule codes to enable. Use `ALL` to enable all rules. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_select) for more details.",
           "examples": [
             [
               "E4",
@@ -168,7 +170,7 @@
         },
         "ruff.lint.extendSelect": {
           "default": null,
-          "markdownDescription": "Enable additional rule codes on top of existing configuration, instead of overriding it. Use `ALL` to enable all rules.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Enable additional rule codes on top of existing configuration, instead of overriding it. Use `ALL` to enable all rules.",
           "items": {
             "type": "string"
           },
@@ -177,7 +179,7 @@
         },
         "ruff.lint.ignore": {
           "default": null,
-          "markdownDescription": "Set rule codes to disable. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore) for more details.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Set rule codes to disable. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_ignore) for more details.",
           "items": {
             "type": "string"
           },
@@ -249,7 +251,7 @@
         },
         "ruff.format.preview": {
           "default": null,
-          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#format_preview) for the formatter; enables unstable formatting.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Enable [preview mode](https://docs.astral.sh/ruff/settings/#format_preview) for the formatter; enables unstable formatting.",
           "scope": "resource",
           "type": "boolean"
         },
@@ -351,7 +353,7 @@
         },
         "ruff.logLevel": {
           "default": null,
-          "markdownDescription": "Controls the log level of the language server.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Controls the log level of the language server.",
           "enum": [
             "error",
             "warning",
@@ -364,7 +366,7 @@
         },
         "ruff.logFile": {
           "default": null,
-          "markdownDescription": "Path to the log file for the language server.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Path to the log file for the language server.",
           "scope": "application",
           "type": "string"
         },
@@ -403,7 +405,7 @@
           "items": {
             "type": "string"
           },
-          "markdownDescription": "Set paths for the linter and formatter to ignore. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_exclude) for more details.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Set paths for the linter and formatter to ignore. See [the documentation](https://docs.astral.sh/ruff/settings/#lint_exclude) for more details.",
           "type": "array",
           "scope": "resource"
         },
@@ -411,7 +413,7 @@
           "default": null,
           "minimum": 1,
           "maximum": 320,
-          "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0 and less than or equal to 320.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0 and less than or equal to 320.",
           "scope": "resource",
           "type": [
             "integer",
@@ -429,7 +431,7 @@
             "An alternative strategy - configuration set in `.toml` files takes priority over configuration set in the editor.",
             "An alternative strategy - configuration set in `.toml` files is ignored entirely."
           ],
-          "markdownDescription": "The preferred method of resolving configuration in the editor with local configuration from `.toml` files.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "The preferred method of resolving configuration in the editor with local configuration from `.toml` files.",
           "scope": "resource",
           "type": "string",
           "default": "editorFirst"
