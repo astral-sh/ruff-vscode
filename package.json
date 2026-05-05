@@ -411,7 +411,7 @@
           "default": null,
           "minimum": 1,
           "maximum": 65535,
-          "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0. Ruff 0.15.12 or older used a maximum of 320.\n\n**This setting is used only by the native server.**",
+          "markdownDescription": "Set the [line length](https://docs.astral.sh/ruff/settings/#line-length) used by the formatter and linter. Must be greater than 0. Ruff 0.15.12 or older uses a maximum of 320.\n\n**This setting is used only by the native server.**",
           "scope": "resource",
           "type": [
             "integer",
