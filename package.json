@@ -354,7 +354,7 @@
           "markdownDescription": "Controls the log level of the language server.\n\n**This setting is used only by the native server.**",
           "enum": [
             "error",
-            "warning",
+            "warn",
             "info",
             "debug",
             "trace"
