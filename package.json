@@ -486,7 +486,7 @@
     "@vscode/python-extension": "^1.0.5",
     "fs-extra": "^11.3.0",
     "vscode-languageclient": "^9.0.1",
-    "which": "^6.0.0"
+    "which": "^7.0.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
