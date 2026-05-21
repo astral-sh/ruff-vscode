@@ -9,7 +9,7 @@ This script does the following things:
 """
 
 # /// script
-# requires-python = "==3.7.*"
+# requires-python = "==3.8.*"
 # dependencies = ["packaging", "requests", "rich-argparse", "tomli", "tomlkit"]
 #
 # [tool.uv]
