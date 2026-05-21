@@ -30,10 +30,8 @@ and Python log messages in the debug console under "Python Server".
 
 ## Release
 
-- Make sure you have Python 3.7 installed and locatable by uv.
-  (If you're using pyenv, you may need to run `pyenv local 3.7`.)
-- Run `uv run --python=3.7 scripts/release.py`.
-  (Run `uv run --python=3.7 scripts/release.py --help` for information on what this script does,
+- Run `uv run scripts/release.py`.
+  (Run `uv run scripts/release.py --help` for information on what this script does,
   and its various options.)
 - Check the changes the script made, copy-edit the changelog, and commit the changes.
 - Create a new PR and merge it.

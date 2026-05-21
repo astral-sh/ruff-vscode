@@ -1,8 +1,8 @@
 default: fmt check
 
 lock:
-  uv pip compile --python-version 3.7.9 --generate-hashes -o ./requirements.txt ./pyproject.toml
-  uv pip compile --python-version 3.7.9 --generate-hashes --upgrade --extra dev -o ./requirements-dev.txt ./pyproject.toml
+  uv pip compile --python-version 3.8.20 --generate-hashes -o ./requirements.txt ./pyproject.toml
+  uv pip compile --python-version 3.8.20 --generate-hashes --upgrade --extra dev -o ./requirements-dev.txt ./pyproject.toml
   npm install --package-lock-only --ignore-scripts
 
 setup:
@@ -44,4 +44,4 @@ clean:
   rm -rf bundled/libs
 
 release:
-  uv run --python=3.7 scripts/release.py
+  uv run scripts/release.py

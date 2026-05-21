@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     runs-on: ubuntu-22.04
     steps:
       - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
@@ -46,7 +46,7 @@ jobs:
   #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   #     - uses: actions/setup-python@v5
   #       with:
-  #         python-version: "3.7"
+  #         python-version: "3.8"
   #     - uses: hynek/setup-cached-uv@v1
   #     - uses: actions/checkout@v4
   #     - name: Install dependencies
