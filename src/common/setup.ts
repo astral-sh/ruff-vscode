@@ -1,4 +1,4 @@
-import * as fs from "fs-extra";
+import * as fs from "node:fs";
 import * as path from "path";
 import { EXTENSION_ROOT_DIR } from "./constants";
 
