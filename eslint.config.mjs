@@ -1,11 +1,11 @@
 import tseslint from "typescript-eslint";
-import importPlugin from "eslint-plugin-import";
+import { importX } from "eslint-plugin-import-x";
 
 export default tseslint.config(
   tseslint.configs.eslintRecommended,
   tseslint.configs.recommended,
-  importPlugin.flatConfigs.recommended,
-  importPlugin.flatConfigs.typescript,
+  importX.flatConfigs.recommended,
+  importX.flatConfigs.typescript,
   {
     files: ["**/*.{js,mjs,cjs,ts}"],
     languageOptions: {
@@ -22,7 +22,7 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-explicit-any": "off",
       // Handled by typescript. It doesn't support shared?
-      "import/no-unresolved": "off",
+      "import-x/no-unresolved": "off",
       "no-console": "error",
     },
   },
