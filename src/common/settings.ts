@@ -90,7 +90,10 @@ function resolveVariables(
   value: string | string[],
   workspace?: WorkspaceFolder,
 ): string | string[] | null {
-  const substitutions = new Map<string, string>();
+  const substitutions = new Map<
+    string | RegExp,
+    string | ((substr: string, ...args: any[]) => string)
+  >();
   const home = process.env.HOME || process.env.USERPROFILE;
   if (home) {
     substitutions.set("${userHome}", home);
@@ -102,25 +105,29 @@ function resolveVariables(
   getWorkspaceFolders().forEach((w) => {
     substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
   });
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      substitutions.set("${env:" + key + "}", value);
+  // Replace ${env:*} with the environment variable value.
+  substitutions.set(/\${env:([^}]+)}/g, (_substr: string, envName: string): string => {
+    return process.env[envName] ?? "";
+  });
+
+  const doSubstitutions = (s: string): string => {
+    let result = s;
+    for (const [key, value] of substitutions) {
+      // This if-statement is needed since TypeScript cannot resolve unions against function
+      // overloads, even though both branches do the same thing.
+      if (typeof value === "string") {
+        result = result.replace(key, value);
+      } else {
+        result = result.replace(key, value);
+      }
     }
-  }
+    return result;
+  };
 
   if (typeof value === "string") {
-    let s = value;
-    for (const [key, value] of substitutions) {
-      s = s.replace(key, value);
-    }
-    return s;
+    return doSubstitutions(value);
   } else {
-    return value.map((s) => {
-      for (const [key, value] of substitutions) {
-        s = s.replace(key, value);
-      }
-      return s;
-    });
+    return value.map(doSubstitutions);
   }
 }
 
