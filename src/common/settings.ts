@@ -102,26 +102,17 @@ function resolveVariables(
   getWorkspaceFolders().forEach((w) => {
     substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
   });
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      substitutions.set("${env:" + key + "}", value);
-    }
-  }
-
-  if (typeof value === "string") {
-    let s = value;
+  const doSubstitutions = (s: string): string => {
     for (const [key, value] of substitutions) {
       s = s.replace(key, value);
     }
-    return s;
-  } else {
-    return value.map((s) => {
-      for (const [key, value] of substitutions) {
-        s = s.replace(key, value);
-      }
-      return s;
+    return s.replace(/\${env:([^}]+)}/g, (_match, envName) => {
+      const envValue = process.env[envName];
+      return typeof envValue === "string" ? envValue : "";
     });
-  }
+  };
+
+  return typeof value === "string" ? doSubstitutions(value) : value.map(doSubstitutions);
 }
 
 export function getInterpreterFromSetting(namespace: string, scope?: ConfigurationScope) {
