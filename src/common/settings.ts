@@ -90,10 +90,7 @@ function resolveVariables(
   value: string | string[],
   workspace?: WorkspaceFolder,
 ): string | string[] | null {
-  const substitutions = new Map<
-    string | RegExp,
-    string | ((substr: string, ...args: any[]) => string)
-  >();
+  const substitutions = new Map<string, string>();
   const home = process.env.HOME || process.env.USERPROFILE;
   if (home) {
     substitutions.set("${userHome}", home);
@@ -105,30 +102,17 @@ function resolveVariables(
   getWorkspaceFolders().forEach((w) => {
     substitutions.set("${workspaceFolder:" + w.name + "}", w.uri.fsPath);
   });
-  // Replace ${env:*} with the environment variable value.
-  substitutions.set(/\${env:([^}]+)}/g, (_substr: string, envName: string): string => {
-    return process.env[envName] ?? "";
-  });
-
   const doSubstitutions = (s: string): string => {
-    let result = s;
     for (const [key, value] of substitutions) {
-      // This if-statement is needed since TypeScript cannot resolve unions against function
-      // overloads, even though both branches do the same thing.
-      if (typeof value === "string") {
-        result = result.replace(key, value);
-      } else {
-        result = result.replace(key, value);
-      }
+      s = s.replace(key, value);
     }
-    return result;
+    return s.replace(/\${env:([^}]+)}/g, (_match, envName) => {
+      const envValue = process.env[envName];
+      return typeof envValue === "string" ? envValue : "";
+    });
   };
 
-  if (typeof value === "string") {
-    return doSubstitutions(value);
-  } else {
-    return value.map(doSubstitutions);
-  }
+  return typeof value === "string" ? doSubstitutions(value) : value.map(doSubstitutions);
 }
 
 export function getInterpreterFromSetting(namespace: string, scope?: ConfigurationScope) {
