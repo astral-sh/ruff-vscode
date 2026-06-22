@@ -14,6 +14,9 @@ export async function getProjectRoot(): Promise<WorkspaceFolder> {
     };
   } else if (workspaces.length === 1) {
     return workspaces[0];
+  } else if (isVirtualWorkspace()) {
+    // In virtual workspaces, return the first folder without filesystem checks
+    return workspaces[0];
   } else {
     let rootWorkspace = workspaces[0];
     let root = undefined;

@@ -50,8 +50,8 @@
       ]
     },
     "virtualWorkspaces": {
-      "supported": false,
-      "description": "Virtual Workspaces are not supported by the Ruff extension."
+      "supported": "limited",
+      "description": "Virtual Workspaces are supported when a VFS provider registers a URI translator via the extension API."
     }
   },
   "activationEvents": [

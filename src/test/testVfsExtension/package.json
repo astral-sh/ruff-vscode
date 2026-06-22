@@ -1,0 +1,16 @@
+{
+  "name": "ruff-testvfs",
+  "displayName": "Ruff TestVFS - VFS provider and URI translator for tests",
+  "description": "Test file system provider and URI translator for testing Ruff virtual workspace support.",
+  "version": "0.0.1",
+  "publisher": "ruff",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "activationEvents": [
+    "onFileSystem:testvfs"
+  ],
+  "main": "../../../out/test/testVfsExtension/src/extension"
+}

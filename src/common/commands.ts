@@ -24,7 +24,7 @@ async function executeCommand(lsClient: LanguageClient, command: string) {
   }
 
   const textDocument = {
-    uri: textEditor.document.uri.toString(),
+    uri: lsClient.code2ProtocolConverter.asUri(textEditor.document.uri),
     version: textEditor.document.version,
   };
   const params = {
@@ -74,9 +74,9 @@ export function createDebugInformationProvider(
         arguments: [
           {
             textDocument: notebookEditor
-              ? { uri: notebookEditor.notebook.uri.toString() }
+              ? { uri: lsClient.code2ProtocolConverter.asUri(notebookEditor.notebook.uri) }
               : textEditor
-                ? { uri: textEditor.document.uri.toString() }
+                ? { uri: lsClient.code2ProtocolConverter.asUri(textEditor.document.uri) }
                 : undefined,
           },
         ],
