@@ -2,21 +2,25 @@ import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { LazyOutputChannel, logger } from "./common/logger";
 import {
-  checkVersion,
-  initializePython,
-  onDidChangePythonInterpreter,
-  resolveInterpreter,
+  getEnvironmentProvider,
+  onDidChangeActivePythonEnvironment,
+  type OnDidChangeActivePythonEnvironmentEventArgs,
 } from "./common/python";
-import { startServer, stopServer } from "./common/server";
+import {
+  resolveServerPlan,
+  serverPlanKey,
+  type ServerState,
+  startServer,
+  stopServer,
+} from "./common/server";
 import {
   checkIfConfigurationChanged,
-  getInterpreterFromSetting,
   getWorkspaceSettings,
   ISettings,
   checkNotebookCodeActionsOnSave,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
-import { registerLanguageStatusItem, updateStatus } from "./common/status";
+import { registerLanguageStatusItem } from "./common/status";
 import {
   getConfiguration,
   onDidChangeConfiguration,
@@ -31,12 +35,12 @@ import {
   createDebugInformationProvider,
 } from "./common/commands";
 
-let lsClient: LanguageClient | undefined;
-let restartInProgress = false;
+let serverState: ServerState | null = null;
 let restartQueued = false;
+let restartPromise: Promise<void> | null = null;
 
 function getClient(): LanguageClient | undefined {
-  return lsClient;
+  return serverState?.client;
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -78,100 +82,127 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return;
   }
 
-  if (restartInProgress) {
-    if (!restartQueued) {
-      // Schedule a new restart after the current restart.
-      logger.info(
-        `Triggered ${serverName} restart while restart is in progress; queuing a restart.`,
-      );
-      restartQueued = true;
-    }
-    return;
-  }
+  const environmentProvider = await getEnvironmentProvider();
 
   const runServer = async () => {
-    if (restartInProgress) {
+    if (serverState != null) {
+      await stopServer(serverState.client);
+      serverState = null;
+    }
+
+    const projectRoot = await getProjectRoot();
+    const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
+    serverState = await startServer(
+      projectRoot,
+      workspaceSettings,
+      serverId,
+      serverName,
+      outputChannel,
+      traceOutputChannel,
+      environmentProvider,
+    );
+  };
+
+  const requestRestart = async () => {
+    if (restartPromise != null) {
       if (!restartQueued) {
-        // Schedule a new restart after the current restart.
         logger.info(
-          `Triggered ${serverName} restart while restart is in progress; queuing a restart.`,
+          `${serverName} restart requested while another restart is in progress; queuing one more restart.`,
         );
         restartQueued = true;
       }
+      await restartPromise;
       return;
     }
 
-    restartInProgress = true;
-
-    try {
-      if (lsClient) {
-        await stopServer(lsClient);
+    restartQueued = false;
+    restartPromise = (async () => {
+      try {
+        do {
+          restartQueued = false;
+          await runServer();
+        } while (restartQueued);
+      } finally {
+        restartPromise = null;
       }
+    })();
+    await restartPromise;
+  };
 
-      const projectRoot = await getProjectRoot();
-      const workspaceSettings = await getWorkspaceSettings(serverId, projectRoot);
-
-      if (vscode.workspace.isTrusted) {
-        if (workspaceSettings.interpreter.length === 0) {
-          updateStatus(
-            vscode.l10n.t("Please select a Python interpreter."),
-            vscode.LanguageStatusSeverity.Error,
-          );
-          logger.error(
-            "Python interpreter missing:\r\n" +
-              "[Option 1] Select Python interpreter using the ms-python.python.\r\n" +
-              `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
-              "Please use Python 3.8 or greater.",
-          );
-          return;
-        }
-
-        logger.info(`Using interpreter: ${workspaceSettings.interpreter.join(" ")}`);
-        const resolvedEnvironment = await resolveInterpreter(workspaceSettings.interpreter);
-        if (resolvedEnvironment === undefined) {
-          updateStatus(
-            vscode.l10n.t("Python interpreter not found."),
-            vscode.LanguageStatusSeverity.Error,
-          );
-          logger.error(
-            "Unable to find any Python environment for the interpreter path:",
-            workspaceSettings.interpreter.join(" "),
-          );
-          return;
-        } else if (!checkVersion(resolvedEnvironment)) {
-          return;
-        }
-      }
-
-      lsClient = await startServer(
-        projectRoot,
-        workspaceSettings,
-        serverId,
-        serverName,
-        outputChannel,
-        traceOutputChannel,
-      );
-    } finally {
-      // Ensure that we reset the flag in case of an error, early return, or success.
-      restartInProgress = false;
-      if (restartQueued) {
-        restartQueued = false;
-        await runServer();
-      }
-    }
+  let activeEnvironmentChangePromise = Promise.resolve();
+  const enqueueActiveEnvironmentChange = (task: () => Promise<void>) => {
+    const current = activeEnvironmentChangePromise.then(task, task);
+    activeEnvironmentChangePromise = current.then(
+      () => undefined,
+      (error) => {
+        logger.error(`Failed to handle Python environment change: ${error}`);
+      },
+    );
+    return current;
   };
 
   context.subscriptions.push(
-    onDidChangePythonInterpreter(async () => {
-      await runServer();
-    }),
+    onDidChangeActivePythonEnvironment(
+      async (event: OnDidChangeActivePythonEnvironmentEventArgs) => {
+        await enqueueActiveEnvironmentChange(async () => {
+          logger.info(
+            `Selected Python interpreter for '${event.uri ?? "workspace"}' changed to '${event.path ?? "<unknown>"}'.`,
+          );
+
+          if (restartPromise != null) {
+            logger.debug(
+              `${serverName} restart is already in progress; waiting before checking the Python environment change.`,
+            );
+            await restartPromise;
+          }
+
+          const projectRoot = await getProjectRoot();
+          const affectsProjectRoot =
+            event.uri == null || event.uri.toString() === projectRoot.uri.toString();
+          if (!affectsProjectRoot) {
+            return;
+          }
+
+          if (serverState == null) {
+            await requestRestart();
+            return;
+          }
+
+          if (!serverState.plan.dependsOnActiveInterpreter) {
+            logger.debug(
+              "Ignoring Python environment change because server selection is independent of it.",
+            );
+            return;
+          }
+
+          const settings = await getWorkspaceSettings(serverId, projectRoot);
+          const activeEnvironment =
+            (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
+          const nextPlan = await resolveServerPlan(
+            settings,
+            projectRoot,
+            serverId,
+            environmentProvider,
+            activeEnvironment,
+            false,
+          );
+
+          if (nextPlan == null || serverPlanKey(nextPlan) !== serverPlanKey(serverState.plan)) {
+            logger.info(`Restarting ${serverName} because its execution plan changed.`);
+            await requestRestart();
+          } else {
+            logger.debug("Python environment changed without changing the Ruff execution plan.");
+          }
+        });
+      },
+    ),
     onDidChangeConfiguration(async (e: vscode.ConfigurationChangeEvent) => {
       if (checkIfConfigurationChanged(e, serverId)) {
-        await runServer();
+        await requestRestart();
       }
     }),
     onDidGrantWorkspaceTrust(async () => {
-      await runServer();
+      await requestRestart();
     }),
     registerCommand(`${serverId}.showLogs`, () => {
       logger.channel.show();
@@ -180,21 +211,21 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       outputChannel.show();
     }),
     registerCommand(`${serverId}.restart`, async () => {
-      await runServer();
+      await requestRestart();
     }),
     registerCommand(`${serverId}.executeAutofix`, async () => {
-      if (lsClient) {
-        await executeAutofix(lsClient, serverId);
+      if (serverState != null) {
+        await executeAutofix(serverState.client, serverId);
       }
     }),
     registerCommand(`${serverId}.executeFormat`, async () => {
-      if (lsClient) {
-        await executeFormat(lsClient, serverId);
+      if (serverState != null) {
+        await executeFormat(serverState.client, serverId);
       }
     }),
     registerCommand(`${serverId}.executeOrganizeImports`, async () => {
-      if (lsClient) {
-        await executeOrganizeImports(lsClient, serverId);
+      if (serverState != null) {
+        await executeOrganizeImports(serverState.client, serverId);
       }
     }),
     registerCommand(
@@ -206,22 +237,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   checkNotebookCodeActionsOnSave(serverId);
 
-  setImmediate(async () => {
-    if (vscode.workspace.isTrusted) {
-      const interpreter = getInterpreterFromSetting(serverId);
-      if (interpreter === undefined || interpreter.length === 0) {
-        logger.info(`Python extension loading`);
-        await initializePython(context.subscriptions);
-        logger.info(`Python extension loaded`);
-        return; // The `onDidChangePythonInterpreter` event will trigger the server start.
-      }
-    }
-    await runServer();
-  });
+  await environmentProvider?.initialize(context.subscriptions);
+  await requestRestart();
 }
 
 export async function deactivate(): Promise<void> {
-  if (lsClient) {
-    await stopServer(lsClient);
+  if (serverState != null) {
+    await stopServer(serverState.client);
+    serverState = null;
   }
 }
