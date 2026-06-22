@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { LazyOutputChannel, logger } from "./common/logger";
@@ -6,13 +7,7 @@ import {
   onDidChangeActivePythonEnvironment,
   type OnDidChangeActivePythonEnvironmentEventArgs,
 } from "./common/python";
-import {
-  resolveServerPlan,
-  serverPlanKey,
-  type ServerState,
-  startServer,
-  stopServer,
-} from "./common/server";
+import { resolveServerExecution, type ServerState, startServer, stopServer } from "./common/server";
 import {
   checkIfConfigurationChanged,
   getWorkspaceSettings,
@@ -106,6 +101,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const requestRestart = async () => {
     if (restartPromise != null) {
       if (!restartQueued) {
+        // Schedule one more restart after the current restart finishes.
         logger.info(
           `${serverName} restart requested while another restart is in progress; queuing one more restart.`,
         );
@@ -123,6 +119,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           await runServer();
         } while (restartQueued);
       } finally {
+        // Reset the promise after success, an early return, or an error.
         restartPromise = null;
       }
     })();
@@ -168,7 +165,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             return;
           }
 
-          if (!serverState.plan.dependsOnActiveInterpreter) {
+          if (!serverState.execution.dependsOnActiveInterpreter) {
             logger.debug(
               "Ignoring Python environment change because server selection is independent of it.",
             );
@@ -178,7 +175,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           const settings = await getWorkspaceSettings(serverId, projectRoot);
           const activeEnvironment =
             (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
-          const nextPlan = await resolveServerPlan(
+          const nextExecution = await resolveServerExecution(
             settings,
             projectRoot,
             serverId,
@@ -187,11 +184,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             false,
           );
 
-          if (nextPlan == null || serverPlanKey(nextPlan) !== serverPlanKey(serverState.plan)) {
-            logger.info(`Restarting ${serverName} because its execution plan changed.`);
+          if (nextExecution == null || !isDeepStrictEqual(nextExecution, serverState.execution)) {
+            logger.info(`Restarting ${serverName} because its server execution changed.`);
             await requestRestart();
           } else {
-            logger.debug("Python environment changed without changing the Ruff execution plan.");
+            logger.debug("Python environment changed without changing the server execution.");
           }
         });
       },
@@ -238,7 +235,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   checkNotebookCodeActionsOnSave(serverId);
 
   await environmentProvider?.initialize(context.subscriptions);
-  await requestRestart();
+
+  setImmediate(async () => {
+    if (serverState == null && restartPromise == null) {
+      await requestRestart();
+    }
+  });
 }
 
 export async function deactivate(): Promise<void> {

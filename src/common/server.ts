@@ -380,12 +380,12 @@ function showWarningMessage(message: string) {
   logger.warn(message);
 }
 
-export type RuffExecutable = {
+type RuffExecutable = {
   path: string;
   version: VersionInfo;
 };
 
-export type ServerPlan =
+type ServerExecution =
   | {
       kind: "native";
       executable: RuffExecutable;
@@ -394,13 +394,12 @@ export type ServerPlan =
   | {
       kind: "legacy";
       interpreter: PythonCommand;
-      autoRuffExecutable: RuffExecutable | null;
       dependsOnActiveInterpreter: boolean;
     };
 
 export type ServerState = {
   client: LanguageClient;
-  plan: ServerPlan;
+  execution: ServerExecution;
 };
 
 const RUFF_LSP_URL = "https://github.com/astral-sh/ruff-lsp";
@@ -421,8 +420,8 @@ async function resolveNativeServerSetting(
   showWarnings: boolean,
 ): Promise<{
   useNativeServer: boolean;
-  executable: RuffExecutable | null;
-  dependsOnActiveInterpreter: boolean;
+  executable?: RuffExecutable;
+  dependsOnActiveInterpreter?: boolean;
 }> {
   let useNativeServer: boolean;
   let legacyServerSettings: LegacyServerSetting[];
@@ -440,11 +439,7 @@ async function resolveNativeServerSetting(
             LSP_DEPRECATION_DISCUSSION_MESSAGE,
         );
       }
-      return {
-        useNativeServer: true,
-        executable: null,
-        dependsOnActiveInterpreter: false,
-      };
+      return { useNativeServer: true };
     case "off":
     case false:
       if (!vscode.workspace.isTrusted) {
@@ -455,11 +450,7 @@ async function resolveNativeServerSetting(
           vscode.window.showWarningMessage(message);
           logger.warn(message);
         }
-        return {
-          useNativeServer: true,
-          executable: null,
-          dependsOnActiveInterpreter: false,
-        };
+        return { useNativeServer: true };
       }
 
       // User has explicitly set the native server to 'off'. Recommend them to upgrade to the native server ...
@@ -478,21 +469,13 @@ async function resolveNativeServerSetting(
         showWarningMessage(message);
       }
 
-      return {
-        useNativeServer: false,
-        executable: null,
-        dependsOnActiveInterpreter: false,
-      };
+      return { useNativeServer: false };
     case "auto":
       if (!vscode.workspace.isTrusted) {
         logger.info(
           `Resolved '${serverId}.nativeServer: auto' to use the native server in an untrusted workspace`,
         );
-        return {
-          useNativeServer: true,
-          executable: null,
-          dependsOnActiveInterpreter: false,
-        };
+        return { useNativeServer: true };
       }
 
       const binaryResolution = await findRuffBinaryPath(
@@ -546,21 +529,6 @@ async function resolveNativeServerSetting(
         dependsOnActiveInterpreter: binaryResolution.dependsOnActiveInterpreter,
       };
   }
-}
-
-async function resolveRuffExecutable(
-  settings: ISettings,
-  environmentProvider: EnvironmentProvider | null,
-  activeEnvironment: PythonEnvironmentDetails | null,
-): Promise<{ executable: RuffExecutable; dependsOnActiveInterpreter: boolean }> {
-  const resolution = await findRuffBinaryPath(settings, environmentProvider, activeEnvironment);
-  return {
-    executable: {
-      path: resolution.path,
-      version: await getRuffVersion(resolution.path),
-    },
-    dependsOnActiveInterpreter: resolution.dependsOnActiveInterpreter,
-  };
 }
 
 async function resolveLegacyInterpreter(
@@ -627,14 +595,14 @@ async function resolveLegacyInterpreter(
   return { command, dependsOnActiveInterpreter };
 }
 
-export async function resolveServerPlan(
+export async function resolveServerExecution(
   settings: ISettings,
   projectRoot: vscode.WorkspaceFolder,
   serverId: string,
   environmentProvider: EnvironmentProvider | null,
   activeEnvironment: PythonEnvironmentDetails | null,
   showWarnings: boolean,
-): Promise<ServerPlan | null> {
+): Promise<ServerExecution | null> {
   const serverSetting = await resolveNativeServerSetting(
     settings,
     projectRoot,
@@ -645,17 +613,20 @@ export async function resolveServerPlan(
   );
 
   if (serverSetting.useNativeServer) {
-    const resolution =
-      serverSetting.executable == null
-        ? await resolveRuffExecutable(settings, environmentProvider, activeEnvironment)
-        : {
-            executable: serverSetting.executable,
-            dependsOnActiveInterpreter: serverSetting.dependsOnActiveInterpreter,
-          };
+    let executable = serverSetting.executable;
+    let dependsOnActiveInterpreter = serverSetting.dependsOnActiveInterpreter ?? false;
+    if (executable == null) {
+      const resolution = await findRuffBinaryPath(settings, environmentProvider, activeEnvironment);
+      executable = {
+        path: resolution.path,
+        version: await getRuffVersion(resolution.path),
+      };
+      dependsOnActiveInterpreter = resolution.dependsOnActiveInterpreter;
+    }
     return {
       kind: "native",
-      executable: resolution.executable,
-      dependsOnActiveInterpreter: resolution.dependsOnActiveInterpreter,
+      executable,
+      dependsOnActiveInterpreter,
     };
   }
 
@@ -671,14 +642,9 @@ export async function resolveServerPlan(
   return {
     kind: "legacy",
     interpreter: interpreter.command,
-    autoRuffExecutable: serverSetting.executable,
     dependsOnActiveInterpreter:
-      serverSetting.dependsOnActiveInterpreter || interpreter.dependsOnActiveInterpreter,
+      (serverSetting.dependsOnActiveInterpreter ?? false) || interpreter.dependsOnActiveInterpreter,
   };
-}
-
-export function serverPlanKey(plan: ServerPlan): string {
-  return JSON.stringify(plan);
 }
 
 async function createServer(
@@ -688,10 +654,10 @@ async function createServer(
   outputChannel: OutputChannel,
   traceOutputChannel: OutputChannel,
   initializationOptions: IInitializationOptions,
-  plan: ServerPlan,
+  execution: ServerExecution,
 ): Promise<LanguageClient> {
-  updateServerKind(plan.kind === "native");
-  if (plan.kind === "native") {
+  updateServerKind(execution.kind === "native");
+  if (execution.kind === "native") {
     return createNativeServer(
       settings,
       serverId,
@@ -699,7 +665,7 @@ async function createServer(
       outputChannel,
       traceOutputChannel,
       initializationOptions,
-      plan.executable,
+      execution.executable,
     );
   } else {
     return createLegacyServer(
@@ -709,7 +675,7 @@ async function createServer(
       outputChannel,
       traceOutputChannel,
       initializationOptions,
-      plan.interpreter,
+      execution.interpreter,
     );
   }
 }
@@ -729,7 +695,7 @@ export async function startServer(
 
   const activeEnvironment =
     (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
-  const plan = await resolveServerPlan(
+  const execution = await resolveServerExecution(
     workspaceSettings,
     projectRoot,
     serverId,
@@ -737,7 +703,7 @@ export async function startServer(
     activeEnvironment,
     true,
   );
-  if (plan == null) {
+  if (execution == null) {
     return null;
   }
 
@@ -758,7 +724,7 @@ export async function startServer(
       settings: extensionSettings,
       globalSettings: globalSettings,
     },
-    plan,
+    execution,
   );
   logger.info(`Server: Start requested.`);
 
@@ -801,7 +767,7 @@ export async function startServer(
     return null;
   }
 
-  return { client: newLSClient, plan };
+  return { client: newLSClient, execution };
 }
 
 export async function stopServer(lsClient: LanguageClient): Promise<void> {

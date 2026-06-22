@@ -1,4 +1,5 @@
-import { commands, type Disposable, type Event, EventEmitter, extensions, Uri } from "vscode";
+import { isDeepStrictEqual } from "node:util";
+import { type Disposable, type Event, EventEmitter, extensions, Uri } from "vscode";
 import {
   PythonExtension as PythonExtensionApi,
   type ResolvedEnvironment,
@@ -124,6 +125,7 @@ async function getPythonExtension(): Promise<PythonExtension | null> {
 /** Facade for the dedicated Python Environments extension API. */
 class PythonEnvironmentExtension implements EnvironmentProvider {
   readonly #extension: PythonEnvironmentApi;
+  // The extension emits duplicate change events, so only forward actual changes per scope.
   readonly #activeEnvironments = createActiveEnvironmentCache();
 
   private constructor(extension: PythonEnvironmentApi) {
@@ -250,20 +252,19 @@ async function getPythonEnvironmentExtension(): Promise<PythonEnvironmentExtensi
 }
 
 function createActiveEnvironmentCache() {
-  const environments = new Map<string | symbol, string | null>();
+  const environments = new Map<string | symbol, PythonEnvironmentDetails | null>();
   const workspaceKey = Symbol("workspace");
   const scopeKey = (uri: Uri | undefined) => uri?.toString() ?? workspaceKey;
 
   return {
     remember(uri: Uri | undefined, environment: PythonEnvironmentDetails | null): void {
-      environments.set(scopeKey(uri), environmentKey(environment));
+      environments.set(scopeKey(uri), environment);
     },
 
     record(uri: Uri | undefined, environment: PythonEnvironmentDetails | null): boolean {
       const key = scopeKey(uri);
-      const next = environmentKey(environment);
-      const unchanged = environments.get(key) === next;
-      environments.set(key, next);
+      const unchanged = isDeepStrictEqual(environments.get(key), environment);
+      environments.set(key, environment);
       return !unchanged;
     },
   };
@@ -273,11 +274,7 @@ function areEnvironmentsEqual(
   left: PythonEnvironmentDetails | null,
   right: PythonEnvironmentDetails | null,
 ): boolean {
-  return environmentKey(left) === environmentKey(right);
-}
-
-function environmentKey(environment: PythonEnvironmentDetails | null): string | null {
-  return environment == null ? null : JSON.stringify(environment);
+  return isDeepStrictEqual(left, right);
 }
 
 export function checkInterpreterVersion(environment: PythonEnvironmentDetails): boolean | null {
@@ -298,11 +295,6 @@ export function checkInterpreterVersion(environment: PythonEnvironmentDetails): 
 export async function getDebuggerPath(): Promise<string | undefined> {
   const api = await getPythonExtensionAPI();
   return api.debug.getDebuggerPackagePath();
-}
-
-export async function runPythonExtensionCommand(command: string, ...rest: any[]) {
-  await getPythonExtensionAPI();
-  return commands.executeCommand(command, ...rest);
 }
 
 const unavailable = Symbol("unavailable");

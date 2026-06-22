@@ -1,11 +1,13 @@
 import * as assert from "assert";
+import * as vscode from "vscode";
+import { BUNDLED_RUFF_EXECUTABLE } from "../common/constants";
 import type { EnvironmentProvider, PythonEnvironmentDetails } from "../common/python";
 import {
   execFileShellModeRequired,
+  findRuffBinaryPath,
   resolvePythonEnvironment,
-  serverPlanKey,
-  type ServerPlan,
 } from "../common/server";
+import type { ISettings } from "../common/settings";
 import { isWindows } from "./helper";
 
 suite("Utils tests", () => {
@@ -78,29 +80,27 @@ suite("Utils tests", () => {
     });
   });
 
-  test("Server plan key includes executable version and interpreter arguments", () => {
-    const native: ServerPlan = {
-      kind: "native",
-      executable: { path: "/bin/ruff", version: { major: 1, minor: 0, patch: 0 } },
-      dependsOnActiveInterpreter: true,
-    };
-    const updatedNative: ServerPlan = {
-      ...native,
-      executable: { path: "/bin/ruff", version: { major: 1, minor: 1, patch: 0 } },
-    };
-    assert.notStrictEqual(serverPlanKey(native), serverPlanKey(updatedNative));
+  test("path and useBundled do not resolve a Python environment", async () => {
+    assert.strictEqual(vscode.workspace.isTrusted, true);
 
-    const legacy: ServerPlan = {
-      kind: "legacy",
-      interpreter: { executable: "/bin/python", args: [] },
-      autoRuffExecutable: null,
-      dependsOnActiveInterpreter: true,
-    };
-    const updatedLegacy: ServerPlan = {
-      ...legacy,
-      interpreter: { executable: "/bin/python", args: ["-I"] },
-    };
-    assert.notStrictEqual(serverPlanKey(legacy), serverPlanKey(updatedLegacy));
+    for (const settings of [
+      { path: [BUNDLED_RUFF_EXECUTABLE], importStrategy: "fromEnvironment" },
+      { path: [], importStrategy: "useBundled" },
+    ]) {
+      const resolution = await findRuffBinaryPath(
+        settings as ISettings,
+        {
+          ...environmentProvider(null, null),
+          resolveInterpreter: () => Promise.reject(new Error("unexpected interpreter lookup")),
+        },
+        null,
+      );
+
+      assert.deepStrictEqual(resolution, {
+        path: BUNDLED_RUFF_EXECUTABLE,
+        dependsOnActiveInterpreter: false,
+      });
+    }
   });
 });
 
