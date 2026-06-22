@@ -116,27 +116,32 @@ export async function resolvePythonEnvironment(
   workspace: string,
   environmentProvider: EnvironmentProvider | null,
   activeEnvironment: PythonEnvironmentDetails | null,
-  fallBackToActiveEnvironment: boolean,
 ): Promise<{
   environment: PythonEnvironmentDetails | null;
+  command: PythonCommand | null;
   dependsOnActiveInterpreter: boolean;
 }> {
   if (environmentProvider == null) {
-    return { environment: null, dependsOnActiveInterpreter: false };
+    return { environment: null, command: null, dependsOnActiveInterpreter: false };
   }
 
-  const configuredPath = configuredInterpreter[0];
+  const [configuredPath, ...configuredArgs] = configuredInterpreter;
   if (configuredPath != null) {
     logger.info(`Resolving Python interpreter from 'ruff.interpreter': '${configuredPath}'`);
     const environment = await environmentProvider.resolveInterpreter(configuredPath);
     if (environment != null) {
-      return { environment, dependsOnActiveInterpreter: false };
+      const command =
+        environment.command == null
+          ? null
+          : { ...environment.command, args: environment.command.args.concat(configuredArgs) };
+      return {
+        environment,
+        command,
+        dependsOnActiveInterpreter: false,
+      };
     }
 
     logger.warn(`'${configuredPath}' (from 'ruff.interpreter') is not a valid interpreter.`);
-    if (!fallBackToActiveEnvironment) {
-      return { environment: null, dependsOnActiveInterpreter: false };
-    }
     logger.warn("Falling back to the active Python environment.");
   }
 
@@ -144,19 +149,10 @@ export async function resolvePythonEnvironment(
   if (activeEnvironment == null) {
     logger.warn("No active Python environment found.");
   }
-  return { environment: activeEnvironment, dependsOnActiveInterpreter: true };
-}
-
-function resolvePythonCommand(
-  environment: PythonEnvironmentDetails,
-  additionalArgs: string[],
-): PythonCommand | null {
-  if (environment.command == null) {
-    return null;
-  }
   return {
-    executable: environment.command.executable,
-    args: [...environment.command.args, ...additionalArgs],
+    environment: activeEnvironment,
+    command: activeEnvironment?.command ?? null,
+    dependsOnActiveInterpreter: true,
   };
 }
 
@@ -188,19 +184,14 @@ export async function findRuffBinaryPath(
 
   // Otherwise, we'll call a Python script that tries to locate a binary.
   let ruffBinaryPath: string | undefined;
-  const { environment, dependsOnActiveInterpreter } = await resolvePythonEnvironment(
+  const { environment, command, dependsOnActiveInterpreter } = await resolvePythonEnvironment(
     settings.interpreter,
     settings.workspace,
     environmentProvider,
     activeEnvironment,
-    true,
   );
 
   if (environment != null) {
-    const command = resolvePythonCommand(
-      environment,
-      dependsOnActiveInterpreter ? [] : settings.interpreter.slice(1),
-    );
     if (command == null) {
       logger.warn("Resolved Python environment has no executable command.");
     } else if (checkInterpreterVersion(environment)) {
@@ -536,12 +527,11 @@ async function resolveLegacyInterpreter(
   environmentProvider: EnvironmentProvider | null,
   activeEnvironment: PythonEnvironmentDetails | null,
 ): Promise<{ command: PythonCommand; dependsOnActiveInterpreter: boolean } | null> {
-  const { environment, dependsOnActiveInterpreter } = await resolvePythonEnvironment(
+  const { environment, command, dependsOnActiveInterpreter } = await resolvePythonEnvironment(
     settings.interpreter,
     settings.workspace,
     environmentProvider,
     activeEnvironment,
-    false,
   );
 
   if (environment == null) {
@@ -579,10 +569,6 @@ async function resolveLegacyInterpreter(
     return null;
   }
 
-  const command = resolvePythonCommand(
-    environment,
-    dependsOnActiveInterpreter ? [] : settings.interpreter.slice(1),
-  );
   if (command == null) {
     updateStatus(
       vscode.l10n.t("Python interpreter not found."),

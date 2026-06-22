@@ -35,47 +35,35 @@ suite("Utils tests", () => {
   });
 
   test("Invalid configured interpreter falls back to the active environment", async () => {
-    const activeEnvironment = environment("/workspace/.venv/bin/python");
+    const activeEnvironment = environment("/workspace/.venv/bin/python", ["-X", "utf8"]);
     const provider = environmentProvider(null, activeEnvironment);
 
-    const native = await resolvePythonEnvironment(
-      ["/missing/python"],
+    const resolved = await resolvePythonEnvironment(
+      ["/missing/python", "-I"],
       "file:///workspace",
       provider,
       activeEnvironment,
-      true,
     );
-    assert.deepStrictEqual(native, {
+    assert.deepStrictEqual(resolved, {
       environment: activeEnvironment,
+      command: activeEnvironment.command,
       dependsOnActiveInterpreter: true,
-    });
-
-    const legacy = await resolvePythonEnvironment(
-      ["/missing/python"],
-      "file:///workspace",
-      provider,
-      activeEnvironment,
-      false,
-    );
-    assert.deepStrictEqual(legacy, {
-      environment: null,
-      dependsOnActiveInterpreter: false,
     });
   });
 
   test("Configured interpreter takes precedence over the active environment", async () => {
-    const configuredEnvironment = environment("/configured/python");
+    const configuredEnvironment = environment("/configured/python", ["-X", "utf8"]);
     const activeEnvironment = environment("/workspace/.venv/bin/python");
 
     const resolved = await resolvePythonEnvironment(
-      ["/configured/python"],
+      ["/configured/python", "-I"],
       "file:///workspace",
       environmentProvider(configuredEnvironment, activeEnvironment),
       activeEnvironment,
-      true,
     );
     assert.deepStrictEqual(resolved, {
       environment: configuredEnvironment,
+      command: { executable: "/configured/python", args: ["-X", "utf8", "-I"] },
       dependsOnActiveInterpreter: false,
     });
   });
@@ -104,9 +92,9 @@ suite("Utils tests", () => {
   });
 });
 
-function environment(executable: string): PythonEnvironmentDetails {
+function environment(executable: string, args: string[] = []): PythonEnvironmentDetails {
   return {
-    command: { executable, args: [] },
+    command: { executable, args },
     sysPrefix: executable,
     version: { major: 3, minor: 12, patch: 0 },
   };
