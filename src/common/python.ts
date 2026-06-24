@@ -174,7 +174,7 @@ class PythonEnvironmentExtension implements EnvironmentProvider {
         const environment = event.new == null ? null : this.toEnvironmentDetails(event.new);
         const previousEnvironment = event.old == null ? null : this.toEnvironmentDetails(event.old);
 
-        if (areEnvironmentsEqual(previousEnvironment, environment)) {
+        if (isDeepStrictEqual(previousEnvironment, environment)) {
           this.#activeEnvironments.remember(event.uri, environment);
           logger.debug(
             `Ignoring Python Environments change event because the active environment is unchanged for '${event.uri ?? "workspace"}'.`,
@@ -268,13 +268,6 @@ function createActiveEnvironmentCache() {
       return !unchanged;
     },
   };
-}
-
-function areEnvironmentsEqual(
-  left: PythonEnvironmentDetails | null,
-  right: PythonEnvironmentDetails | null,
-): boolean {
-  return isDeepStrictEqual(left, right);
 }
 
 export function checkInterpreterVersion(environment: PythonEnvironmentDetails): boolean | null {

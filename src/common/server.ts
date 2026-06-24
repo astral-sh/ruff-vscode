@@ -376,7 +376,7 @@ type RuffExecutable = {
   version: VersionInfo;
 };
 
-type ServerExecution =
+type ServerResolution =
   | {
       kind: "native";
       executable: RuffExecutable;
@@ -390,7 +390,7 @@ type ServerExecution =
 
 export type ServerState = {
   client: LanguageClient;
-  execution: ServerExecution;
+  resolution: ServerResolution;
 };
 
 const RUFF_LSP_URL = "https://github.com/astral-sh/ruff-lsp";
@@ -581,14 +581,14 @@ async function resolveLegacyInterpreter(
   return { command, dependsOnActiveInterpreter };
 }
 
-export async function resolveServerExecution(
+export async function resolveServer(
   settings: ISettings,
   projectRoot: vscode.WorkspaceFolder,
   serverId: string,
   environmentProvider: EnvironmentProvider | null,
   activeEnvironment: PythonEnvironmentDetails | null,
   showWarnings: boolean,
-): Promise<ServerExecution | null> {
+): Promise<ServerResolution | null> {
   const serverSetting = await resolveNativeServerSetting(
     settings,
     projectRoot,
@@ -640,10 +640,10 @@ async function createServer(
   outputChannel: OutputChannel,
   traceOutputChannel: OutputChannel,
   initializationOptions: IInitializationOptions,
-  execution: ServerExecution,
+  resolution: ServerResolution,
 ): Promise<LanguageClient> {
-  updateServerKind(execution.kind === "native");
-  if (execution.kind === "native") {
+  updateServerKind(resolution.kind === "native");
+  if (resolution.kind === "native") {
     return createNativeServer(
       settings,
       serverId,
@@ -651,7 +651,7 @@ async function createServer(
       outputChannel,
       traceOutputChannel,
       initializationOptions,
-      execution.executable,
+      resolution.executable,
     );
   } else {
     return createLegacyServer(
@@ -661,7 +661,7 @@ async function createServer(
       outputChannel,
       traceOutputChannel,
       initializationOptions,
-      execution.interpreter,
+      resolution.interpreter,
     );
   }
 }
@@ -681,7 +681,7 @@ export async function startServer(
 
   const activeEnvironment =
     (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
-  const execution = await resolveServerExecution(
+  const resolution = await resolveServer(
     workspaceSettings,
     projectRoot,
     serverId,
@@ -689,7 +689,7 @@ export async function startServer(
     activeEnvironment,
     true,
   );
-  if (execution == null) {
+  if (resolution == null) {
     return null;
   }
 
@@ -710,7 +710,7 @@ export async function startServer(
       settings: extensionSettings,
       globalSettings: globalSettings,
     },
-    execution,
+    resolution,
   );
   logger.info(`Server: Start requested.`);
 
@@ -753,7 +753,7 @@ export async function startServer(
     return null;
   }
 
-  return { client: newLSClient, execution };
+  return { client: newLSClient, resolution };
 }
 
 export async function stopServer(lsClient: LanguageClient): Promise<void> {

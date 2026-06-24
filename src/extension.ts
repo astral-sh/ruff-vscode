@@ -7,7 +7,7 @@ import {
   onDidChangeActivePythonEnvironment,
   type OnDidChangeActivePythonEnvironmentEventArgs,
 } from "./common/python";
-import { resolveServerExecution, type ServerState, startServer, stopServer } from "./common/server";
+import { resolveServer, type ServerState, startServer, stopServer } from "./common/server";
 import {
   checkIfConfigurationChanged,
   getWorkspaceSettings,
@@ -165,7 +165,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             return;
           }
 
-          if (!serverState.execution.dependsOnActiveInterpreter) {
+          if (!serverState.resolution.dependsOnActiveInterpreter) {
             logger.debug(
               "Ignoring Python environment change because server selection is independent of it.",
             );
@@ -175,7 +175,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           const settings = await getWorkspaceSettings(serverId, projectRoot);
           const activeEnvironment =
             (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
-          const nextExecution = await resolveServerExecution(
+          const nextResolution = await resolveServer(
             settings,
             projectRoot,
             serverId,
@@ -184,11 +184,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             false,
           );
 
-          if (nextExecution == null || !isDeepStrictEqual(nextExecution, serverState.execution)) {
-            logger.info(`Restarting ${serverName} because its server execution changed.`);
+          if (
+            nextResolution == null ||
+            !isDeepStrictEqual(nextResolution, serverState.resolution)
+          ) {
+            logger.info(`Restarting ${serverName} because the resolved server changed.`);
             await requestRestart();
           } else {
-            logger.debug("Python environment changed without changing the server execution.");
+            logger.debug("Python environment changed without changing the resolved server.");
           }
         });
       },
