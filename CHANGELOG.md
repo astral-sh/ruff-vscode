@@ -2,6 +2,12 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2026.56.0
+
+This release upgrades the bundled Ruff version to `v0.15.20`.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2026.54.0...2026.56.0
+
 ## 2026.54.0
 
 This release upgrades the bundled Ruff version to `v0.15.18`.
