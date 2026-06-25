@@ -5,7 +5,6 @@ import {
   WorkspaceConfiguration,
   WorkspaceFolder,
 } from "vscode";
-import { getInterpreterDetails } from "./python";
 import { getConfiguration, getWorkspaceFolders } from "./vscodeapi";
 import { logger } from "./logger";
 import {
@@ -126,14 +125,10 @@ export async function getWorkspaceSettings(
 ): Promise<ISettings> {
   const config = getConfiguration(namespace, workspace.uri);
 
-  let interpreter: string[] = getInterpreterFromSetting(namespace, workspace) ?? [];
-  if (interpreter.length === 0) {
-    if (vscode.workspace.isTrusted) {
-      interpreter = (await getInterpreterDetails(workspace.uri)).path ?? [];
-    }
-  } else {
-    interpreter = resolveVariables(interpreter, workspace);
-  }
+  const interpreter = resolveVariables(
+    getInterpreterFromSetting(namespace, workspace) ?? [],
+    workspace,
+  );
 
   let configuration = config.get<string | object>("configuration") ?? null;
   if (configuration != null && typeof configuration === "string") {
