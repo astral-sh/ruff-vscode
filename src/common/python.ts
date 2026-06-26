@@ -165,7 +165,8 @@ class PythonEnvironmentExtension implements EnvironmentProvider {
   async initialize(disposables: Disposable[]): Promise<void> {
     logger.info("Using Python Environments extension for Python environment detection");
 
-    await this.getActiveEnvironment(undefined);
+    // Server startup resolves the project environment. Avoid a global lookup here because it can
+    // trigger full environment discovery and block extension activation.
 
     disposables.push(
       this.#extension.onDidChangeEnvironment((event) => {
