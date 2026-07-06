@@ -494,7 +494,7 @@
     "@types/vscode": "1.75.0",
     "@types/which": "^3.0.4",
     "@vscode/python-environments": "^1.0.0",
-    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
     "@vscode/vsce": "^3.4.2",
     "eslint": "^10.0.0",
