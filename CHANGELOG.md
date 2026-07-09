@@ -4,7 +4,7 @@ See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release note
 
 ## 2026.60.0
 
-
+This release is a follow-up to 2026.58.0 because some of the release artifacts failed to publish to the VS Code Marketplace.
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2026.58.0...2026.60.0
 
