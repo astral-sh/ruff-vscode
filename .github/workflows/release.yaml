@@ -239,10 +239,10 @@ jobs:
       # Publish to the Code Marketplace.
       - name: Publish Extension (Code Marketplace, release)
         if: "startsWith(github.ref, 'refs/tags/')"
-        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix
+        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
       - name: Publish Extension (Code Marketplace, nightly)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release
+        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
 
   publish-openvsx:
     name: "Publish (OpenVSX)"
@@ -305,9 +305,9 @@ jobs:
       # Publish to OpenVSX.
       - name: Publish Extension (OpenVSX, release)
         if: "startsWith(github.ref, 'refs/tags/')"
-        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix
+        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
         timeout-minutes: 2
       - name: Publish Extension (OpenVSX, nightly)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release
+        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
         timeout-minutes: 2
