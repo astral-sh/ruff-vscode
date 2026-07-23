@@ -2,6 +2,28 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2026.64.0
+
+This release upgrades the bundled Ruff version to `v0.16.0` and includes an additional breaking change:
+
+- Make the Python extension an optional dependency ([#1110](https://github.com/astral-sh/ruff-vscode/pull/1110))
+
+  The `ms-python.python` extension is now optional and replaced with a dependency on the
+  lighter-weight `ms-python.vscode-python-envs` extension. To accommodate this, the lowest supported
+  VS Code version has also been raised to version 1.100. If you prefer to continue using the Python
+  extension, you can install it, add the following to your User Settings, and reload VS Code:
+
+  ```json
+  {
+    "python.useEnvironmentsExtension": false
+  }
+  ```
+
+  Note, however, that the Python Environments extension must remain installed and enabled for Ruff
+  to activate.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2026.62.0...2026.64.0
+
 ## 2026.62.0
 
 This release upgrades the bundled Ruff version to `v0.15.22`.
