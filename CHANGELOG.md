@@ -2,6 +2,12 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2026.66.0
+
+- Revert dependency on Python Environments extension ([#1116](https://github.com/astral-sh/ruff-vscode/pull/1116))
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2026.64.0...2026.66.0
+
 ## 2026.64.0
 
 This release upgrades the bundled Ruff version to `v0.16.0` and includes an additional breaking change:
