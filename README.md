@@ -379,19 +379,8 @@ Finally, to use a common Ruff configuration across all projects, consider creati
 
 ## Requirements
 
-This extension requires VS Code 1.100 or later for Python Environments extension support.
-
-To use the [VS Code Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
-for Python environment detection instead, install the Python extension, add the following to your User Settings,
-and reload VS Code:
-
-```json
-{
-  "python.useEnvironmentsExtension": false
-}
-```
-
-The Python Environments extension must remain installed and enabled, since Ruff requires it to activate.
+This extension requires a version of the VSCode Python extension that supports Python 3.8+. Ruff
+itself is compatible with Python 3.7 to 3.13.
 
 ## Troubleshooting
 
