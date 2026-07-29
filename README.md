@@ -32,6 +32,22 @@ The extension ships with `ruff==0.16.0`.
 
 ![Using the "Organize Imports" action to sort and deduplicate Python imports](https://user-images.githubusercontent.com/1309177/205175987-82e23e21-14bb-467d-9ef0-027f24b75865.gif)
 
+## Requirements
+
+This extension does not _require_ any additional extensions to function, but we recommend installing
+either of the following:
+
+- The VS Code [Python Environments
+  extension](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs). Note
+  that this requires VS Code 1.100 or later.
+- A version of the VSCode [Python
+  extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) that supports
+  Python 3.8+.
+
+When either of these is available, the Ruff extension uses it to locate the Ruff binary in the
+active environment. If no binary is found there, or both extensions are unavailable, Ruff falls back
+to the Ruff binary found on the `PATH` or bundled with the extension.
+
 ## Usage
 
 Once installed in Visual Studio Code, `ruff` will automatically execute when you open or edit a
@@ -376,11 +392,6 @@ Finally, to use a common Ruff configuration across all projects, consider creati
 | Ruff: Print debug information (native server only) | Print debug information about the native server |
 | Ruff: Show client logs                             | Open the Ruff output channel                    |
 | Ruff: Show server logs                             | Open the Ruff Language Server output channel    |
-
-## Requirements
-
-This extension requires a version of the VSCode Python extension that supports Python 3.8+. Ruff
-itself is compatible with Python 3.7 to 3.13.
 
 ## Troubleshooting
 

@@ -79,6 +79,39 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const environmentProvider = await getEnvironmentProvider();
 
+  if (environmentProvider == null) {
+    const message =
+      "No Python environment extension is available. Ruff will use a configured, globally " +
+      "installed, or bundled executable. Install the Python Environments or Python " +
+      "extension to enable Python environment detection.";
+
+    logger.info(message);
+
+    const stateKey = "ruff.pythonEnvironmentRecommendationShown";
+
+    if (!context.globalState.get<boolean>(stateKey)) {
+      await context.globalState.update(stateKey, true);
+
+      void vscode.window
+        .showInformationMessage(message, "Python Environments", "Python")
+        .then((selection) => {
+          const extensionId =
+            selection === "Python Environments"
+              ? "ms-python.vscode-python-envs"
+              : selection === "Python"
+                ? "ms-python.python"
+                : undefined;
+
+          if (extensionId != null) {
+            void vscode.commands.executeCommand(
+              "workbench.extensions.search",
+              `@id:${extensionId}`,
+            );
+          }
+        });
+    }
+  }
+
   const runServer = async () => {
     if (serverState != null) {
       await stopServer(serverState.client);

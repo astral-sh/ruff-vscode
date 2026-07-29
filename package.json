@@ -36,9 +36,7 @@
     "Linters",
     "Formatters"
   ],
-  "extensionDependencies": [
-    "ms-python.python"
-  ],
+  "extensionDependencies": [],
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": "limited",
@@ -278,7 +276,7 @@
         },
         "ruff.interpreter": {
           "default": [],
-          "markdownDescription": "Path to a Python interpreter to use to find the `ruff` executable.",
+          "markdownDescription": "Path to a Python interpreter to use to find the `ruff` executable. Requires either the Python Environments or Python extension to be installed.",
           "scope": "resource",
           "items": {
             "type": "string"

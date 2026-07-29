@@ -63,6 +63,11 @@ class PythonExtension implements EnvironmentProvider {
   }
 
   static async tryActivate(): Promise<PythonExtension | null> {
+    if (extensions.getExtension("ms-python.python") == null) {
+      logger.info("The Python extension is not installed or is disabled.");
+      return null;
+    }
+
     logger.info("Initializing Python extension");
 
     try {

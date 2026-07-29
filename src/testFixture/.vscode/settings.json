@@ -3,8 +3,8 @@
   "ruff.nativeServer": "on",
   "ruff.importStrategy": "useBundled",
 
-  // Ruff's extension depends on the Python extension which also provides a language server,
-  // so we need to disable the Python language server to avoid special casing in the tests.
+  // Ruff's extension optionally depends on the Python extension which also provides a language
+  // server, so we need to disable the Python language server to avoid special casing in the tests.
   "python.languageServer": "None",
 
   "[python]": {
