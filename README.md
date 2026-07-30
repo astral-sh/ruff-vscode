@@ -48,6 +48,10 @@ When either of these is available, the Ruff extension uses it to locate the Ruff
 active environment. If no binary is found there, or both extensions are unavailable, Ruff falls back
 to the Ruff binary found on the `PATH` or bundled with the extension.
 
+Note that the deprecated `ruff-lsp` server requires one of these extensions to locate a Python
+interpreter. If neither is installed, Ruff uses its native server instead. Reload VS Code after
+installing either extension to enable Python environment detection.
+
 ## Usage
 
 Once installed in Visual Studio Code, `ruff` will automatically execute when you open or edit a

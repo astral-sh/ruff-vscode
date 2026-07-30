@@ -444,6 +444,17 @@ async function resolveNativeServerSetting(
         return { useNativeServer: true };
       }
 
+      if (environmentProvider == null) {
+        const message =
+          `Cannot use the legacy server ([ruff-lsp](${RUFF_LSP_URL})) without the Python ` +
+          "Environments or Python extension; switching to the native server. Install one of " +
+          "these extensions and reload VS Code to use the legacy server.";
+        if (showWarnings) {
+          showWarningMessage(message);
+        }
+        return { useNativeServer: true };
+      }
+
       // User has explicitly set the native server to 'off'. Recommend them to upgrade to the native server ...
       let message =
         `The legacy server ([ruff-lsp](${RUFF_LSP_URL})) has been deprecated. ` +
