@@ -45,5 +45,6 @@ export function getDocumentSelector(): DocumentSelector {
         { scheme: "vscode-notebook-cell", language: "python" },
         { scheme: "file", language: "markdown" },
         { scheme: "untitled", language: "markdown" },
+        { scheme: "file", pattern: "**/{pyproject.toml,ruff.toml,.ruff.toml}" },
       ];
 }
