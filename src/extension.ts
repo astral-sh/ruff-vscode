@@ -5,6 +5,8 @@ import { LazyOutputChannel, logger } from "./common/logger";
 import {
   getEnvironmentProvider,
   onDidChangeActivePythonEnvironment,
+  PVSC_EXTENSION_ID,
+  PYTHON_ENVIRONMENTS_EXTENSION_ID,
   type OnDidChangeActivePythonEnvironmentEventArgs,
 } from "./common/python";
 import { resolveServer, type ServerState, startServer, stopServer } from "./common/server";
@@ -97,9 +99,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         .then((selection) => {
           const extensionId =
             selection === "Python Environments"
-              ? "ms-python.vscode-python-envs"
+              ? PYTHON_ENVIRONMENTS_EXTENSION_ID
               : selection === "Python"
-                ? "ms-python.python"
+                ? PVSC_EXTENSION_ID
                 : undefined;
 
           if (extensionId != null) {
