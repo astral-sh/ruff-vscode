@@ -85,7 +85,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const message =
       "No Python environment extension is available. Ruff will use a configured, globally " +
       "installed, or bundled executable. Install the Python Environments or Python " +
-      "extension to enable Python environment detection.";
+      "extension to load a Ruff binary from the activated Python environment, then reload " +
+      "VS Code. [Learn more](https://github.com/astral-sh/ruff-vscode#requirements).";
 
     logger.info(message);
 
