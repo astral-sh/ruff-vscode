@@ -5,7 +5,7 @@ import { LazyOutputChannel, logger } from "./common/logger";
 import {
   getEnvironmentProvider,
   onDidChangeActivePythonEnvironment,
-  PVSC_EXTENSION_ID,
+  PYTHON_EXTENSION_ID,
   PYTHON_ENVIRONMENTS_EXTENSION_ID,
   type OnDidChangeActivePythonEnvironmentEventArgs,
 } from "./common/python";
@@ -102,7 +102,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             selection === "Python Environments"
               ? PYTHON_ENVIRONMENTS_EXTENSION_ID
               : selection === "Python"
-                ? PVSC_EXTENSION_ID
+                ? PYTHON_EXTENSION_ID
                 : undefined;
 
           if (extensionId != null) {
