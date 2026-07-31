@@ -35,7 +35,8 @@ The extension ships with `ruff==0.16.1`.
 ## Usage
 
 Once installed in Visual Studio Code, `ruff` will automatically execute when you open or edit a
-Python or Jupyter Notebook file.
+Python or Jupyter Notebook file, or a Ruff configuration file (`pyproject.toml`, `ruff.toml`, or
+`.ruff.toml`).
 
 If you want to disable Ruff, you can [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension)
 per workspace in Visual Studio Code.
