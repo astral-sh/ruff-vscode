@@ -144,13 +144,10 @@ And, for Jupyter Notebooks:
 }
 ```
 
-And for [Markdown code blocks](https://docs.astral.sh/ruff/formatter/#markdown-code-formatting).
-Note that this currently reqiures enabling [preview mode](https://docs.astral.sh/ruff/preview/)
-which will change formatting results:
+And for [Markdown code blocks](https://docs.astral.sh/ruff/formatter/#markdown-code-formatting):
 
 ```json
 {
-  "ruff.format.preview": true,
   "[markdown]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "charliermarsh.ruff"
