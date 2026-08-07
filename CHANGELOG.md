@@ -2,6 +2,26 @@
 
 See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release notes.
 
+## 2026.70.0
+
+This release upgrades the bundled Ruff version to `v0.16.2` and includes a couple of additional changes:
+
+- Both Python extensions are now optional ([#1126](https://github.com/astral-sh/ruff-vscode/pull/1126))
+
+  This partially restores the breaking change from v2026.64.0, where the Python extension was made
+  optional and replaced with a required dependency on the Python Environments extension. That change
+  proved to be more disruptive than we expected and was reverted in v2026.66.0. This time, both
+  extensions have been made optional. The Ruff extension will prompt you to install one of them on
+  its first startup if neither is present and otherwise fall back to a manually configured, globally
+  installed, or bundled Ruff executable.
+
+- The extension now declares support for TOML files ([#1127](https://github.com/astral-sh/ruff-vscode/pull/1127))
+
+  This change supports enforcing our new (`RUF201`) and existing (`RUF200`) configuration-related
+  lint rules directly in the LSP.
+
+**Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2026.68.0...2026.70.0
+
 ## 2026.68.0
 
 This release upgrades the bundled Ruff version to `v0.16.1`.
