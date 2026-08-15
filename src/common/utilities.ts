@@ -1,7 +1,6 @@
 import * as fs from "fs-extra";
 import * as path from "path";
-import { Uri, WorkspaceFolder } from "vscode";
-import { DocumentSelector } from "vscode-languageclient";
+import { type DocumentSelector, Uri, WorkspaceFolder } from "vscode";
 import { getWorkspaceFolders, isVirtualWorkspace } from "./vscodeapi";
 import { supportsToml, VersionInfo } from "./version";
 
