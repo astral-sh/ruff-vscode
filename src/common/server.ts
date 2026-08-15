@@ -1,8 +1,8 @@
 import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
 import { platform } from "os";
-import { Disposable, l10n, LanguageStatusSeverity, OutputChannel } from "vscode";
-import { State, ShowMessageNotification, MessageType } from "vscode-languageclient";
+import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
+import { State, ShowMessageNotification, MessageType, vsdiag } from "vscode-languageclient";
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -244,8 +244,8 @@ async function createNativeServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
+  outputChannel: LogOutputChannel,
+  traceOutputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
   ruffExecutable: RuffExecutable,
 ): Promise<LanguageClient> {
@@ -293,13 +293,42 @@ async function createNativeServer(
     options: { cwd: settings.cwd, env: process.env },
   };
 
-  const clientOptions = {
+  const clientOptions: LanguageClientOptions = {
     // Register the server for python documents
     documentSelector: getDocumentSelector(),
     outputChannel,
     traceOutputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     initializationOptions,
+    middleware: {
+      provideDiagnostics(document, previousResultId, token, next) {
+        const uri = document instanceof vscode.Uri ? document : document.uri;
+        if (uri.scheme === "vscode-notebook-cell") {
+          // Return an empty report to prevent the VS Code language client v10 from pulling
+          // diagnostics for notebook cell text documents.
+          //
+          // We do this for two reasons:
+          //
+          // Older Ruff servers return diagnostics for the wrong notebook cell. Disabling
+          // notebook pulls maintains backwards compatibility with these servers.
+          //
+          // Prefer pushed diagnostics for notebook cells to work around these upstream issues.
+          // Notebook pulls need interFileDependencies to update other cells, which makes
+          // updates slow, and reordering cells does not update diagnostics:
+          // * https://github.com/microsoft/vscode-languageserver-node/issues/1837
+          // * https://github.com/microsoft/vscode-languageserver-node/issues/1836
+          //
+          // Push and pull use separate diagnostic collections, so an empty pull report does not
+          // clear diagnostics pushed by the server.
+          //
+          // Once the upstream issues are fixed, enable notebook pulls based on a negotiated
+          // client/server capability.
+          return { kind: vsdiag.DocumentDiagnosticReportKind.full, items: [] };
+        }
+
+        return next(document, previousResultId, token);
+      },
+    },
   };
 
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
@@ -309,8 +338,8 @@ async function createLegacyServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
+  outputChannel: LogOutputChannel,
+  traceOutputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
   interpreter: PythonCommand,
 ): Promise<LanguageClient> {
@@ -648,8 +677,8 @@ async function createServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
+  outputChannel: LogOutputChannel,
+  traceOutputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
   resolution: ServerResolution,
 ): Promise<LanguageClient> {
@@ -684,8 +713,8 @@ export async function startServer(
   workspaceSettings: ISettings,
   serverId: string,
   serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
+  outputChannel: LogOutputChannel,
+  traceOutputChannel: LogOutputChannel,
   environmentProvider: EnvironmentProvider | null,
 ): Promise<ServerState | null> {
   updateStatus(undefined, LanguageStatusSeverity.Information, true);

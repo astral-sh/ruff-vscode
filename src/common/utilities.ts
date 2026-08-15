@@ -1,7 +1,6 @@
 import * as fs from "fs-extra";
 import * as path from "path";
 import { Uri, WorkspaceFolder } from "vscode";
-import { DocumentSelector } from "vscode-languageclient";
 import { getWorkspaceFolders, isVirtualWorkspace } from "./vscodeapi";
 
 export async function getProjectRoot(): Promise<WorkspaceFolder> {
@@ -35,7 +34,9 @@ export async function getProjectRoot(): Promise<WorkspaceFolder> {
   }
 }
 
-export function getDocumentSelector(): DocumentSelector {
+export function getDocumentSelector(): (
+  { language: string; scheme?: string } | { scheme: string; pattern: string }
+)[] {
   return isVirtualWorkspace()
     ? [{ language: "python" }, { language: "markdown" }]
     : [

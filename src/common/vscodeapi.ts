@@ -5,14 +5,13 @@ import {
   commands,
   ConfigurationScope,
   Disposable,
+  DocumentSelector,
   languages,
   LanguageStatusItem,
   workspace,
   WorkspaceConfiguration,
   WorkspaceFolder,
 } from "vscode";
-import { DocumentSelector } from "vscode-languageclient";
-
 export function getConfiguration(
   config: string,
   scope?: ConfigurationScope,

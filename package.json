@@ -29,7 +29,7 @@
     "ruff"
   ],
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.91.0"
   },
   "categories": [
     "Programming Languages",
@@ -486,13 +486,13 @@
   "dependencies": {
     "@vscode/python-extension": "^1.0.5",
     "fs-extra": "^11.3.0",
-    "vscode-languageclient": "^9.0.1",
+    "vscode-languageclient": "^10.1.0",
     "which": "^7.0.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.0.0",
-    "@types/vscode": "1.75.0",
+    "@types/vscode": "1.91.0",
     "@types/which": "^3.0.4",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vscode/python-environments": "^1.0.0",
