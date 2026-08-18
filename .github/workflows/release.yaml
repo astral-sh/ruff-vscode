@@ -147,7 +147,7 @@ jobs:
           package-manager-cache: false
 
       # Install Node dependencies.
-      - run: npm ci
+      - run: npm ci --ignore-scripts
 
       # Set the Build ID.
       - name: Set Build ID (release)
@@ -236,7 +236,7 @@ jobs:
       - run: ls -al ./dist
 
       # Install Node dependencies.
-      - run: npm ci
+      - run: npm ci --ignore-scripts
 
       # Publish to the Code Marketplace.
       - name: Publish Extension (Code Marketplace, release)
@@ -303,7 +303,7 @@ jobs:
       - run: ls -al ./dist
 
       # Install Node dependencies.
-      - run: npm ci
+      - run: npm ci --ignore-scripts
 
       # Publish to OpenVSX.
       - name: Publish Extension (OpenVSX, release)
