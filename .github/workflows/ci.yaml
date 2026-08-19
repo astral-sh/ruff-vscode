@@ -16,29 +16,25 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: ${{ matrix.python-version }}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          activate-environment: true
+          python-version: ${{ matrix.python-version }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.19.0"
           package-manager-cache: false
       - name: Install dependencies
         run: |
-          uv pip sync --require-hashes ./requirements-dev.txt
+          uv sync --dev
+          uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
           npm ci --ignore-scripts
       - name: Run checks
         run: npm run check
       - name: Run tests
-        run: |
-          uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
-          python -m unittest
+        run: uv run --dev python -m unittest
 
   # ts-tests:
   #   name: TypeScript Tests

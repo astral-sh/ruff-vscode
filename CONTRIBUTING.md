@@ -7,21 +7,23 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 ### Getting Started
 
 - Install [Node.js](https://nodejs.org/).
-- Install [`uv`](https://github.com/astral-sh/uv)
-- Create and activate a virtual environment (e.g., `uv venv && source .venv/bin/activate`).
+- Install [`uv`](https://github.com/astral-sh/uv).
 
 Install development dependencies:
 
 ```console
-uv pip sync --require-hashes ./requirements-dev.txt
+uv sync --dev
+uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
 npm ci --ignore-scripts
 ```
 
 To automatically format the codebase:
 
 ```console
-ruff check --fix ./bundled/tool ./build ./tests ./scripts
-ruff format ./bundled/tool ./build ./tests ./scripts
+uv run --dev ruff check --fix ./bundled/tool ./build ./tests ./scripts
+uv run --dev ruff format ./bundled/tool ./build ./tests ./scripts
+uv tool run --with-requirements ./scripts/release.py ty check --fix ./scripts/release.py
+uv run --dev ty check --fix ./bundled/tool ./build ./tests
 npm run fmt
 ```
 
@@ -35,7 +37,7 @@ To run tests:
 
 ```console
 uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
-python -m unittest
+uv run --dev python -m unittest
 ```
 
 To run the extension, navigate to `src/extension.ts` and run (`F5`). You should see the LSP output
