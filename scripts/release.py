@@ -218,10 +218,8 @@ def update_changelog(versions: RuffVersions) -> None:
     CHANGELOG_PATH.write_text("".join(changelog_lines))
 
 
-def lock_requirements() -> None:
+def lock_dependencies() -> None:
     """Update this package's lockfiles."""
-    for path in "requirements-dev.txt", "requirements.txt":
-        Path(path).unlink()
     subprocess.run(["just", "lock"], check=True)
 
 
@@ -261,7 +259,7 @@ def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
     bump_package_json_version(versions.new_vscode_version)
     update_readme(versions.latest_ruff)
     update_changelog(versions)
-    lock_requirements()
+    lock_dependencies()
     if prepare_pr:
         commit_changes(versions)
 

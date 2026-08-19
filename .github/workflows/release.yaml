@@ -6,6 +6,7 @@ on:
 
 env:
   FETCH_DEPTH: 0
+  UV_VERSION: 0.12.5
 
 permissions: {}
 
@@ -64,7 +65,6 @@ jobs:
           - os: ubuntu-22.04
             target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
-            arch: aarch64
           - os: ubuntu-22.04
             target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
@@ -78,11 +78,9 @@ jobs:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-musl
             code-target: alpine-x64
-            arch: x86_64
           - os: ubuntu-22.04
             target: aarch64-unknown-linux-musl
             code-target: alpine-arm64
-            arch: aarch64
 
     name: Build (${{ matrix.target }})
     needs: ["build-id"]
@@ -100,44 +98,39 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: false
+          version: ${{ env.UV_VERSION }}
 
-      # ARM builds on macOS, which should select Ruff's universal binary.
-      - run: arch -arm64 python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
-        if: ${{ startsWith(matrix.os, 'macos') && startsWith(matrix.target, 'aarch64') }}
-
-      # x86_64 builds on macOS, which should select Ruff's x86_64 binary.
-      - run: arch -x86_64 python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
-        if: ${{ startsWith(matrix.os, 'macos') && startsWith(matrix.target, 'x86_64') }}
-
-      # ARM builds on Ubuntu, which should select Ruff's ARM binary.
+      # uv does not currently expose ARMv7 as a cross-platform install target.
       - uses: uraimo/run-on-arch-action@f9b26e3a1a408d5fd530d20c17b9f3f4428ff8d9 # v3.1.0
-        if: ${{ startsWith(matrix.os, 'ubuntu') && !startsWith(matrix.target, 'x86_64') && !endsWith(matrix.target, 'musl') }}
+        if: ${{ matrix.target == 'arm-unknown-linux-gnueabihf' }}
         with:
           arch: ${{ matrix.arch }}
           distro: ubuntu20.04
           install: |
             apt-get update
-            apt-get install -y --no-install-recommends python3 python3-pip
-            pip3 install -U pip
+            apt-get install -y --no-install-recommends ca-certificates curl python3
+            cd /tmp
+            curl --fail --location --remote-name --silent --show-error "https://github.com/astral-sh/uv/releases/download/${{ env.UV_VERSION }}/uv-armv7-unknown-linux-gnueabihf.tar.gz"
+            curl --fail --location --remote-name --silent --show-error "https://github.com/astral-sh/uv/releases/download/${{ env.UV_VERSION }}/uv-armv7-unknown-linux-gnueabihf.tar.gz.sha256"
+            sha256sum --check uv-armv7-unknown-linux-gnueabihf.tar.gz.sha256
+            tar --extract --file uv-armv7-unknown-linux-gnueabihf.tar.gz --gzip --strip-components 1 --directory /usr/local/bin uv-armv7-unknown-linux-gnueabihf/uv
           run: |
-            python3 -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
+            uv export --locked --no-dev --no-emit-project |
+              uv pip sync --no-config --require-hashes --no-build \
+                --python-version 3.8.20 \
+                --target ./bundled/libs -
 
-      # Alpine builds, which should select Ruff's musl binaries.
-      - uses: jirutka/setup-alpine@ae3b3ddba35054804fc4a3507b519fa7e8152050 # v1.4.1
-        if: ${{ startsWith(matrix.os, 'ubuntu') && endsWith(matrix.target, 'musl') }}
-        with:
-          arch: ${{ matrix.arch }}
-      - shell: alpine.sh --root {0}
-        if: ${{ startsWith(matrix.os, 'ubuntu') && endsWith(matrix.target, 'musl') }}
+      - name: Install Python dependencies
+        if: ${{ matrix.target != 'arm-unknown-linux-gnueabihf' }}
         run: |
-          apk add --no-cache python3 py3-pip
-          python3 -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
-
-      # Every other architecture, which should defer to `pip` without any special treatment.
-      - run: python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
-        if: ${{ !startsWith(matrix.os, 'macos')
-          && !(startsWith(matrix.os, 'ubuntu') && !startsWith(matrix.target, 'x86_64') && !endsWith(matrix.target, 'musl'))
-          && !(startsWith(matrix.os, 'ubuntu') && endsWith(matrix.target, 'musl')) }}
+          uv export --locked --no-dev --no-emit-project |
+            uv pip sync --no-config --require-hashes --no-build \
+              --python-version 3.8.20 \
+              --python-platform "${{ matrix.target }}" \
+              --target ./bundled/libs -
 
       # Install Node.
       - name: Install Node.js
@@ -166,10 +159,10 @@ jobs:
       # Build the extension.
       - name: Package Extension (release)
         if: "startsWith(github.ref, 'refs/tags/')"
-        run: npx vsce package -o "./dist/ruff-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }}
+        run: ./node_modules/.bin/vsce package -o "./dist/ruff-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }}
       - name: Package Extension (nightly)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: npx vsce package -o "./dist/ruff-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }} --pre-release
+        run: ./node_modules/.bin/vsce package -o "./dist/ruff-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }} --pre-release
 
       # Upload the extension.
       - name: Upload artifacts
@@ -241,10 +234,10 @@ jobs:
       # Publish to the Code Marketplace.
       - name: Publish Extension (Code Marketplace, release)
         if: "startsWith(github.ref, 'refs/tags/')"
-        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
+        run: ./node_modules/.bin/vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
       - name: Publish Extension (Code Marketplace, nightly)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: npx vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
+        run: ./node_modules/.bin/vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
 
   publish-openvsx:
     name: "Publish (OpenVSX)"
@@ -308,9 +301,9 @@ jobs:
       # Publish to OpenVSX.
       - name: Publish Extension (OpenVSX, release)
         if: "startsWith(github.ref, 'refs/tags/')"
-        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
+        run: ./node_modules/.bin/ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
         timeout-minutes: 2
       - name: Publish Extension (OpenVSX, nightly)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: npx ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
+        run: ./node_modules/.bin/ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
         timeout-minutes: 2

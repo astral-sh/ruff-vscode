@@ -1,15 +1,14 @@
 default: fmt check
 
 lock:
-  uv pip compile --python-version 3.8.20 --generate-hashes -o ./requirements.txt ./pyproject.toml
-  uv pip compile --python-version 3.8.20 --generate-hashes --upgrade --extra dev -o ./requirements-dev.txt ./pyproject.toml
+  uv lock --upgrade
   npm install --package-lock-only --ignore-scripts
 
 setup:
-  uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
+  uv export --locked --no-dev --no-emit-project | uv pip sync --no-config --require-hashes --python-version 3.8.20 --target ./bundled/libs -
 
 install:
-  uv pip sync --require-hashes ./requirements-dev.txt
+  uv sync --active --locked
   npm ci --ignore-scripts
 
 test: setup
@@ -22,8 +21,8 @@ e2e-tests: setup
 check:
   ruff check ./bundled/tool ./build ./tests ./scripts
   ruff format --check ./bundled/tool ./build ./tests ./scripts
-  uvx --with=types-requests --with=tomli --with=tomlkit --with=packaging --with=rich-argparse mypy scripts/release.py --strict --warn-unreachable --enable-error-code=possibly-undefined --enable-error-code=redundant-expr --enable-error-code=truthy-bool
-  mypy ./bundled/tool ./build ./tests
+  ty check scripts/release.py
+  ty check ./bundled/tool ./build ./tests
   npm run fmt-check
   npm run lint
   npm run tsc

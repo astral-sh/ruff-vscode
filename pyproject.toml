@@ -4,8 +4,21 @@ version = "2026.72.0"
 requires-python = ">=3.8"
 dependencies = ["packaging>=23.1", "ruff-lsp==0.0.62", "ruff==0.16.3"]
 
-[project.optional-dependencies]
-dev = ["mypy==1.2.0", "python-lsp-jsonrpc==1.0.0"]
+[dependency-groups]
+dev = [
+    "python-lsp-jsonrpc==1.0.0",
+    "rich-argparse==1.7.2",
+    "tomli==2.4.1",
+    "tomlkit==0.13.3",
+    "ty==0.0.65",
+    "types-requests==2.32.0.20241016",
+]
+
+[tool.uv]
+exclude-newer = "P7D"
+# Release automation intentionally tracks the latest Ruff and ruff-lsp.
+exclude-newer-package = { ruff = false, ruff-lsp = false }
+fork-strategy = "fewest"
 
 [tool.ruff]
 line-length = 88
@@ -15,11 +28,5 @@ extend-exclude = ["bundled/libs", "src/testFixture"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "Q", "UP", "I", "N"]
 
-[tool.mypy]
-files = ["bundled/tool", "build", "tests"]
-no_implicit_optional = true
-check_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = ["debugpy.*", "lsprotocol.*", "pygls.*", "pylsp_jsonrpc.*"]
-ignore_missing_imports = true
+[tool.ty.analysis]
+allowed-unresolved-imports = ["debugpy"]
