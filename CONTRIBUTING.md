@@ -6,6 +6,7 @@ This extension is based on the [Template for VS Code Python tools extensions](ht
 
 ### Getting Started
 
+- Install [Node.js](https://nodejs.org/).
 - Install [`uv`](https://github.com/astral-sh/uv)
 - Install [`just`](https://github.com/casey/just), or see the `justfile` for corresponding commands.
 - Create and activate a virtual environment (e.g., `uv venv && source .venv/bin/activate`).
