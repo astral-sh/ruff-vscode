@@ -221,11 +221,15 @@ def update_changelog(versions: RuffVersions) -> None:
 def lock_requirements() -> None:
     """Update this package's lockfiles."""
     Path("requirements.txt").unlink()
-    subprocess.run(["uv", "lock"], check=True)
+    subprocess.run(
+        ["uv", "lock", "--default-index", "https://pypi.org/simple"], check=True
+    )
     subprocess.run(
         [
             "uv",
             "export",
+            "--default-index",
+            "https://pypi.org/simple",
             "--format",
             "requirements-txt",
             "--no-dev",
