@@ -20,10 +20,6 @@ npm ci --ignore-scripts
 To automatically format the codebase:
 
 ```console
-uv run --dev ruff check --fix ./bundled/tool ./build ./tests ./scripts
-uv run --dev ruff format ./bundled/tool ./build ./tests ./scripts
-uv tool run --with-requirements ./scripts/release.py ty check --fix ./scripts/release.py
-uv run --dev ty check --fix ./bundled/tool ./build ./tests
 npm run fmt
 ```
 
