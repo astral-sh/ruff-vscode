@@ -28,13 +28,7 @@ npm run fmt
 To run lint and type checks:
 
 ```console
-ruff check ./bundled/tool ./build ./tests ./scripts
-ruff format --check ./bundled/tool ./build ./tests ./scripts
-uvx --with=types-requests --with=tomli --with=tomlkit --with=packaging --with=rich-argparse mypy scripts/release.py --strict --warn-unreachable --enable-error-code=possibly-undefined --enable-error-code=redundant-expr --enable-error-code=truthy-bool
-mypy ./bundled/tool ./build ./tests
-npm run fmt-check
-npm run lint
-npm run tsc
+npm run check
 ```
 
 To run tests:

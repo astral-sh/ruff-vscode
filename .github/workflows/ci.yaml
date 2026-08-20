@@ -34,14 +34,7 @@ jobs:
           uv pip sync --require-hashes ./requirements-dev.txt
           npm ci --ignore-scripts
       - name: Run checks
-        run: |
-          ruff check ./bundled/tool ./build ./tests ./scripts
-          ruff format --check ./bundled/tool ./build ./tests ./scripts
-          uvx --with=types-requests --with=tomli --with=tomlkit --with=packaging --with=rich-argparse mypy scripts/release.py --strict --warn-unreachable --enable-error-code=possibly-undefined --enable-error-code=redundant-expr --enable-error-code=truthy-bool
-          mypy ./bundled/tool ./build ./tests
-          npm run fmt-check
-          npm run lint
-          npm run tsc
+        run: npm run check
       - name: Run tests
         run: |
           uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
