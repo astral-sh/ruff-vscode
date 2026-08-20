@@ -66,9 +66,10 @@
   "main": "./dist/extension.js",
   "scripts": {
     "check": "npm run check:python && npm run fmt-check && npm run lint && npm run tsc",
-    "check:python": "ruff check ./bundled/tool ./build ./tests ./scripts && ruff format --check ./bundled/tool ./build ./tests ./scripts && npm run check:release && mypy ./bundled/tool ./build ./tests",
-    "check:release": "uv tool run --with=types-requests --with=tomli --with=tomlkit --with=packaging --with=rich-argparse mypy scripts/release.py --strict --warn-unreachable --enable-error-code=possibly-undefined --enable-error-code=redundant-expr --enable-error-code=truthy-bool",
-    "fmt": "prettier -w .",
+    "check:python": "uv run --dev ruff check ./bundled/tool ./build ./tests ./scripts && uv run --dev ruff format --check ./bundled/tool ./build ./tests ./scripts && npm run check:release && uv run --dev ty check ./bundled/tool ./build ./tests",
+    "check:release": "uv tool run --with-requirements ./scripts/release.py ty check ./scripts/release.py",
+    "fmt": "npm run fmt:python && prettier -w .",
+    "fmt:python": "uv run --dev ruff check --fix ./bundled/tool ./build ./tests ./scripts && uv run --dev ruff format ./bundled/tool ./build ./tests ./scripts && uv tool run --with-requirements ./scripts/release.py ty check --fix ./scripts/release.py && uv run --dev ty check --fix ./bundled/tool ./build ./tests",
     "fmt-check": "prettier --check .",
     "lint": "eslint src --ext ts --max-warnings=0",
     "compile": "webpack",

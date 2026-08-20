@@ -17,7 +17,7 @@ def find_ruff_binary_path() -> Optional[Path]:
         user_scheme = sysconfig.get_preferred_scheme("user")
     elif os.name == "nt":
         user_scheme = "nt_user"
-    elif sys.platform == "darwin" and sys._framework:
+    elif sys.platform == "darwin" and getattr(sys, "_framework", None):
         user_scheme = "osx_framework_user"
     else:
         user_scheme = "posix_user"
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     #
     # But not all paths are representable by the local encoding.
     # The node process calling this script defaults to UTF8, so let's do the same here.
-    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore [attr-defined] # We never reconfigure stdout, thus it is guaranteed to not be Any
+    sys.stdout.reconfigure(encoding="utf-8")  # ty: ignore[unresolved-attribute]  # We never reconfigure stdout, thus it is guaranteed to not be Any
 
     ruff_binary_path = find_ruff_binary_path()
     if ruff_binary_path:
