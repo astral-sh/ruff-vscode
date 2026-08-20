@@ -1,0 +1,12 @@
+{
+  "name": "ruff-vscode-publish",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "npm": ">=11.10.0"
+  },
+  "dependencies": {
+    "@vscode/vsce": "3.9.2",
+    "ovsx": "1.1.0"
+  }
+}
