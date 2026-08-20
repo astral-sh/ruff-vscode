@@ -222,7 +222,41 @@ def lock_requirements() -> None:
     """Update this package's lockfiles."""
     for path in "requirements-dev.txt", "requirements.txt":
         Path(path).unlink()
-    subprocess.run(["just", "lock"], check=True)
+    subprocess.run(
+        [
+            "uv",
+            "pip",
+            "compile",
+            "--python-version",
+            "3.8.20",
+            "--generate-hashes",
+            "-o",
+            "./requirements.txt",
+            "./pyproject.toml",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "uv",
+            "pip",
+            "compile",
+            "--python-version",
+            "3.8.20",
+            "--generate-hashes",
+            "--upgrade",
+            "--extra",
+            "dev",
+            "-o",
+            "./requirements-dev.txt",
+            "./pyproject.toml",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        ["npm", "install", "--package-lock-only", "--ignore-scripts"],
+        check=True,
+    )
 
 
 def commit_changes(versions: RuffVersions) -> None:

@@ -65,6 +65,9 @@
   ],
   "main": "./dist/extension.js",
   "scripts": {
+    "check": "npm run check:python && npm run fmt-check && npm run lint && npm run tsc",
+    "check:python": "ruff check ./bundled/tool ./build ./tests ./scripts && ruff format --check ./bundled/tool ./build ./tests ./scripts && npm run check:release && mypy ./bundled/tool ./build ./tests",
+    "check:release": "uv tool run --with=types-requests --with=tomli --with=tomlkit --with=packaging --with=rich-argparse mypy scripts/release.py --strict --warn-unreachable --enable-error-code=possibly-undefined --enable-error-code=redundant-expr --enable-error-code=truthy-bool",
     "fmt": "prettier -w .",
     "fmt-check": "prettier --check .",
     "lint": "eslint src --ext ts --max-warnings=0",
