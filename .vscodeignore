@@ -15,7 +15,6 @@
 .prettierignore
 .prettierrc.json
 .yarnrc
-justfile
 requirements-dev.txt
 requirements.txt
 scripts/
