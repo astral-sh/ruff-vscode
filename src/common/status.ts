@@ -5,6 +5,7 @@ import { LanguageStatusItem, Disposable, l10n, LanguageStatusSeverity } from "vs
 import { createLanguageStatusItem } from "./vscodeapi";
 import { Command } from "vscode-languageclient";
 import { getDocumentSelector } from "./utilities";
+import { VersionInfo } from "./version";
 
 let _status: LanguageStatusItem | undefined;
 let _serverKind: "native" | "ruff-lsp" | undefined;
@@ -23,8 +24,11 @@ export function registerLanguageStatusItem(id: string, name: string, command: st
   };
 }
 
-export function updateServerKind(native: boolean): void {
+export function updateServerKind(native: boolean, ruffVersion?: VersionInfo): void {
   _serverKind = native ? "native" : "ruff-lsp";
+  if (_status) {
+    _status.selector = getDocumentSelector(ruffVersion);
+  }
 }
 
 export function updateStatus(

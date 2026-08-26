@@ -9,9 +9,30 @@ import {
   resolvePythonEnvironment,
 } from "../common/server";
 import type { ISettings } from "../common/settings";
-import { isWindows } from "./helper";
+import { getDocumentSelector } from "../common/utilities";
+import { getDocumentUri, isWindows } from "./helper";
 
 suite("Utils tests", () => {
+  test("TOML documents are excluded before Ruff 0.16.2", async () => {
+    const document = await vscode.workspace.openTextDocument(getDocumentUri("pyproject.toml"));
+    const selector = getDocumentSelector({ major: 0, minor: 16, patch: 1 });
+
+    assert.strictEqual(vscode.languages.match(selector, document), 0);
+  });
+
+  test("TOML documents are included starting with Ruff 0.16.2", async () => {
+    const document = await vscode.workspace.openTextDocument(getDocumentUri("pyproject.toml"));
+    const selector = getDocumentSelector({ major: 0, minor: 16, patch: 2 });
+
+    assert.ok(vscode.languages.match(selector, document) > 0);
+  });
+
+  test("TOML documents are excluded without a native Ruff version", async () => {
+    const document = await vscode.workspace.openTextDocument(getDocumentUri("pyproject.toml"));
+
+    assert.strictEqual(vscode.languages.match(getDocumentSelector(), document), 0);
+  });
+
   test("Check execFile shell mode", () => {
     assert.strictEqual(
       execFileShellModeRequired("/use/random/python"),

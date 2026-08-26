@@ -294,8 +294,8 @@ async function createNativeServer(
   };
 
   const clientOptions = {
-    // Register the server for python documents
-    documentSelector: getDocumentSelector(),
+    // Register the server for supported documents.
+    documentSelector: getDocumentSelector(ruffVersion),
     outputChannel,
     traceOutputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Never,
@@ -653,7 +653,10 @@ async function createServer(
   initializationOptions: IInitializationOptions,
   resolution: ServerResolution,
 ): Promise<LanguageClient> {
-  updateServerKind(resolution.kind === "native");
+  updateServerKind(
+    resolution.kind === "native",
+    resolution.kind === "native" ? resolution.executable.version : undefined,
+  );
   if (resolution.kind === "native") {
     return createNativeServer(
       settings,
