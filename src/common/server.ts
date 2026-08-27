@@ -42,7 +42,7 @@ import {
   supportsStableNativeServer,
   NATIVE_SERVER_STABLE_VERSION,
 } from "./version";
-import { updateServerInfo, updateStatus } from "./status";
+import { updateDocumentSelector, updateServerKind, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -653,10 +653,7 @@ async function createServer(
   initializationOptions: IInitializationOptions,
   resolution: ServerResolution,
 ): Promise<LanguageClient> {
-  updateServerInfo(
-    resolution.kind === "native",
-    resolution.kind === "native" ? resolution.executable.version : undefined,
-  );
+  updateServerKind(resolution.kind === "native");
   if (resolution.kind === "native") {
     return createNativeServer(
       settings,
@@ -726,6 +723,7 @@ export async function startServer(
     },
     resolution,
   );
+  updateDocumentSelector(newLSClient.clientOptions.documentSelector ?? []);
   logger.info(`Server: Start requested.`);
 
   _disposables.push(
