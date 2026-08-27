@@ -24,7 +24,7 @@ export function registerLanguageStatusItem(id: string, name: string, command: st
   };
 }
 
-export function updateServerKind(native: boolean, ruffVersion?: VersionInfo): void {
+export function updateServerInfo(native: boolean, ruffVersion?: VersionInfo): void {
   _serverKind = native ? "native" : "ruff-lsp";
   if (_status) {
     _status.selector = getDocumentSelector(ruffVersion);

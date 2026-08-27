@@ -42,7 +42,7 @@ import {
   supportsStableNativeServer,
   NATIVE_SERVER_STABLE_VERSION,
 } from "./version";
-import { updateServerKind, updateStatus } from "./status";
+import { updateServerInfo, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -653,7 +653,7 @@ async function createServer(
   initializationOptions: IInitializationOptions,
   resolution: ServerResolution,
 ): Promise<LanguageClient> {
-  updateServerKind(
+  updateServerInfo(
     resolution.kind === "native",
     resolution.kind === "native" ? resolution.executable.version : undefined,
   );
