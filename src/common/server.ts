@@ -42,7 +42,7 @@ import {
   supportsStableNativeServer,
   NATIVE_SERVER_STABLE_VERSION,
 } from "./version";
-import { updateServerKind, updateStatus } from "./status";
+import { updateDocumentSelector, updateServerKind, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -294,8 +294,8 @@ async function createNativeServer(
   };
 
   const clientOptions = {
-    // Register the server for python documents
-    documentSelector: getDocumentSelector(),
+    // Register the server for supported documents.
+    documentSelector: getDocumentSelector(ruffVersion),
     outputChannel,
     traceOutputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Never,
@@ -723,6 +723,7 @@ export async function startServer(
     },
     resolution,
   );
+  updateDocumentSelector(newLSClient.clientOptions.documentSelector ?? []);
   logger.info(`Server: Start requested.`);
 
   _disposables.push(

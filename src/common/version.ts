@@ -70,3 +70,15 @@ export const INLINE_CONFIGURATION_VERSION: VersionInfo = { major: 0, minor: 9, p
 export function supportsInlineConfiguration(version: VersionInfo): boolean {
   return versionGte(version, INLINE_CONFIGURATION_VERSION);
 }
+
+/**
+ * The minimum Ruff version required for TOML document support.
+ */
+export const TOML_SUPPORT_VERSION: VersionInfo = { major: 0, minor: 16, patch: 2 };
+
+/**
+ * Check if the given version of the Ruff executable supports TOML documents.
+ */
+export function supportsToml(version: VersionInfo): boolean {
+  return versionGte(version, TOML_SUPPORT_VERSION);
+}

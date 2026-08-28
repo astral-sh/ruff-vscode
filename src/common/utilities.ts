@@ -3,6 +3,7 @@ import * as path from "path";
 import { Uri, WorkspaceFolder } from "vscode";
 import { DocumentSelector } from "vscode-languageclient";
 import { getWorkspaceFolders, isVirtualWorkspace } from "./vscodeapi";
+import { supportsToml, VersionInfo } from "./version";
 
 export async function getProjectRoot(): Promise<WorkspaceFolder> {
   const workspaces: readonly WorkspaceFolder[] = getWorkspaceFolders();
@@ -35,16 +36,23 @@ export async function getProjectRoot(): Promise<WorkspaceFolder> {
   }
 }
 
-export function getDocumentSelector(): DocumentSelector {
-  return isVirtualWorkspace()
-    ? [{ language: "python" }, { language: "markdown" }]
-    : [
-        { scheme: "file", language: "python" },
-        { scheme: "untitled", language: "python" },
-        { scheme: "vscode-notebook", language: "python" },
-        { scheme: "vscode-notebook-cell", language: "python" },
-        { scheme: "file", language: "markdown" },
-        { scheme: "untitled", language: "markdown" },
-        { scheme: "file", pattern: "**/{pyproject.toml,ruff.toml,.ruff.toml}" },
-      ];
+export function getDocumentSelector(ruffVersion?: VersionInfo): DocumentSelector {
+  if (isVirtualWorkspace()) {
+    return [{ language: "python" }, { language: "markdown" }];
+  }
+
+  const selector: DocumentSelector = [
+    { scheme: "file", language: "python" },
+    { scheme: "untitled", language: "python" },
+    { scheme: "vscode-notebook", language: "python" },
+    { scheme: "vscode-notebook-cell", language: "python" },
+    { scheme: "file", language: "markdown" },
+    { scheme: "untitled", language: "markdown" },
+  ];
+
+  if (ruffVersion != null && supportsToml(ruffVersion)) {
+    selector.push({ scheme: "file", pattern: "**/{pyproject.toml,ruff.toml,.ruff.toml}" });
+  }
+
+  return selector;
 }

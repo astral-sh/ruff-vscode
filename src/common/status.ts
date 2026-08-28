@@ -1,7 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { LanguageStatusItem, Disposable, l10n, LanguageStatusSeverity } from "vscode";
+import {
+  LanguageStatusItem,
+  Disposable,
+  l10n,
+  LanguageStatusSeverity,
+  DocumentSelector,
+} from "vscode";
 import { createLanguageStatusItem } from "./vscodeapi";
 import { Command } from "vscode-languageclient";
 import { getDocumentSelector } from "./utilities";
@@ -25,6 +31,12 @@ export function registerLanguageStatusItem(id: string, name: string, command: st
 
 export function updateServerKind(native: boolean): void {
   _serverKind = native ? "native" : "ruff-lsp";
+}
+
+export function updateDocumentSelector(selector: DocumentSelector): void {
+  if (_status) {
+    _status.selector = selector;
+  }
 }
 
 export function updateStatus(
