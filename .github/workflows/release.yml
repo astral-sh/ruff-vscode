@@ -78,11 +78,11 @@ jobs:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-musl
             code-target: alpine-x64
-            arch: x86_64
+            pip-platform: musllinux_1_2_x86_64
           - os: ubuntu-22.04
             target: aarch64-unknown-linux-musl
             code-target: alpine-arm64
-            arch: aarch64
+            pip-platform: musllinux_1_2_aarch64
 
     name: Build (${{ matrix.target }})
     needs: ["build-id"]
@@ -122,16 +122,18 @@ jobs:
           run: |
             python3 -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
 
-      # Alpine builds, which should select Ruff's musl binaries.
-      - uses: jirutka/setup-alpine@ae3b3ddba35054804fc4a3507b519fa7e8152050 # v1.4.1
-        if: ${{ startsWith(matrix.os, 'ubuntu') && endsWith(matrix.target, 'musl') }}
-        with:
-          arch: ${{ matrix.arch }}
-      - shell: alpine.sh --root {0}
+      # Alpine targets, which should select Ruff's musl binaries.
+      - name: Install musl Python dependencies
         if: ${{ startsWith(matrix.os, 'ubuntu') && endsWith(matrix.target, 'musl') }}
         run: |
-          apk add --no-cache python3 py3-pip
-          python3 -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
+          python -m pip install \
+            --target ./bundled/libs \
+            --implementation py \
+            --platform "${{ matrix.pip-platform }}" \
+            --only-binary=:all: \
+            --no-deps \
+            --upgrade \
+            --requirement ./requirements.txt
 
       # Every other architecture, which should defer to `pip` without any special treatment.
       - run: python -m pip install -t ./bundled/libs --implementation py --no-deps --upgrade -r ./requirements.txt
