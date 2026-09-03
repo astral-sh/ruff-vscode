@@ -6,6 +6,8 @@ This script does the following things:
 - Bumps the `ruff` and `ruff-lsp` dependency pins in `pyproject.toml`
 - Updates the changelog and README
 - Updates the package's lockfiles
+
+Use --validate VERSION to check an existing release without modifying files.
 """
 
 # /// script
@@ -287,9 +289,54 @@ def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
         commit_changes(versions)
 
 
+def validate_release(version: str) -> bool:
+    """Validate release metadata and return whether this is a pre-release."""
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+        raise SystemExit(f"Invalid extension version: {version!r}")
+
+    parsed_version = Version(version)
+    if str(parsed_version) != version:
+        raise SystemExit(
+            f"Requested version {version} was normalized to {parsed_version}"
+        )
+
+    with PACKAGE_JSON_PATH.open("rb") as package_file:
+        package = json.load(package_file)
+    with PYPROJECT_TOML_PATH.open("rb") as project_file:
+        project = tomli.load(project_file)["project"]
+    for path, metadata in [
+        (PACKAGE_JSON_PATH, package),
+        (PYPROJECT_TOML_PATH, project),
+    ]:
+        if metadata["version"] != version:
+            raise SystemExit(
+                f"Requested version {version} does not match "
+                f"{path} version {metadata['version']}"
+            )
+
+    tag = subprocess.run(
+        ["git", "tag", "--list", version],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    if tag:
+        raise SystemExit(f"Tag {version} already exists")
+
+    return parsed_version.minor % 2 != 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=RawDescriptionRichHelpFormatter
+    )
+    parser.add_argument(
+        "--validate",
+        metavar="VERSION",
+        help=(
+            "Validate an existing release without modifying files; "
+            "prints prerelease=true or prerelease=false"
+        ),
     )
     parser.add_argument(
         "--prepare-pr",
@@ -321,6 +368,20 @@ def main() -> None:
         ),
     )
     args = parser.parse_args()
+    if args.validate is not None:
+        if (
+            args.prepare_pr
+            or args.new_version is not None
+            or args.new_ruff is not None
+            or args.new_ruff_lsp is not None
+        ):
+            parser.error(
+                "--validate cannot be combined with release preparation options"
+            )
+        prerelease = validate_release(args.validate)
+        print(f"prerelease={str(prerelease).lower()}")
+        return
+
     versions = get_ruff_versions(
         new_ruff_vscode_version=args.new_version,
         new_ruff_version=args.new_ruff,

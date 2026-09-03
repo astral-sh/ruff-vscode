@@ -1,8 +1,16 @@
+# Validate and publish a release, then create its tag and GitHub release.
 name: Release
 on:
   workflow_dispatch:
-  release:
-    types: [published]
+    inputs:
+      version:
+        description: Exact extension version to release, without a leading v
+        required: true
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 env:
   FETCH_DEPTH: 0
@@ -14,15 +22,19 @@ defaults:
     shell: bash
 
 jobs:
-  # Phase 1: Generate the Build ID.
+  # Phase 1: Validate the release and generate the Build ID.
   # We have to do this ahead-of-time, and store it as a job output,
   # to ensure that we use the same Build ID across all build jobs.
-  build-id:
-    name: "Build ID"
+  validate-release:
+    name: Validate release
+    if: github.repository == 'astral-sh/ruff-vscode' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
-      RELEASE_BUILD_ID: ${{ steps.release-build-id-generator.outputs.BUILD_ID }}
-      NIGHTLY_BUILD_ID: ${{ steps.nightly-build-id-generator.outputs.BUILD_ID }}
+      prerelease: ${{ steps.metadata.outputs.prerelease }}
+      release-build-id: ${{ steps.release-build-id-generator.outputs.release-build-id }}
+      nightly-build-id: ${{ steps.nightly-build-id-generator.outputs.nightly-build-id }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -32,20 +44,28 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - name: Validate release metadata
+        id: metadata
+        run: |
+          uv run --locked scripts/release.py --validate "$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Preparing ${VERSION} from ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          VERSION: ${{ inputs.version }}
       - name: Generate Build ID (release)
-        if: "startsWith(github.ref, 'refs/tags/')"
+        if: steps.metadata.outputs.prerelease == 'false'
         id: release-build-id-generator
         run: |
-          export BUILD_ID=$(python -m build.generate_build_id)
-          echo "BUILD_ID: ${BUILD_ID}"
-          echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
+          release_build_id="$(python -m build.generate_build_id)"
+          echo "release-build-id: ${release_build_id}"
+          echo "release-build-id=${release_build_id}" >> "$GITHUB_OUTPUT"
       - name: Generate Build ID (nightly)
-        if: "!startsWith(github.ref, 'refs/tags/')"
+        if: steps.metadata.outputs.prerelease == 'true'
         id: nightly-build-id-generator
         run: |
-          export BUILD_ID=$(python -m build.generate_build_id --pre-release)
-          echo "BUILD_ID: ${BUILD_ID}"
-          echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
+          nightly_build_id="$(python -m build.generate_build_id --pre-release)"
+          echo "nightly-build-id: ${nightly_build_id}"
+          echo "nightly-build-id=${nightly_build_id}" >> "$GITHUB_OUTPUT"
 
   # Phase 2: Build the extension on all platforms.
   build:
@@ -85,9 +105,10 @@ jobs:
             pip-platform: musllinux_1_2_aarch64
 
     name: Build (${{ matrix.target }})
-    needs: ["build-id"]
+    needs: ["validate-release"]
     runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -153,24 +174,24 @@ jobs:
 
       # Set the Build ID.
       - name: Set Build ID (release)
-        if: "startsWith(github.ref, 'refs/tags/')"
+        if: needs.validate-release.outputs.prerelease == 'false'
         run: |
-          python -m build.update_ext_version --build-id "${RELEASE_BUILD_ID}" --for-publishing
+          python -m build.update_ext_version --build-id "${BUILD_ID}" --for-publishing
         env:
-          RELEASE_BUILD_ID: ${{ needs.build-id.outputs.RELEASE_BUILD_ID }}
+          BUILD_ID: ${{ needs.validate-release.outputs.release-build-id }}
       - name: Set Build ID (nightly)
-        if: "!startsWith(github.ref, 'refs/tags/')"
+        if: needs.validate-release.outputs.prerelease == 'true'
         run: |
-          python -m build.update_ext_version --build-id "${NIGHTLY_BUILD_ID}" --for-publishing --pre-release
+          python -m build.update_ext_version --build-id "${BUILD_ID}" --for-publishing --pre-release
         env:
-          NIGHTLY_BUILD_ID: ${{ needs.build-id.outputs.NIGHTLY_BUILD_ID }}
+          BUILD_ID: ${{ needs.validate-release.outputs.nightly-build-id }}
 
       # Build the extension.
       - name: Package Extension (release)
-        if: "startsWith(github.ref, 'refs/tags/')"
+        if: needs.validate-release.outputs.prerelease == 'false'
         run: npx vsce package -o "./dist/ruff-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }}
       - name: Package Extension (nightly)
-        if: "!startsWith(github.ref, 'refs/tags/')"
+        if: needs.validate-release.outputs.prerelease == 'true'
         run: npx vsce package -o "./dist/ruff-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }} --pre-release
 
       # Upload the extension.
@@ -180,11 +201,27 @@ jobs:
           name: dist-${{ matrix.target }}
           path: ./dist
 
-  # Phase 3: Publish the built extension to the Marketplace.
+  # Phase 3: Approve the release after all platform builds succeed.
+  release-gate:
+    # N.B. This name should not change; the release environment gate relies on it.
+    name: release-gate
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: release-gate
+    permissions: {}
+    steps:
+      - run: echo "Release approved"
+
+  # Phase 4: Publish the built extension to both marketplaces.
   publish-code-marketplace:
     name: "Publish (Code Marketplace)"
-    needs: ["build"]
+    needs: ["validate-release", "release-gate"]
     runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      contents: read
     steps:
       - name: Install Nodejs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -243,16 +280,24 @@ jobs:
 
       # Publish to the Code Marketplace.
       - name: Publish Extension (Code Marketplace, release)
-        if: "startsWith(github.ref, 'refs/tags/')"
-        run: ./scripts/publish/node_modules/.bin/vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
+        if: needs.validate-release.outputs.prerelease == 'false'
+        run: ./scripts/publish/node_modules/.bin/vsce publish --packagePath ./dist/ruff-*.vsix --skip-duplicate
+        env:
+          VSCE_PAT: ${{ secrets.MARKETPLACE_TOKEN }}
       - name: Publish Extension (Code Marketplace, nightly)
-        if: "!startsWith(github.ref, 'refs/tags/')"
-        run: ./scripts/publish/node_modules/.bin/vsce publish --pat ${{ secrets.MARKETPLACE_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
+        if: needs.validate-release.outputs.prerelease == 'true'
+        run: ./scripts/publish/node_modules/.bin/vsce publish --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
+        env:
+          VSCE_PAT: ${{ secrets.MARKETPLACE_TOKEN }}
 
   publish-openvsx:
     name: "Publish (OpenVSX)"
-    needs: ["build"]
+    needs: ["validate-release", "release-gate"]
     runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      contents: read
     steps:
       - name: Install Nodejs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -311,10 +356,40 @@ jobs:
 
       # Publish to OpenVSX.
       - name: Publish Extension (OpenVSX, release)
-        if: "startsWith(github.ref, 'refs/tags/')"
-        run: ./scripts/publish/node_modules/.bin/ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --skip-duplicate
+        if: needs.validate-release.outputs.prerelease == 'false'
+        run: ./scripts/publish/node_modules/.bin/ovsx publish --packagePath ./dist/ruff-*.vsix --skip-duplicate
+        env:
+          OVSX_PAT: ${{ secrets.OPENVSX_TOKEN }}
         timeout-minutes: 2
       - name: Publish Extension (OpenVSX, nightly)
-        if: "!startsWith(github.ref, 'refs/tags/')"
-        run: ./scripts/publish/node_modules/.bin/ovsx publish --pat ${{ secrets.OPENVSX_TOKEN }} --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
+        if: needs.validate-release.outputs.prerelease == 'true'
+        run: ./scripts/publish/node_modules/.bin/ovsx publish --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
+        env:
+          OVSX_PAT: ${{ secrets.OPENVSX_TOKEN }}
         timeout-minutes: 2
+
+  # Phase 5: Create the tag and GitHub release after both publications succeed.
+  publish-github:
+    name: Create GitHub release
+    needs: ["validate-release", "publish-code-marketplace", "publish-openvsx"]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create GitHub release and tag
+        run: |
+          prerelease=()
+          if [[ "$PRERELEASE" == "true" ]]; then
+            prerelease+=(--prerelease)
+          fi
+          gh release create "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$RELEASE_COMMIT" \
+            --title "$VERSION" \
+            --generate-notes \
+            "${prerelease[@]}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE: ${{ needs.validate-release.outputs.prerelease }}
+          RELEASE_COMMIT: ${{ github.sha }}
+          VERSION: ${{ inputs.version }}

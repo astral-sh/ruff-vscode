@@ -52,10 +52,21 @@ and Python log messages in the debug console under "Python Server".
 
 ## Release
 
-- Run `uv run scripts/release.py`.
-  (Run `uv run scripts/release.py --help` for information on what this script does,
-  and its various options.)
-- Check the changes the script made, copy-edit the changelog, and commit the changes.
-- Create a new PR and merge it.
-- [Create a new Release](https://github.com/astral-sh/ruff-vscode/releases/new), enter `x.x.x` (where `x.x.x` is the new version) into the _Choose a tag_ selector. Click _Generate release notes_, curate the release notes and publish the release.
-- The Release workflow publishes the extension to the VS Code marketplace.
+1. Run the [Prepare release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
+   from `main` with the exact extension version, without a leading `v`. The workflow runs `scripts/release.py` to update
+   the extension version, bundled Ruff and ruff-lsp versions, README, changelog, and lockfiles.
+   Optionally specify the bundled Ruff and ruff-lsp versions; each defaults to the latest version on PyPI.
+2. Review the generated release PR, copy-edit the changelog, and merge it.
+3. Run the [Release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
+   from `main` with the same extension version.
+4. Approve the protected `release-gate` deployment after all platform builds succeed.
+
+Odd minor versions are pre-releases and retain timestamped nightly build IDs; even minor versions are stable releases.
+
+Publishing uses the `release` environment and the `MARKETPLACE_TOKEN` and `OPENVSX_TOKEN` secrets.
+The repository must have protection rules configured for the `release-gate` environment to require approval.
+
+After both publications succeed, the workflow creates the `<version>` tag and GitHub release, automatically marking odd
+minor versions as pre-releases. Review and curate the generated GitHub release notes as needed.
+
+It may take a few minutes after the workflow completes for the extension to be available.
