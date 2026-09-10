@@ -33,16 +33,13 @@ To run tests:
 
 ```console
 uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
-uv run --dev python -m unittest
+npm run pretest
+npm run tests
 ```
 
-To run the extension, navigate to `src/extension.ts` and run (`F5`). You should see the LSP output
-and Python log messages in the debug console under "Python Server".
+The tests run inside an isolated VS Code instance and exercise the native language server. On headless Linux, run `xvfb-run -a npm run tests`.
 
-### Modifying the LSP
-
-- Clone [ruff-lsp](https://github.com/astral-sh/ruff-lsp) to, e.g., `../ruff-lsp`.
-- In `../ruff-lsp`, run: `uv pip install -t ../ruff-vscode/bundled/libs/ -e .`.
+To debug the extension, open this repository in VS Code and run the "Debug Extension" launch configuration (`F5`). View client logs in the "Ruff" output channel and server logs in "Ruff Language Server".
 
 ### Using a custom version of ruff
 
@@ -52,10 +49,7 @@ and Python log messages in the debug console under "Python Server".
 
 ## Release
 
-1. Run the [Prepare release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
-   from `main` with the exact extension version, without a leading `v`. The workflow runs `scripts/release.py` to update
-   the extension version, bundled Ruff and ruff-lsp versions, README, changelog, and lockfiles.
-   Optionally specify the bundled Ruff and ruff-lsp versions; each defaults to the latest version on PyPI.
+1. Run the [Prepare release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml) from `main` with the exact extension version, without a leading `v`. The workflow runs `scripts/release.py` to update the extension version, bundled Ruff version, README, changelog, and lockfiles. Optionally specify the bundled Ruff version; it defaults to the latest version on PyPI.
 2. Review the generated release PR, copy-edit the changelog, and merge it.
 3. Run the [Release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
    from `main` with the same extension version.

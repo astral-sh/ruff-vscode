@@ -1,7 +1,9 @@
 {
-  // Always use the native server and bundled Ruff binary for the tests.
-  "ruff.nativeServer": "on",
+  // Always use the bundled Ruff binary for the tests.
   "ruff.importStrategy": "useBundled",
+
+  // An old opt-out must not prevent native startup or debug information.
+  "ruff.nativeServer": "off",
 
   // Ruff's extension optionally depends on the Python extension which also provides a language
   // server, so we need to disable the Python language server to avoid special casing in the tests.
