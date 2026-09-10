@@ -276,7 +276,7 @@
             "useBundled"
           ],
           "enumDescriptions": [
-            "Use `ruff` from environment, falling back to the bundled version if `ruff` is not found.",
+            "Look for `ruff` using the configured interpreter, or in the active Python environment when the Python Environments or Python extension is available. Fall back to `PATH`, then the bundled version.",
             "Always use the bundled version of `ruff`."
           ],
           "scope": "window",
@@ -284,7 +284,7 @@
         },
         "ruff.interpreter": {
           "default": [],
-          "markdownDescription": "Path to a Python interpreter to use to find the `ruff` executable. Requires either the Python Environments or Python extension to be installed.",
+          "markdownDescription": "Path to a Python executable or environment directory used to find the `ruff` executable. Python 3.8 or later is required. This setting works without the Python Environments or Python extension.",
           "scope": "resource",
           "items": {
             "type": "string"
