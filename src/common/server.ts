@@ -3,18 +3,11 @@ import * as vscode from "vscode";
 import { platform } from "os";
 import { Disposable, l10n, LanguageStatusSeverity, OutputChannel } from "vscode";
 import { State, ShowMessageNotification, MessageType } from "vscode-languageclient";
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  RevealOutputChannelOn,
-  ServerOptions,
-} from "vscode-languageclient/node";
+import { LanguageClient, RevealOutputChannelOn } from "vscode-languageclient/node";
 import {
   BUNDLED_RUFF_EXECUTABLE,
-  DEBUG_SERVER_SCRIPT_PATH,
   RUFF_SERVER_PREVIEW_ARGS,
   RUFF_SERVER_SUBCOMMAND,
-  RUFF_LSP_SERVER_SCRIPT_PATH,
   FIND_RUFF_BINARY_SCRIPT_PATH,
   RUFF_BINARY_NAME,
 } from "./constants";
@@ -22,7 +15,6 @@ import { logger } from "./logger";
 import {
   checkInterpreterVersion,
   type EnvironmentProvider,
-  getDebuggerPath,
   type PythonCommand,
   type PythonEnvironmentDetails,
 } from "./python";
@@ -30,9 +22,7 @@ import {
   checkInlineConfigSupport,
   getExtensionSettings,
   getGlobalSettings,
-  getUserSetLegacyServerSettings,
   ISettings,
-  LegacyServerSetting,
 } from "./settings";
 import {
   supportsNativeServer,
@@ -40,9 +30,8 @@ import {
   VersionInfo,
   MINIMUM_NATIVE_SERVER_VERSION,
   supportsStableNativeServer,
-  NATIVE_SERVER_STABLE_VERSION,
 } from "./version";
-import { updateDocumentSelector, updateServerKind, updateStatus } from "./status";
+import { updateDocumentSelector, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
 import { execFile } from "child_process";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -240,7 +229,7 @@ export async function findRuffBinaryPath(
   return { path: BUNDLED_RUFF_EXECUTABLE, dependsOnActiveInterpreter };
 }
 
-async function createNativeServer(
+async function createServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
@@ -262,13 +251,12 @@ async function createNativeServer(
   if (!isTy) {
     if (!supportsNativeServer(ruffVersion)) {
       const message =
-        `Native server requires Ruff ${versionToString(
+        `Ruff server requires Ruff ${versionToString(
           MINIMUM_NATIVE_SERVER_VERSION,
         )}, but found ${versionToString(
           ruffVersion,
-        )} at ${ruffBinaryPath} instead. Please upgrade Ruff or use the legacy server (ruff-lsp) by ` +
-        "[pinning the extension](https://stackoverflow.com/questions/42626065/vs-code-how-to-rollback-extension-install-specific-extension-version) " +
-        `version to 2025.4.0 and setting '${serverId}.nativeServer' to 'off'.`;
+        )} at ${ruffBinaryPath} instead. Please upgrade Ruff or use the bundled executable by ` +
+        `clearing '${serverId}.path' and setting '${serverId}.importStrategy' to 'useBundled'.`;
       logger.error(message);
       vscode.window.showErrorMessage(message);
       return Promise.reject();
@@ -305,376 +293,34 @@ async function createNativeServer(
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
 }
 
-async function createLegacyServer(
-  settings: ISettings,
-  serverId: string,
-  serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
-  initializationOptions: IInitializationOptions,
-  interpreter: PythonCommand,
-): Promise<LanguageClient> {
-  const command = interpreter.executable;
-  const cwd = settings.cwd;
-
-  // Set debugger path needed for debugging python code.
-  const newEnv = { ...process.env };
-  let debuggerPath: string | undefined;
-  try {
-    debuggerPath = await getDebuggerPath();
-  } catch (error) {
-    logger.warn(`Unable to resolve the Python debugger path: ${error}`);
-  }
-  const isDebugScript = await fsapi.pathExists(DEBUG_SERVER_SCRIPT_PATH);
-  if (newEnv.USE_DEBUGPY && debuggerPath) {
-    newEnv.DEBUGPY_PATH = debuggerPath;
-  } else {
-    newEnv.USE_DEBUGPY = "False";
-  }
-
-  // Set notification type
-  newEnv.LS_SHOW_NOTIFICATION = settings.showNotifications;
-  // Signal `ruff-lsp` to not show deprecation warning as it's handled by the extension.
-  newEnv.LS_SHOW_DEPRECATION_WARNING = "False";
-
-  const args =
-    newEnv.USE_DEBUGPY === "False" || !isDebugScript
-      ? interpreter.args.concat([RUFF_LSP_SERVER_SCRIPT_PATH])
-      : interpreter.args.concat([DEBUG_SERVER_SCRIPT_PATH]);
-  logger.info(`Server run command: ${[command, ...args].join(" ")}`);
-
-  const serverOptions: ServerOptions = {
-    command,
-    args,
-    options: { cwd, env: newEnv },
-  };
-
-  // Options to control the language client
-  const clientOptions: LanguageClientOptions = {
-    // Register the server for python documents
-    documentSelector: getDocumentSelector(),
-    outputChannel: outputChannel,
-    traceOutputChannel: traceOutputChannel,
-    revealOutputChannelOn: RevealOutputChannelOn.Never,
-    initializationOptions,
-  };
-
-  return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
-}
-
-function showWarningMessage(message: string) {
-  vscode.window.showWarningMessage(message, "Show Logs").then((selection) => {
-    if (selection) {
-      logger.channel.show();
-    }
-  });
-  logger.warn(message);
-}
-
 type RuffExecutable = {
   path: string;
   version: VersionInfo;
 };
 
-type ServerResolution =
-  | {
-      kind: "native";
-      executable: RuffExecutable;
-      dependsOnActiveInterpreter: boolean;
-    }
-  | {
-      kind: "legacy";
-      interpreter: PythonCommand;
-      dependsOnActiveInterpreter: boolean;
-    };
+type ServerResolution = {
+  executable: RuffExecutable;
+  dependsOnActiveInterpreter: boolean;
+};
 
 export type ServerState = {
   client: LanguageClient;
   resolution: ServerResolution;
 };
 
-const RUFF_LSP_URL = "https://github.com/astral-sh/ruff-lsp";
-const LSP_MIGRATION_URL = "https://docs.astral.sh/ruff/editors/migration/";
-const LSP_DEPRECATION_DISCUSSION_MESSAGE =
-  "Feel free to comment on the [GitHub discussion](https://github.com/astral-sh/ruff/discussions/15991) to ask questions or share feedback.";
-
-function formatLegacyServerSettings(settings: LegacyServerSetting[]): string {
-  return settings.map((s) => `'${s.key}' in ${s.location}`).join(", ");
-}
-
-async function resolveNativeServerSetting(
-  settings: ISettings,
-  workspace: vscode.WorkspaceFolder,
-  serverId: string,
-  environmentProvider: EnvironmentProvider | null,
-  activeEnvironment: PythonEnvironmentDetails | null,
-  showWarnings: boolean,
-): Promise<{
-  useNativeServer: boolean;
-  executable?: RuffExecutable;
-  dependsOnActiveInterpreter?: boolean;
-}> {
-  let useNativeServer: boolean;
-  let legacyServerSettings: LegacyServerSetting[];
-
-  switch (settings.nativeServer) {
-    case "on":
-    case true:
-      legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
-      if (showWarnings && legacyServerSettings.length > 0) {
-        // User has explicitly set the native server to 'on' but still has legacy server settings.
-        showWarningMessage(
-          `The following settings have been deprecated in the native server: ${formatLegacyServerSettings(
-            legacyServerSettings,
-          )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. ` +
-            LSP_DEPRECATION_DISCUSSION_MESSAGE,
-        );
-      }
-      return { useNativeServer: true };
-    case "off":
-    case false:
-      if (!vscode.workspace.isTrusted) {
-        const message =
-          `Cannot use the legacy server ([ruff-lsp](${RUFF_LSP_URL})) in an untrusted workspace; ` +
-          "switching to the native server using the bundled executable.";
-        if (showWarnings) {
-          vscode.window.showWarningMessage(message);
-          logger.warn(message);
-        }
-        return { useNativeServer: true };
-      }
-
-      if (environmentProvider == null) {
-        const message =
-          `Cannot use the legacy server ([ruff-lsp](${RUFF_LSP_URL})) without the Python ` +
-          "Environments or Python extension; switching to the native server. Install one of " +
-          "these extensions and reload VS Code to use the legacy server.";
-        if (showWarnings) {
-          showWarningMessage(message);
-        }
-        return { useNativeServer: true };
-      }
-
-      // User has explicitly set the native server to 'off'. Recommend them to upgrade to the native server ...
-      let message =
-        `The legacy server ([ruff-lsp](${RUFF_LSP_URL})) has been deprecated. ` +
-        `Please consider using the native server instead by removing '${serverId}.nativeServer' or setting it to 'on'. `;
-      legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
-      if (legacyServerSettings.length > 0) {
-        // ... and update the message if they have legacy server settings.
-        message += `The following settings are not supported with the native server and have been deprecated: ${formatLegacyServerSettings(
-          legacyServerSettings,
-        )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. `;
-      }
-      message += LSP_DEPRECATION_DISCUSSION_MESSAGE;
-      if (showWarnings) {
-        showWarningMessage(message);
-      }
-
-      return { useNativeServer: false };
-    case "auto":
-      if (!vscode.workspace.isTrusted) {
-        logger.info(
-          `Resolved '${serverId}.nativeServer: auto' to use the native server in an untrusted workspace`,
-        );
-        return { useNativeServer: true };
-      }
-
-      const binaryResolution = await findRuffBinaryPath(
-        settings,
-        environmentProvider,
-        activeEnvironment,
-      );
-      const ruffBinaryPath = binaryResolution.path;
-      const ruffVersion = await getRuffVersion(binaryResolution.path);
-
-      // Start with the assumption that the native server will be used.
-      useNativeServer = true;
-
-      const isStableNativeServer = supportsStableNativeServer(ruffVersion);
-      if (!isStableNativeServer) {
-        // Ruff version does not include the stable native server.
-        useNativeServer = false;
-      }
-
-      legacyServerSettings = getUserSetLegacyServerSettings(serverId, workspace);
-      if (useNativeServer && legacyServerSettings.length > 0) {
-        // User has legacy server settings set.
-        useNativeServer = false;
-      }
-
-      if (showWarnings && !useNativeServer) {
-        let message = `The legacy server ([ruff-lsp](${RUFF_LSP_URL})) has been deprecated. `;
-        if (legacyServerSettings.length > 0) {
-          message += `The following settings were only supported by the legacy server and has been deprecated: ${formatLegacyServerSettings(
-            legacyServerSettings,
-          )}. Please [migrate](${LSP_MIGRATION_URL}) to the new settings or remove them. `;
-        } else if (!isStableNativeServer) {
-          message += `Stable version of the native server requires Ruff ${versionToString(
-            NATIVE_SERVER_STABLE_VERSION,
-          )}, but found ${versionToString(
-            ruffVersion,
-          )} at ${ruffBinaryPath} instead. Please upgrade Ruff to use the native server; using the legacy server (ruff-lsp) for now. `;
-        }
-        message += LSP_DEPRECATION_DISCUSSION_MESSAGE;
-        showWarningMessage(message);
-      }
-
-      logger.info(
-        `Resolved '${serverId}.nativeServer: auto' to use the ${
-          useNativeServer ? "native" : "legacy (ruff-lsp)"
-        } server`,
-      );
-      return {
-        useNativeServer,
-        executable: { path: ruffBinaryPath, version: ruffVersion },
-        dependsOnActiveInterpreter: binaryResolution.dependsOnActiveInterpreter,
-      };
-  }
-}
-
-async function resolveLegacyInterpreter(
-  settings: ISettings,
-  environmentProvider: EnvironmentProvider | null,
-  activeEnvironment: PythonEnvironmentDetails | null,
-): Promise<{ command: PythonCommand; dependsOnActiveInterpreter: boolean } | null> {
-  const { environment, command, dependsOnActiveInterpreter } = await resolvePythonEnvironment(
-    settings.interpreter,
-    settings.workspace,
-    environmentProvider,
-    activeEnvironment,
-  );
-
-  if (environment == null) {
-    const configuredPath = settings.interpreter[0];
-    if (configuredPath == null) {
-      updateStatus(
-        vscode.l10n.t("Please select a Python interpreter."),
-        vscode.LanguageStatusSeverity.Error,
-      );
-      logger.error(
-        "Python interpreter missing:\r\n" +
-          "[Option 1] Select a Python interpreter using the Python extension.\r\n" +
-          `[Option 2] Set an interpreter using the "ruff.interpreter" setting.\r\n` +
-          "Please use Python 3.8 or greater.",
-      );
-    } else {
-      updateStatus(
-        vscode.l10n.t("Python interpreter not found."),
-        vscode.LanguageStatusSeverity.Error,
-      );
-      logger.error(`Unable to resolve the configured Python interpreter: '${configuredPath}'`);
-    }
-    return null;
-  }
-
-  const supportedVersion = checkInterpreterVersion(environment);
-  if (supportedVersion !== true) {
-    updateStatus(
-      vscode.l10n.t("Python interpreter is unsupported."),
-      vscode.LanguageStatusSeverity.Error,
-    );
-    if (supportedVersion == null) {
-      logger.error("Unable to determine the selected Python interpreter version.");
-    }
-    return null;
-  }
-
-  if (command == null) {
-    updateStatus(
-      vscode.l10n.t("Python interpreter not found."),
-      vscode.LanguageStatusSeverity.Error,
-    );
-    logger.error("Resolved Python environment has no executable command.");
-    return null;
-  }
-
-  return { command, dependsOnActiveInterpreter };
-}
-
 export async function resolveServer(
   settings: ISettings,
-  projectRoot: vscode.WorkspaceFolder,
-  serverId: string,
   environmentProvider: EnvironmentProvider | null,
   activeEnvironment: PythonEnvironmentDetails | null,
-  showWarnings: boolean,
-): Promise<ServerResolution | null> {
-  const serverSetting = await resolveNativeServerSetting(
-    settings,
-    projectRoot,
-    serverId,
-    environmentProvider,
-    activeEnvironment,
-    showWarnings,
-  );
-
-  if (serverSetting.useNativeServer) {
-    let executable = serverSetting.executable;
-    let dependsOnActiveInterpreter = serverSetting.dependsOnActiveInterpreter ?? false;
-    if (executable == null) {
-      const resolution = await findRuffBinaryPath(settings, environmentProvider, activeEnvironment);
-      executable = {
-        path: resolution.path,
-        version: await getRuffVersion(resolution.path),
-      };
-      dependsOnActiveInterpreter = resolution.dependsOnActiveInterpreter;
-    }
-    return {
-      kind: "native",
-      executable,
-      dependsOnActiveInterpreter,
-    };
-  }
-
-  const interpreter = await resolveLegacyInterpreter(
-    settings,
-    environmentProvider,
-    activeEnvironment,
-  );
-  if (interpreter == null) {
-    return null;
-  }
-
+): Promise<ServerResolution> {
+  const resolution = await findRuffBinaryPath(settings, environmentProvider, activeEnvironment);
   return {
-    kind: "legacy",
-    interpreter: interpreter.command,
-    dependsOnActiveInterpreter:
-      (serverSetting.dependsOnActiveInterpreter ?? false) || interpreter.dependsOnActiveInterpreter,
+    executable: {
+      path: resolution.path,
+      version: await getRuffVersion(resolution.path),
+    },
+    dependsOnActiveInterpreter: resolution.dependsOnActiveInterpreter,
   };
-}
-
-async function createServer(
-  settings: ISettings,
-  serverId: string,
-  serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
-  initializationOptions: IInitializationOptions,
-  resolution: ServerResolution,
-): Promise<LanguageClient> {
-  updateServerKind(resolution.kind === "native");
-  if (resolution.kind === "native") {
-    return createNativeServer(
-      settings,
-      serverId,
-      serverName,
-      outputChannel,
-      traceOutputChannel,
-      initializationOptions,
-      resolution.executable,
-    );
-  } else {
-    return createLegacyServer(
-      settings,
-      serverId,
-      serverName,
-      outputChannel,
-      traceOutputChannel,
-      initializationOptions,
-      resolution.interpreter,
-    );
-  }
 }
 
 let _disposables: Disposable[] = [];
@@ -692,17 +338,7 @@ export async function startServer(
 
   const activeEnvironment =
     (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
-  const resolution = await resolveServer(
-    workspaceSettings,
-    projectRoot,
-    serverId,
-    environmentProvider,
-    activeEnvironment,
-    true,
-  );
-  if (resolution == null) {
-    return null;
-  }
+  const resolution = await resolveServer(workspaceSettings, environmentProvider, activeEnvironment);
 
   const extensionSettings = await getExtensionSettings(serverId);
   for (const settings of extensionSettings) {
@@ -721,7 +357,7 @@ export async function startServer(
       settings: extensionSettings,
       globalSettings: globalSettings,
     },
-    resolution,
+    resolution.executable,
   );
   updateDocumentSelector(newLSClient.clientOptions.documentSelector ?? []);
   logger.info(`Server: Start requested.`);
