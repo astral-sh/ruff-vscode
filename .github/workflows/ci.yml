@@ -33,8 +33,6 @@ jobs:
           npm ci --ignore-scripts
       - name: Run checks
         run: npm run check
-      - name: Run tests
-        run: uv run --dev python -m unittest
 
   # ts-tests:
   #   name: TypeScript Tests

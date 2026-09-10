@@ -213,17 +213,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
           const nextResolution = await resolveServer(
             settings,
-            projectRoot,
-            serverId,
             environmentProvider,
             activeEnvironment,
-            false,
           );
 
-          if (
-            nextResolution == null ||
-            !isDeepStrictEqual(nextResolution, serverState.resolution)
-          ) {
+          if (!isDeepStrictEqual(nextResolution, serverState.resolution)) {
             logger.info(`Restarting ${serverName} because the resolved server changed.`);
             await requestRestart();
           } else {

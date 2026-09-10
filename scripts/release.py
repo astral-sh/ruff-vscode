@@ -3,7 +3,7 @@ Script for automating changes necessary for `ruff-vscode` releases.
 
 This script does the following things:
 - Bumps the version of this project in `pyproject.toml` and `package.json`
-- Bumps the `ruff` and `ruff-lsp` dependency pins in `pyproject.toml`
+- Bumps the `ruff` dependency pin in `pyproject.toml`
 - Updates the changelog and README
 - Updates the package's lockfiles
 
@@ -50,8 +50,6 @@ class RuffVersions:
     new_vscode_version: Version
     existing_ruff_pin: Version
     latest_ruff: Version
-    existing_ruff_lsp_pin: Version
-    latest_ruff_lsp: Version
 
 
 def existing_dependency_pin(
@@ -76,7 +74,6 @@ def get_ruff_versions(
     *,
     new_ruff_vscode_version: Version | None,
     new_ruff_version: Version | None,
-    new_ruff_lsp_version: Version | None,
 ) -> RuffVersions:
     """
     Obtain metadata about the project; figure out what the new metadata should be.
@@ -101,8 +98,6 @@ def get_ruff_versions(
         new_vscode_version=new_ruff_vscode_version,
         existing_ruff_pin=existing_dependency_pin(dependencies, "ruff"),
         latest_ruff=(new_ruff_version or latest_pypi_version("ruff")),
-        existing_ruff_lsp_pin=existing_dependency_pin(dependencies, "ruff-lsp"),
-        latest_ruff_lsp=(new_ruff_lsp_version or latest_pypi_version("ruff-lsp")),
     )
 
 
@@ -112,7 +107,6 @@ def update_pyproject_toml(versions: RuffVersions) -> None:
     Specifically, we update:
     - The version of this project itself
     - The `ruff` version we pin to in our dependencies list
-    - The `ruff-lsp` version we pin to in our dependencies list
     """
     with PYPROJECT_TOML_PATH.open("rb") as pyproject_file:
         pyproject_toml = tomlkit.load(pyproject_file)
@@ -124,9 +118,8 @@ def update_pyproject_toml(versions: RuffVersions) -> None:
 
     existing_dependencies = project_table["dependencies"]
     assert isinstance(existing_dependencies, tomlkit.items.Array)
-    assert len(existing_dependencies) == 3
-    existing_dependencies[1] = tomlkit.string(f"ruff-lsp=={versions.latest_ruff_lsp}")
-    existing_dependencies[2] = tomlkit.string(f"ruff=={versions.latest_ruff}")
+    assert len(existing_dependencies) == 1
+    existing_dependencies[0] = tomlkit.string(f"ruff=={versions.latest_ruff}")
 
     with PYPROJECT_TOML_PATH.open("w") as pyproject_file:
         tomlkit.dump(pyproject_toml, pyproject_file)
@@ -185,24 +178,10 @@ def update_changelog(versions: RuffVersions) -> None:
         f"-- perhaps the release script is out of date?"
     )
 
-    if (
-        versions.latest_ruff != versions.existing_ruff_pin
-        and versions.latest_ruff_lsp != versions.existing_ruff_lsp_pin
-    ):
-        changelog_entry_middle = (
-            f"This release upgrades the bundled Ruff version "
-            f"to `v{versions.latest_ruff}`, and the bundled `ruff-lsp` version "
-            f"to `{versions.latest_ruff_lsp}`."
-        )
-    elif versions.latest_ruff != versions.existing_ruff_pin:
+    if versions.latest_ruff != versions.existing_ruff_pin:
         changelog_entry_middle = (
             f"This release upgrades the bundled Ruff version "
             f"to `v{versions.latest_ruff}`."
-        )
-    elif versions.latest_ruff_lsp != versions.existing_ruff_lsp_pin:
-        changelog_entry_middle = (
-            f"This release upgrades the bundled `ruff-lsp` version "
-            f"to `v{versions.latest_ruff_lsp}`."
         )
     else:
         changelog_entry_middle = ""
@@ -256,10 +235,7 @@ def commit_changes(versions: RuffVersions) -> None:
 
     new_branch = f"release-{versions.new_vscode_version}"
 
-    commit_body = (
-        f"Bump ruff to {versions.latest_ruff} "
-        f"and ruff-lsp to {versions.latest_ruff_lsp}"
-    )
+    commit_body = f"Bump ruff to {versions.latest_ruff}"
     commit_command = [
         "git",
         "commit",
@@ -359,22 +335,9 @@ def main() -> None:
             "Defaults to the latest version available on PyPI."
         ),
     )
-    parser.add_argument(
-        "--new-ruff-lsp",
-        type=Version,
-        help=(
-            "Which version to bump the `ruff-lsp` dependency pin to. "
-            "Defaults to the latest version available on PyPI."
-        ),
-    )
     args = parser.parse_args()
     if args.validate is not None:
-        if (
-            args.prepare_pr
-            or args.new_version is not None
-            or args.new_ruff is not None
-            or args.new_ruff_lsp is not None
-        ):
+        if args.prepare_pr or args.new_version is not None or args.new_ruff is not None:
             parser.error(
                 "--validate cannot be combined with release preparation options"
             )
@@ -385,7 +348,6 @@ def main() -> None:
     versions = get_ruff_versions(
         new_ruff_vscode_version=args.new_version,
         new_ruff_version=args.new_ruff,
-        new_ruff_lsp_version=args.new_ruff_lsp,
     )
     prepare_release(versions, prepare_pr=args.prepare_pr)
 
