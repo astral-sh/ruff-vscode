@@ -298,11 +298,6 @@ export function checkInterpreterVersion(environment: PythonEnvironmentDetails): 
   return false;
 }
 
-export async function getDebuggerPath(): Promise<string | undefined> {
-  const api = await getPythonExtensionAPI();
-  return api.debug.getDebuggerPackagePath();
-}
-
 const unavailable = Symbol("unavailable");
 
 function lazyInit<T>(factory: () => Promise<T | null>): { get(): Promise<T | null> } {

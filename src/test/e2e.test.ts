@@ -5,6 +5,12 @@ import { getDocumentUri, activateExtension, sleep } from "./helper";
 suite("E2E tests", () => {
   const TIMEOUT = 5000;
 
+  suiteTeardown(async () => {
+    await vscode.workspace
+      .getConfiguration("ruff")
+      .update("nativeServer", "off", vscode.ConfigurationTarget.Workspace);
+  });
+
   teardown(async () => {
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
@@ -41,12 +47,12 @@ suite("E2E tests", () => {
 
     const expectedDiagnostics = [
       {
-        message: "Import block is un-sorted or un-formatted",
-        range: toRange(0, 0, 4, 0),
+        message: "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+        range: toRange(0, 0, 1, 10),
         severity: vscode.DiagnosticSeverity.Warning,
       },
       {
-        message: "`pathlib.Path` imported but unused",
+        message: "`pathlib.Path` imported but unused\n\nhelp: Remove unused import: `pathlib.Path`",
         range: toRange(0, 20, 0, 24),
         severity: vscode.DiagnosticSeverity.Warning,
       },
@@ -91,6 +97,28 @@ def function(
     await vscode.commands.executeCommand("editor.action.formatDocument");
     const formattedContent = document.getText();
     assert.equal(formattedContent, expectedContent);
+  });
+
+  test("Should print debug information with nativeServer disabled", async () => {
+    await activateExtension();
+    // Activation starts the server asynchronously; wait for a completed startup.
+    await vscode.commands.executeCommand("ruff.restart");
+    const document = await vscode.workspace.openTextDocument(getDocumentUri("diagnostics.py"));
+    await vscode.window.showTextDocument(document);
+
+    for (const value of ["off", false]) {
+      await vscode.workspace
+        .getConfiguration("ruff")
+        .update("nativeServer", value, vscode.ConfigurationTarget.Workspace);
+      await vscode.commands.executeCommand("ruff.debugInformation");
+      const debugDocument = vscode.window.visibleTextEditors.find(
+        (editor) => editor.document.uri.scheme === "ruff-server-debug",
+      )?.document;
+      assert.ok(debugDocument, "Debug information should open beside the source document");
+      assert.ok(debugDocument.getText().length > 0, "Debug information should not be empty");
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      await vscode.window.showTextDocument(document);
+    }
   });
 });
 
