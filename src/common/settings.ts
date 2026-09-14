@@ -16,11 +16,7 @@ import {
 
 type ImportStrategy = "fromEnvironment" | "useBundled";
 
-type Run = "onType" | "onSave";
-
 type ConfigPreference = "editorFirst" | "filesystemFirst" | "editorOnly";
-
-type NativeServer = boolean | "on" | "off" | "auto";
 
 type LogLevel = "error" | "warn" | "info" | "debug" | "trace";
 
@@ -37,8 +33,6 @@ type CodeAction = {
 
 type Lint = {
   enable?: boolean;
-  args?: string[];
-  run?: Run;
   preview?: boolean;
   select?: string[];
   extendSelect?: string[];
@@ -46,23 +40,19 @@ type Lint = {
 };
 
 type Format = {
-  args?: string[];
   preview?: boolean;
   backend?: FormatterBackend;
 };
 
 export interface ISettings {
-  nativeServer: NativeServer;
   cwd: string;
   workspace: string;
   path: string[];
-  ignoreStandardLibrary: boolean;
   interpreter: string[];
   configuration: string | object | null;
   importStrategy: ImportStrategy;
   codeAction: CodeAction;
   enable: boolean;
-  showNotifications: string;
   organizeImports: boolean;
   fixAll: boolean;
   lint: Lint;
@@ -136,36 +126,27 @@ export async function getWorkspaceSettings(
   }
 
   return {
-    nativeServer: config.get<NativeServer>("nativeServer") ?? "auto",
     cwd: workspace.uri.fsPath,
     workspace: workspace.uri.toString(),
     path: resolveVariables(config.get<string[]>("path") ?? [], workspace),
-    ignoreStandardLibrary: config.get<boolean>("ignoreStandardLibrary") ?? true,
     interpreter,
     configuration,
     importStrategy: config.get<ImportStrategy>("importStrategy") ?? "fromEnvironment",
     codeAction: config.get<CodeAction>("codeAction") ?? {},
     lint: {
       enable: getPreferredWorkspaceSetting<boolean>("lint.enable", "enable", config) ?? true,
-      run: getPreferredWorkspaceSetting<Run>("lint.run", "run", config) ?? "onType",
-      args: resolveVariables(
-        getPreferredWorkspaceSetting<string[]>("lint.args", "args", config) ?? [],
-        workspace,
-      ),
       preview: config.get<boolean>("lint.preview"),
       select: config.get<string[]>("lint.select"),
       extendSelect: config.get<string[]>("lint.extendSelect"),
       ignore: config.get<string[]>("lint.ignore"),
     },
     format: {
-      args: resolveVariables(config.get<string[]>("format.args") ?? [], workspace),
       preview: config.get<boolean>("format.preview"),
       backend: config.get<FormatterBackend>("format.backend") ?? "internal",
     },
     enable: config.get<boolean>("enable") ?? true,
     organizeImports: config.get<boolean>("organizeImports") ?? true,
     fixAll: config.get<boolean>("fixAll") ?? true,
-    showNotifications: config.get<string>("showNotifications") ?? "off",
     exclude: config.get<string[]>("exclude"),
     lineLength: config.get<number>("lineLength"),
     configurationPreference:
@@ -209,33 +190,27 @@ export async function getGlobalSettings(namespace: string): Promise<ISettings> {
   }
 
   return {
-    nativeServer: getGlobalValue<NativeServer>(config, "nativeServer", "auto"),
     cwd: process.cwd(),
     workspace: process.cwd(),
     path: getGlobalValue<string[]>(config, "path", []),
-    ignoreStandardLibrary: getGlobalValue<boolean>(config, "ignoreStandardLibrary", true),
     interpreter: [],
     configuration,
     importStrategy: getGlobalValue<ImportStrategy>(config, "importStrategy", "fromEnvironment"),
     codeAction: getGlobalValue<CodeAction>(config, "codeAction", {}),
     lint: {
       enable: getPreferredGlobalSetting<boolean>("lint.enable", "enable", config) ?? true,
-      run: getPreferredGlobalSetting<Run>("lint.run", "run", config) ?? "onType",
-      args: getPreferredGlobalSetting<string[]>("lint.args", "args", config) ?? [],
       preview: getOptionalGlobalValue<boolean>(config, "lint.preview"),
       select: getOptionalGlobalValue<string[]>(config, "lint.select"),
       extendSelect: getOptionalGlobalValue<string[]>(config, "lint.extendSelect"),
       ignore: getOptionalGlobalValue<string[]>(config, "lint.ignore"),
     },
     format: {
-      args: getGlobalValue<string[]>(config, "format.args", []),
       preview: getOptionalGlobalValue<boolean>(config, "format.preview"),
       backend: getGlobalValue<FormatterBackend>(config, "format.backend", "internal"),
     },
     enable: getGlobalValue<boolean>(config, "enable", true),
     organizeImports: getGlobalValue<boolean>(config, "organizeImports", true),
     fixAll: getGlobalValue<boolean>(config, "fixAll", true),
-    showNotifications: getGlobalValue<string>(config, "showNotifications", "off"),
     exclude: getOptionalGlobalValue<string[]>(config, "exclude"),
     lineLength: getOptionalGlobalValue<number>(config, "lineLength"),
     configurationPreference: getGlobalValue<ConfigPreference>(
@@ -257,20 +232,16 @@ export function checkIfConfigurationChanged(
     `${namespace}.codeAction`,
     `${namespace}.configuration`,
     `${namespace}.enable`,
-    `${namespace}.nativeServer`,
     `${namespace}.fixAll`,
-    `${namespace}.ignoreStandardLibrary`,
     `${namespace}.importStrategy`,
     `${namespace}.interpreter`,
     `${namespace}.lint.enable`,
-    `${namespace}.lint.run`,
     `${namespace}.lint.preview`,
     `${namespace}.lint.select`,
     `${namespace}.lint.extendSelect`,
     `${namespace}.lint.ignore`,
     `${namespace}.organizeImports`,
     `${namespace}.path`,
-    `${namespace}.showNotifications`,
     `${namespace}.format.preview`,
     `${namespace}.format.backend`,
     `${namespace}.exclude`,
@@ -279,12 +250,6 @@ export function checkIfConfigurationChanged(
     `${namespace}.showSyntaxErrors`,
     `${namespace}.logLevel`,
     `${namespace}.logFile`,
-    // Deprecated settings (prefer `lint.args`, etc.).
-    `${namespace}.args`,
-    `${namespace}.run`,
-    // Deprecated settings (will be replaced with specific config options in the future)
-    `${namespace}.lint.args`,
-    `${namespace}.format.args`,
   ];
   return settings.some((s) => e.affectsConfiguration(s));
 }
@@ -419,66 +384,4 @@ export function checkNotebookCodeActionsOnSave(serverId: string) {
       vscode.window.showWarningMessage(message);
     }
   });
-}
-
-/**
- * Represents the legacy server settings that were explicitly set by the user.
- */
-export type LegacyServerSetting = {
-  key: string;
-  location: SettingLocation;
-};
-
-/**
- * Represents the location where a setting was explicitly set by the user.
- */
-export enum SettingLocation {
-  global = "user settings",
-  workspace = "workspace settings",
-  workspaceFolder = "workspace folder settings",
-}
-
-/**
- * Get the settings that were explicitly set by the user that are only relevant
- * to the legacy server.
- */
-export function getUserSetLegacyServerSettings(
-  namespace: string,
-  workspace: WorkspaceFolder,
-): LegacyServerSetting[] {
-  const settings = [
-    "showNotifications",
-    "ignoreStandardLibrary",
-    "lint.run",
-    "lint.args",
-    "format.args",
-  ];
-  const config = getConfiguration(namespace, workspace);
-  return settings
-    .map((setting) => {
-      const location = settingLocationExplicitlySetByUser(config, setting);
-      return location != null ? { key: `${namespace}.${setting}`, location } : null;
-    })
-    .filter((setting): setting is LegacyServerSetting => setting != null);
-}
-
-/**
- * Return the location where a setting was explicitly set by the user or `null`
- * if it was not explicitly set.
- */
-function settingLocationExplicitlySetByUser(
-  config: WorkspaceConfiguration,
-  section: string,
-): SettingLocation | null {
-  const inspect = config.inspect(section);
-  if (inspect?.workspaceFolderValue !== undefined) {
-    return SettingLocation.workspaceFolder;
-  }
-  if (inspect?.workspaceValue !== undefined) {
-    return SettingLocation.workspace;
-  }
-  if (inspect?.globalValue !== undefined) {
-    return SettingLocation.global;
-  }
-  return null;
 }

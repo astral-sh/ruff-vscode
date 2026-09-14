@@ -8,7 +8,12 @@ import {
   resolveServer,
   resolvePythonEnvironment,
 } from "../common/server";
-import type { ISettings } from "../common/settings";
+import {
+  checkIfConfigurationChanged,
+  getGlobalSettings,
+  getWorkspaceSettings,
+  type ISettings,
+} from "../common/settings";
 import { getDocumentSelector } from "../common/utilities";
 import { getDocumentUri, isWindows } from "./helper";
 
@@ -90,25 +95,18 @@ suite("Utils tests", () => {
     });
   });
 
-  test("Explicit legacy server without a Python provider falls back to the native server", async () => {
-    const workspace = vscode.workspace.workspaceFolders?.[0];
-    assert.ok(workspace, "A test workspace is required");
-
+  test("Server resolution works without a Python provider", async () => {
     const resolution = await resolveServer(
       {
-        nativeServer: "off",
         path: [BUNDLED_RUFF_EXECUTABLE],
         importStrategy: "useBundled",
       } as ISettings,
-      workspace,
-      "ruff",
       null,
       null,
-      false,
     );
 
-    assert.strictEqual(resolution?.kind, "native");
-    assert.strictEqual(resolution?.executable.path, BUNDLED_RUFF_EXECUTABLE);
+    assert.strictEqual(resolution.executable.path, BUNDLED_RUFF_EXECUTABLE);
+    assert.strictEqual(resolution.dependsOnActiveInterpreter, false);
   });
 
   test("path and useBundled do not resolve a Python environment", async () => {
@@ -132,6 +130,48 @@ suite("Utils tests", () => {
         dependsOnActiveInterpreter: false,
       });
     }
+  });
+
+  test("Retired settings are not sent to the server or used to restart it", async () => {
+    const workspace = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspace, "A test workspace is required");
+
+    const settings = await Promise.all([
+      getWorkspaceSettings("ruff", workspace),
+      getGlobalSettings("ruff"),
+    ]);
+    for (const key of [
+      "nativeServer",
+      "args",
+      "run",
+      "lint.args",
+      "lint.run",
+      "format.args",
+      "ignoreStandardLibrary",
+      "showNotifications",
+    ]) {
+      for (const setting of settings) {
+        const value = key.split(".").reduce<unknown>((value, part) => {
+          return (value as Record<string, unknown>)[part];
+        }, setting);
+        assert.strictEqual(value, undefined, key);
+      }
+      assert.strictEqual(
+        checkIfConfigurationChanged(
+          { affectsConfiguration: (name) => name === `ruff.${key}` },
+          "ruff",
+        ),
+        false,
+        key,
+      );
+    }
+    assert.strictEqual(
+      checkIfConfigurationChanged(
+        { affectsConfiguration: (name) => name === "ruff.lint.enable" },
+        "ruff",
+      ),
+      true,
+    );
   });
 });
 

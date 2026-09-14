@@ -1,4 +1,4 @@
-# Bump the extension and bundled Ruff and ruff-lsp versions and create a pull request.
+# Bump the extension and bundled Ruff versions and create a pull request.
 name: Prepare release
 
 on:
@@ -10,10 +10,6 @@ on:
         type: string
       ruff-version:
         description: Bundled Ruff version (defaults to the latest version on PyPI)
-        required: false
-        type: string
-      ruff-lsp-version:
-        description: Bundled ruff-lsp version (defaults to the latest version on PyPI)
         required: false
         type: string
 
@@ -63,9 +59,6 @@ jobs:
           if [[ -n "$RUFF_VERSION" ]]; then
             args+=(--new-ruff "$RUFF_VERSION")
           fi
-          if [[ -n "$RUFF_LSP_VERSION" ]]; then
-            args+=(--new-ruff-lsp "$RUFF_LSP_VERSION")
-          fi
           uv run --locked scripts/release.py "${args[@]}"
 
           package_version="$(node -p 'require("./package.json").version')"
@@ -76,7 +69,6 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
           RUFF_VERSION: ${{ inputs.ruff-version }}
-          RUFF_LSP_VERSION: ${{ inputs.ruff-lsp-version }}
 
       - name: Create or update pull request
         run: |
