@@ -45,8 +45,9 @@ either of the following:
   Python 3.8+.
 
 When either of these is available, the Ruff extension uses it to locate the Ruff binary in the
-active environment. If no binary is found there, or both extensions are unavailable, Ruff falls back
-to the Ruff binary found on the `PATH` or bundled with the extension.
+active environment. You can also set `ruff.interpreter` to a Python executable or environment
+directory without either extension. If no Ruff executable is found in a Python environment, the
+extension checks `PATH` before using its bundled executable.
 
 Note that the deprecated `ruff-lsp` server requires one of these extensions to locate a Python
 interpreter. If neither is installed, Ruff uses its native server instead. Reload VS Code after

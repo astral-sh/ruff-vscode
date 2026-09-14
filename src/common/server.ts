@@ -1,6 +1,7 @@
 import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
 import { platform } from "os";
+import { join } from "path";
 import { Disposable, l10n, LanguageStatusSeverity, OutputChannel } from "vscode";
 import { State, ShowMessageNotification, MessageType } from "vscode-languageclient";
 import {
@@ -91,6 +92,40 @@ async function getRuffVersion(executable: string): Promise<VersionInfo> {
   return { major, minor, patch };
 }
 
+async function resolvePythonExecutable(interpreterPath: string): Promise<string> {
+  const stats = await fsapi.stat(interpreterPath).catch(() => undefined);
+  if (stats?.isFile()) {
+    return interpreterPath;
+  }
+  if (!stats?.isDirectory()) {
+    throw new Error(`'${interpreterPath}' is not a file or directory.`);
+  }
+
+  // Match the Python extensions' native resolver, including MSYS2's bin layout on Windows.
+  // https://github.com/microsoft/python-environment-tools/blob/4b7a780391ec7d447689a740be5073fbd8968a3d/crates/pet-python-utils/src/executable.rs#L49-L75
+  const candidates =
+    platform() === "win32"
+      ? [
+          "Scripts/python.exe",
+          "Scripts/python3.exe",
+          "bin/python.exe",
+          "bin/python3.exe",
+          "python.exe",
+          "python3.exe",
+        ]
+      : ["bin/python", "bin/python3", "python", "python3"];
+
+  for (const candidate of candidates) {
+    const executable = join(interpreterPath, candidate);
+    const stats = await fsapi.stat(executable).catch(() => undefined);
+    if (stats?.isFile()) {
+      return executable;
+    }
+  }
+
+  throw new Error(`No Python executable found in '${interpreterPath}'.`);
+}
+
 /**
  * Finds the Ruff binary path and returns it.
  *
@@ -101,7 +136,8 @@ async function getRuffVersion(executable: string): Promise<VersionInfo> {
  *    executable path.
  * 3. Execute a Python script that tries to locate the binary. This uses either
  *    the user-provided interpreter or the interpreter provided by the Python
- *    extension.
+ *    extension. If no Python environment extension is available, the configured
+ *    interpreter is used directly.
  * 4. If the Python script doesn't return a path, check the global environment
  *    which checks the PATH environment variable.
  * 5. If all else fails, return the bundled executable path.
@@ -183,6 +219,26 @@ export async function findRuffBinaryPath(
   }
 
   // Otherwise, we'll call a Python script that tries to locate a binary.
+  const [configuredPath, ...configuredArgs] = settings.interpreter;
+  if (environmentProvider == null && configuredPath != null) {
+    logger.info(`Looking for Ruff using 'ruff.interpreter': '${configuredPath}'`);
+    try {
+      const executable = await resolvePythonExecutable(configuredPath);
+      logger.info(`Resolved Python executable for Ruff lookup: '${executable}'`);
+      const stdout = await executeFile(executable, [
+        ...configuredArgs,
+        FIND_RUFF_BINARY_SCRIPT_PATH,
+      ]);
+      const ruffBinaryPath = stdout.trim();
+      if (ruffBinaryPath.length > 0) {
+        logger.info(`Using the Ruff binary: ${ruffBinaryPath}`);
+        return { path: ruffBinaryPath, dependsOnActiveInterpreter: false };
+      }
+    } catch (err) {
+      logger.warn(`Could not find Ruff using 'ruff.interpreter': ${err}`);
+    }
+  }
+
   let ruffBinaryPath: string | undefined;
   const { environment, command, dependsOnActiveInterpreter } = await resolvePythonEnvironment(
     settings.interpreter,
