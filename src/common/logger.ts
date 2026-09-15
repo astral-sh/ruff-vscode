@@ -59,13 +59,24 @@ class ExtensionLogger {
 export const logger = new ExtensionLogger();
 
 /**
- * Creates an unformatted server output channel that satisfies the language client's log API.
+ * Creates a shared output channel for language client messages and server output.
  *
- * Ruff already includes timestamps and severity in its logs, so adding VS Code's log formatting
- * would duplicate both and incorrectly label every stderr message as an error.
+ * Client messages respect the editor log level and receive timestamps and severity.
+ * Server stderr is appended unchanged so Ruff's log level and formatting are preserved.
  */
 export function createServerOutputChannel(name: string): vscode.LogOutputChannel {
   const channel = vscode.window.createOutputChannel(name, "log");
+  const logClient =
+    (level: vscode.LogLevel, label: ClientLogLevel) =>
+    (message: string | Error, ...args: unknown[]): void => {
+      const configuredLevel = vscode.env.logLevel;
+      if (configuredLevel === vscode.LogLevel.Off || configuredLevel > level) {
+        return;
+      }
+      channel.appendLine(
+        `${formatLogTimestamp(new Date())} [${label}] ${util.format(message, ...args)}`,
+      );
+    };
 
   return {
     ...channel,
@@ -73,21 +84,21 @@ export function createServerOutputChannel(name: string): vscode.LogOutputChannel
       return vscode.env.logLevel;
     },
     onDidChangeLogLevel: vscode.env.onDidChangeLogLevel,
-    trace: logger.trace.bind(logger),
-    debug: logger.debug.bind(logger),
-    info: logger.info.bind(logger),
-    warn: logger.warn.bind(logger),
-    error(error: string | Error, ...args: any[]): void {
-      const message = util.format(error, ...args);
-      // The language client sends both server logs and client errors here. Server logs
-      // include a log level and must keep their original format.
-      if (/\b(trace|debug|info|warn(?:ing)?|error|critical)\b/i.test(message)) {
-        channel.appendLine(message);
-      } else {
-        logger.error(message);
-      }
-    },
+    trace: logClient(vscode.LogLevel.Trace, "trace"),
+    debug: logClient(vscode.LogLevel.Debug, "debug"),
+    info: logClient(vscode.LogLevel.Info, "info"),
+    warn: logClient(vscode.LogLevel.Warning, "warning"),
+    error: logClient(vscode.LogLevel.Error, "error"),
   };
+}
+
+type ClientLogLevel = "trace" | "debug" | "info" | "warning" | "error";
+
+function formatLogTimestamp(now: Date): string {
+  const pad = (value: number, length = 2) => value.toString().padStart(length, "0");
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  return `${date} ${time}.${pad(now.getMilliseconds(), 3)}`;
 }
 
 /**

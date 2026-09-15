@@ -1,6 +1,8 @@
 import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
 import { platform } from "os";
+import { createInterface } from "node:readline";
+import type { Readable } from "node:stream";
 import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
 import { State, ShowMessageNotification, MessageType, vsdiag } from "vscode-languageclient";
 import {
@@ -298,6 +300,8 @@ async function createNativeServer(
     documentSelector: getDocumentSelector(ruffVersion),
     outputChannel,
     traceOutputChannel,
+    // Protocol stdout is owned by the client; server stderr is forwarded unchanged.
+    stdioOptions: { stdout: forwardServerOutput, stderr: forwardServerOutput },
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     initializationOptions,
     middleware: {
@@ -384,11 +388,19 @@ async function createLegacyServer(
     documentSelector: getDocumentSelector(),
     outputChannel: outputChannel,
     traceOutputChannel: traceOutputChannel,
+    stdioOptions: { stdout: forwardServerOutput, stderr: forwardServerOutput },
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     initializationOptions,
   };
 
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
+}
+
+function forwardServerOutput(input: Readable, outputChannel: LogOutputChannel): void {
+  createInterface({ input, crlfDelay: Infinity, terminal: false, historySize: 0 }).on(
+    "line",
+    (line) => outputChannel.appendLine(line),
+  );
 }
 
 function showWarningMessage(message: string) {
@@ -752,7 +764,9 @@ export async function startServer(
     },
     resolution,
   );
-  updateDocumentSelector(newLSClient.clientOptions.documentSelector ?? []);
+  updateDocumentSelector(
+    getDocumentSelector(resolution.kind === "native" ? resolution.executable.version : undefined),
+  );
   logger.info(`Server: Start requested.`);
 
   _disposables.push(
