@@ -1,7 +1,6 @@
 import * as fs from "fs-extra";
 import * as path from "path";
 import { Uri, WorkspaceFolder } from "vscode";
-import { DocumentSelector } from "vscode-languageclient";
 import { getWorkspaceFolders, isVirtualWorkspace } from "./vscodeapi";
 import { supportsToml, VersionInfo } from "./version";
 
@@ -36,12 +35,16 @@ export async function getProjectRoot(): Promise<WorkspaceFolder> {
   }
 }
 
-export function getDocumentSelector(ruffVersion?: VersionInfo): DocumentSelector {
+type SupportedDocumentSelector = (
+  { language: string; scheme?: string } | { scheme: string; pattern: string }
+)[];
+
+export function getDocumentSelector(ruffVersion?: VersionInfo): SupportedDocumentSelector {
   if (isVirtualWorkspace()) {
     return [{ language: "python" }, { language: "markdown" }];
   }
 
-  const selector: DocumentSelector = [
+  const selector: SupportedDocumentSelector = [
     { scheme: "file", language: "python" },
     { scheme: "untitled", language: "python" },
     { scheme: "vscode-notebook", language: "python" },
