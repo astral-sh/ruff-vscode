@@ -80,21 +80,6 @@ async function getRuffVersion(executable: string): Promise<VersionInfo> {
   return { major, minor, patch };
 }
 
-/**
- * Finds the Ruff binary path and returns it.
- *
- * The strategy is as follows:
- * 1. If the 'path' setting is set, check each path in order. The first valid
- *    path is returned.
- * 2. If the 'importStrategy' setting is 'useBundled', return the bundled
- *    executable path.
- * 3. Execute a Python script that tries to locate the binary. This uses either
- *    the user-provided interpreter or the interpreter provided by the Python
- *    extension.
- * 4. If the Python script doesn't return a path, check the global environment
- *    which checks the PATH environment variable.
- * 5. If all else fails, return the bundled executable path.
- */
 export type BinaryResolution = {
   path: string;
   dependsOnActiveInterpreter: boolean;
@@ -145,6 +130,21 @@ export async function resolvePythonEnvironment(
   };
 }
 
+/**
+ * Finds the Ruff binary path and returns it.
+ *
+ * The strategy is as follows:
+ * 1. If the 'path' setting is set, check each path in order. The first valid
+ *    path is returned.
+ * 2. If the 'importStrategy' setting is 'useBundled', return the bundled
+ *    executable path.
+ * 3. Execute a Python script that tries to locate the binary. This uses either
+ *    the user-provided interpreter or the interpreter provided by the Python
+ *    extension.
+ * 4. If the Python script doesn't return a path, check the global environment
+ *    which checks the PATH environment variable.
+ * 5. If all else fails, return the bundled executable path.
+ */
 export async function findRuffBinaryPath(
   settings: ISettings,
   environmentProvider: EnvironmentProvider | null,
