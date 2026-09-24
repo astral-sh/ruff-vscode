@@ -56,6 +56,25 @@ suite("Utils tests", () => {
     );
   });
 
+  test("Configured interpreter finds Ruff without a Python provider", async () => {
+    const ruffPath = "/configured/ruff";
+    const resolution = await findRuffBinaryPath(
+      {
+        path: [],
+        importStrategy: "fromEnvironment",
+        interpreter: [process.execPath, "-e", `console.log(${JSON.stringify(ruffPath)})`, "--"],
+        workspace: "file:///workspace",
+      } as unknown as ISettings,
+      null,
+      null,
+    );
+
+    assert.deepStrictEqual(resolution, {
+      path: ruffPath,
+      dependsOnActiveInterpreter: false,
+    });
+  });
+
   test("Invalid configured interpreter falls back to the active environment", async () => {
     const activeEnvironment = environment("/workspace/.venv/bin/python", ["-X", "utf8"]);
     const provider = environmentProvider(null, activeEnvironment);
