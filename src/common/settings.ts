@@ -316,6 +316,20 @@ function getPreferredGlobalSetting<T>(
   return newSettings?.defaultValue;
 }
 
+export function checkNativeServerSetting(serverId: string) {
+  const nativeServer = getConfiguration(serverId).get<boolean | string>("nativeServer");
+  if (nativeServer !== "off" && nativeServer !== false) {
+    return;
+  }
+
+  const message =
+    "ruff-lsp is no longer supported. The extension now uses Ruff's native language server. " +
+    "Please remove ruff.nativeServer from your settings. Refer to the " +
+    "[migration guide](https://docs.astral.sh/ruff/editors/migration/) for more information.";
+  logger.warn(message);
+  vscode.window.showWarningMessage(message);
+}
+
 export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: string) {
   if (supportsInlineConfiguration(ruffVersion)) {
     return;
