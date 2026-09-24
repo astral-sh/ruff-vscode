@@ -59,6 +59,49 @@ class ExtensionLogger {
 export const logger = new ExtensionLogger();
 
 /**
+ * Creates a shared output channel for language client messages and server output.
+ *
+ * Client messages respect the editor log level and receive timestamps and severity.
+ * Server stderr is appended unchanged so Ruff's log level and formatting are preserved.
+ */
+export function createServerOutputChannel(name: string): vscode.LogOutputChannel {
+  const channel = vscode.window.createOutputChannel(name, "log");
+  const logClient =
+    (level: vscode.LogLevel, label: ClientLogLevel) =>
+    (message: string | Error, ...args: unknown[]): void => {
+      const configuredLevel = vscode.env.logLevel;
+      if (configuredLevel === vscode.LogLevel.Off || configuredLevel > level) {
+        return;
+      }
+      channel.appendLine(
+        `${formatLogTimestamp(new Date())} [${label}] ${util.format(message, ...args)}`,
+      );
+    };
+
+  return {
+    ...channel,
+    get logLevel(): vscode.LogLevel {
+      return vscode.env.logLevel;
+    },
+    onDidChangeLogLevel: vscode.env.onDidChangeLogLevel,
+    trace: logClient(vscode.LogLevel.Trace, "trace"),
+    debug: logClient(vscode.LogLevel.Debug, "debug"),
+    info: logClient(vscode.LogLevel.Info, "info"),
+    warn: logClient(vscode.LogLevel.Warning, "warning"),
+    error: logClient(vscode.LogLevel.Error, "error"),
+  };
+}
+
+type ClientLogLevel = "trace" | "debug" | "info" | "warning" | "error";
+
+function formatLogTimestamp(now: Date): string {
+  const pad = (value: number, length = 2) => value.toString().padStart(length, "0");
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  return `${date} ${time}.${pad(now.getMilliseconds(), 3)}`;
+}
+
+/**
  * A VS Code output channel that is lazily created when it is first accessed.
  *
  * This is useful when the messages are only logged when the extension is configured
@@ -66,20 +109,57 @@ export const logger = new ExtensionLogger();
  *
  * This is currently being used to create the trace output channel for the language server
  * as it is only created when the user enables trace logging.
+ *
+ * The language client only enables tracing when the channel reports the trace log level. Use
+ * the server trace setting for that level so changing the setting does not require a separate
+ * editor log-level change.
  */
-export class LazyOutputChannel implements vscode.OutputChannel {
+export class LazyOutputChannel implements vscode.LogOutputChannel {
   name: string;
   _channel: vscode.OutputChannel | undefined;
+  readonly onDidChangeLogLevel: vscode.Event<vscode.LogLevel> = (listener, thisArgs, disposables) =>
+    vscode.workspace.onDidChangeConfiguration(
+      (event) => {
+        if (event.affectsConfiguration(`${this.serverId}.trace.server`)) {
+          listener.call(thisArgs, this.logLevel);
+        }
+      },
+      undefined,
+      disposables,
+    );
 
-  constructor(name: string) {
+  constructor(
+    name: string,
+    private readonly serverId: string,
+  ) {
     this.name = name;
+  }
+
+  get logLevel(): vscode.LogLevel {
+    return vscode.workspace.getConfiguration(this.serverId).get("trace.server", "off") === "off"
+      ? vscode.LogLevel.Info
+      : vscode.LogLevel.Trace;
   }
 
   get channel(): vscode.OutputChannel {
     if (!this._channel) {
-      this._channel = vscode.window.createOutputChannel(this.name);
+      this._channel = vscode.window.createOutputChannel(this.name, "log");
     }
     return this._channel;
+  }
+
+  trace = this.log;
+  debug = this.log;
+  info = this.log;
+  warn = this.log;
+  error = this.log;
+
+  private log(message: string | Error, ...args: any[]): void {
+    const now = new Date();
+    const milliseconds = now.getMilliseconds().toString().padStart(3, "0");
+    const time = `${now.toLocaleTimeString("en-GB")}.${milliseconds}`;
+    // All protocol messages have the same severity, so do not include it in the output.
+    this.channel.appendLine(`[${time}] ${util.format(message, ...args)}`);
   }
 
   append(value: string): void {
