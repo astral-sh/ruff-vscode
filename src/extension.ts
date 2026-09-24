@@ -14,6 +14,7 @@ import {
   checkIfConfigurationChanged,
   getWorkspaceSettings,
   ISettings,
+  checkNativeServerSetting,
   checkNotebookCodeActionsOnSave,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
@@ -78,6 +79,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
     return;
   }
+
+  checkNativeServerSetting(serverId);
 
   const environmentProvider = await getEnvironmentProvider();
 
