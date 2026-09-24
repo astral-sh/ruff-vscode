@@ -285,6 +285,9 @@ async function createNativeServer(
   } else {
     ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_PREVIEW_ARGS];
   }
+  if (!vscode.workspace.isTrusted) {
+    ruffServerArgs.push("--untrusted-workspace");
+  }
   logger.info(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
 
   const serverOptions = {
