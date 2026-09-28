@@ -1,7 +1,7 @@
 import { isDeepStrictEqual } from "node:util";
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { LazyOutputChannel, logger } from "./common/logger";
+import { createServerOutputChannel, LazyOutputChannel, logger } from "./common/logger";
 import {
   getEnvironmentProvider,
   onDidChangeActivePythonEnvironment,
@@ -14,6 +14,7 @@ import {
   checkIfConfigurationChanged,
   getWorkspaceSettings,
   ISettings,
+  checkNativeServerSetting,
   checkNotebookCodeActionsOnSave,
 } from "./common/settings";
 import { loadServerDefaults } from "./common/setup";
@@ -53,8 +54,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   logger.debug(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
   // Create output channels for the server and trace logs
-  const outputChannel = vscode.window.createOutputChannel(`${serverName} Language Server`);
-  const traceOutputChannel = new LazyOutputChannel(`${serverName} Language Server Trace`);
+  const outputChannel = createServerOutputChannel(`${serverName} Language Server`);
+  const traceOutputChannel = new LazyOutputChannel(`${serverName} Language Server Trace`, serverId);
 
   // Make sure that these channels are disposed when the extension is deactivated.
   context.subscriptions.push(outputChannel);
@@ -78,6 +79,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
     return;
   }
+
+  checkNativeServerSetting(serverId);
 
   const environmentProvider = await getEnvironmentProvider();
 
@@ -213,17 +216,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             (await environmentProvider?.getActiveEnvironment(projectRoot.uri)) ?? null;
           const nextResolution = await resolveServer(
             settings,
-            projectRoot,
-            serverId,
             environmentProvider,
             activeEnvironment,
-            false,
           );
 
-          if (
-            nextResolution == null ||
-            !isDeepStrictEqual(nextResolution, serverState.resolution)
-          ) {
+          if (!isDeepStrictEqual(nextResolution, serverState.resolution)) {
             logger.info(`Restarting ${serverName} because the resolved server changed.`);
             await requestRestart();
           } else {

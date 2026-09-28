@@ -1,4 +1,4 @@
-# Bump the extension and bundled Ruff and ruff-lsp versions and create a pull request.
+# Bump the extension and bundled Ruff versions and create a pull request.
 name: Prepare release
 
 on:
@@ -10,10 +10,6 @@ on:
         type: string
       ruff-version:
         description: Bundled Ruff version (defaults to the latest version on PyPI)
-        required: false
-        type: string
-      ruff-lsp-version:
-        description: Bundled ruff-lsp version (defaults to the latest version on PyPI)
         required: false
         type: string
 
@@ -33,13 +29,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           python-version: "3.13"
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24.19.0"
+          node-version: "24.20.0"
           package-manager-cache: false
 
       - name: Configure Git
@@ -63,9 +59,6 @@ jobs:
           if [[ -n "$RUFF_VERSION" ]]; then
             args+=(--new-ruff "$RUFF_VERSION")
           fi
-          if [[ -n "$RUFF_LSP_VERSION" ]]; then
-            args+=(--new-ruff-lsp "$RUFF_LSP_VERSION")
-          fi
           uv run --locked scripts/release.py "${args[@]}"
 
           package_version="$(node -p 'require("./package.json").version')"
@@ -76,7 +69,6 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
           RUFF_VERSION: ${{ inputs.ruff-version }}
-          RUFF_LSP_VERSION: ${{ inputs.ruff-lsp-version }}
 
       - name: Create or update pull request
         run: |
