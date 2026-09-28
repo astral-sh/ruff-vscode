@@ -235,7 +235,7 @@ export async function findRuffBinaryPath(
   return { path: BUNDLED_RUFF_EXECUTABLE, dependsOnActiveInterpreter };
 }
 
-async function createServer(
+function createServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
@@ -243,7 +243,7 @@ async function createServer(
   traceOutputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
   ruffExecutable: RuffExecutable,
-): Promise<LanguageClient> {
+): LanguageClient {
   const { path: ruffBinaryPath, version: ruffVersion } = ruffExecutable;
 
   logger.info(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
@@ -265,7 +265,7 @@ async function createServer(
         `clearing '${serverId}.path' and setting '${serverId}.importStrategy' to 'useBundled'.`;
       logger.error(message);
       vscode.window.showErrorMessage(message);
-      return Promise.reject();
+      throw new Error(message);
     }
 
     checkInlineConfigSupport(ruffVersion, serverId);
@@ -391,7 +391,7 @@ export async function startServer(
   const globalSettings = await getGlobalSettings(serverId);
   logger.info(`Global settings: ${JSON.stringify(globalSettings, null, 4)}`);
 
-  const newLSClient = await createServer(
+  const newLSClient = createServer(
     workspaceSettings,
     serverId,
     serverName,
