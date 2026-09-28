@@ -1,9 +1,15 @@
 import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
 import { platform } from "os";
-import { Disposable, l10n, LanguageStatusSeverity, OutputChannel } from "vscode";
-import { State, ShowMessageNotification, MessageType } from "vscode-languageclient";
-import { LanguageClient, RevealOutputChannelOn } from "vscode-languageclient/node";
+import { createInterface } from "node:readline";
+import type { Readable } from "node:stream";
+import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
+import { State, ShowMessageNotification, MessageType, vsdiag } from "vscode-languageclient";
+import {
+  LanguageClient,
+  LanguageClientOptions,
+  RevealOutputChannelOn,
+} from "vscode-languageclient/node";
 import {
   BUNDLED_RUFF_EXECUTABLE,
   RUFF_SERVER_PREVIEW_ARGS,
@@ -229,15 +235,15 @@ export async function findRuffBinaryPath(
   return { path: BUNDLED_RUFF_EXECUTABLE, dependsOnActiveInterpreter };
 }
 
-async function createServer(
+function createServer(
   settings: ISettings,
   serverId: string,
   serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
+  outputChannel: LogOutputChannel,
+  traceOutputChannel: LogOutputChannel,
   initializationOptions: IInitializationOptions,
   ruffExecutable: RuffExecutable,
-): Promise<LanguageClient> {
+): LanguageClient {
   const { path: ruffBinaryPath, version: ruffVersion } = ruffExecutable;
 
   logger.info(`Found Ruff ${versionToString(ruffVersion)} at ${ruffBinaryPath}`);
@@ -259,7 +265,7 @@ async function createServer(
         `clearing '${serverId}.path' and setting '${serverId}.importStrategy' to 'useBundled'.`;
       logger.error(message);
       vscode.window.showErrorMessage(message);
-      return Promise.reject();
+      throw new Error(message);
     }
 
     checkInlineConfigSupport(ruffVersion, serverId);
@@ -281,16 +287,54 @@ async function createServer(
     options: { cwd: settings.cwd, env: process.env },
   };
 
-  const clientOptions = {
+  const clientOptions: LanguageClientOptions = {
     // Register the server for supported documents.
     documentSelector: getDocumentSelector(ruffVersion),
     outputChannel,
     traceOutputChannel,
+    // Protocol stdout is owned by the client; server stderr is forwarded unchanged.
+    stdioOptions: { stdout: forwardServerOutput, stderr: forwardServerOutput },
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     initializationOptions,
+    middleware: {
+      provideDiagnostics(document, previousResultId, token, next) {
+        const uri = document instanceof vscode.Uri ? document : document.uri;
+        if (uri.scheme === "vscode-notebook-cell") {
+          // Return an empty report to prevent the VS Code language client v10 from pulling
+          // diagnostics for notebook cell text documents.
+          //
+          // We do this for two reasons:
+          //
+          // Older Ruff servers return diagnostics for the wrong notebook cell. Disabling
+          // notebook pulls maintains backwards compatibility with these servers.
+          //
+          // Prefer pushed diagnostics for notebook cells to work around these upstream issues.
+          // Notebook pulls need interFileDependencies to update other cells, which makes
+          // updates slow, and reordering cells does not update diagnostics:
+          // * https://github.com/microsoft/vscode-languageserver-node/issues/1837
+          // * https://github.com/microsoft/vscode-languageserver-node/issues/1836
+          //
+          // Push and pull use separate diagnostic collections, so an empty pull report does not
+          // clear diagnostics pushed by the server.
+          //
+          // Once the upstream issues are fixed, enable notebook pulls based on a negotiated
+          // client/server capability.
+          return { kind: vsdiag.DocumentDiagnosticReportKind.full, items: [] };
+        }
+
+        return next(document, previousResultId, token);
+      },
+    },
   };
 
   return new LanguageClient(serverId, serverName, serverOptions, clientOptions);
+}
+
+function forwardServerOutput(input: Readable, outputChannel: LogOutputChannel): void {
+  createInterface({ input, crlfDelay: Infinity, terminal: false, historySize: 0 }).on(
+    "line",
+    (line) => outputChannel.appendLine(line),
+  );
 }
 
 type RuffExecutable = {
@@ -330,8 +374,8 @@ export async function startServer(
   workspaceSettings: ISettings,
   serverId: string,
   serverName: string,
-  outputChannel: OutputChannel,
-  traceOutputChannel: OutputChannel,
+  outputChannel: LogOutputChannel,
+  traceOutputChannel: LogOutputChannel,
   environmentProvider: EnvironmentProvider | null,
 ): Promise<ServerState | null> {
   updateStatus(undefined, LanguageStatusSeverity.Information, true);
@@ -347,7 +391,7 @@ export async function startServer(
   const globalSettings = await getGlobalSettings(serverId);
   logger.info(`Global settings: ${JSON.stringify(globalSettings, null, 4)}`);
 
-  const newLSClient = await createServer(
+  const newLSClient = createServer(
     workspaceSettings,
     serverId,
     serverName,
@@ -359,7 +403,7 @@ export async function startServer(
     },
     resolution.executable,
   );
-  updateDocumentSelector(newLSClient.clientOptions.documentSelector ?? []);
+  updateDocumentSelector(getDocumentSelector(resolution.executable.version));
   logger.info(`Server: Start requested.`);
 
   _disposables.push(
