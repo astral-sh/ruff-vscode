@@ -41,12 +41,12 @@ suite("E2E tests", () => {
 
     const expectedDiagnostics = [
       {
-        message: "Import block is un-sorted or un-formatted",
-        range: toRange(0, 0, 4, 0),
+        message: "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+        range: toRange(0, 0, 1, 10),
         severity: vscode.DiagnosticSeverity.Warning,
       },
       {
-        message: "`pathlib.Path` imported but unused",
+        message: "`pathlib.Path` imported but unused\n\nhelp: Remove unused import: `pathlib.Path`",
         range: toRange(0, 20, 0, 24),
         severity: vscode.DiagnosticSeverity.Warning,
       },

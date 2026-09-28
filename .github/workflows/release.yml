@@ -44,7 +44,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
       - name: Validate release metadata
         id: metadata
         run: |
@@ -131,7 +131,7 @@ jobs:
         if: ${{ startsWith(matrix.os, 'macos') && startsWith(matrix.target, 'x86_64') }}
 
       # ARM builds on Ubuntu, which should select Ruff's ARM binary.
-      - uses: uraimo/run-on-arch-action@f9b26e3a1a408d5fd530d20c17b9f3f4428ff8d9 # v3.1.0
+      - uses: uraimo/run-on-arch-action@460cb8e6d9f726a588fc9b5e681c8a6cab09ae41 # v3.2.0
         if: ${{ startsWith(matrix.os, 'ubuntu') && !startsWith(matrix.target, 'x86_64') && !endsWith(matrix.target, 'musl') }}
         with:
           arch: ${{ matrix.arch }}
@@ -166,7 +166,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24.19.0"
+          node-version: "24.20.0"
           package-manager-cache: false
 
       # Install Node dependencies.
@@ -226,7 +226,7 @@ jobs:
       - name: Install Nodejs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24.19.0"
+          node-version: "24.20.0"
           package-manager-cache: false
 
       - name: Checkout repository
@@ -302,7 +302,7 @@ jobs:
       - name: Install Nodejs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24.19.0"
+          node-version: "24.20.0"
           package-manager-cache: false
 
       - name: Checkout repository

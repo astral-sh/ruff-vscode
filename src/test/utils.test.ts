@@ -5,7 +5,6 @@ import type { EnvironmentProvider, PythonEnvironmentDetails } from "../common/py
 import {
   execFileShellModeRequired,
   findRuffBinaryPath,
-  resolveServer,
   resolvePythonEnvironment,
 } from "../common/server";
 import type { ISettings } from "../common/settings";
@@ -88,27 +87,6 @@ suite("Utils tests", () => {
       command: { executable: "/configured/python", args: ["-X", "utf8", "-I"] },
       dependsOnActiveInterpreter: false,
     });
-  });
-
-  test("Explicit legacy server without a Python provider falls back to the native server", async () => {
-    const workspace = vscode.workspace.workspaceFolders?.[0];
-    assert.ok(workspace, "A test workspace is required");
-
-    const resolution = await resolveServer(
-      {
-        nativeServer: "off",
-        path: [BUNDLED_RUFF_EXECUTABLE],
-        importStrategy: "useBundled",
-      } as ISettings,
-      workspace,
-      "ruff",
-      null,
-      null,
-      false,
-    );
-
-    assert.strictEqual(resolution?.kind, "native");
-    assert.strictEqual(resolution?.executable.path, BUNDLED_RUFF_EXECUTABLE);
   });
 
   test("path and useBundled do not resolve a Python environment", async () => {

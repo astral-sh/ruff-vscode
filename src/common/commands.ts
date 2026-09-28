@@ -1,7 +1,5 @@
 import * as vscode from "vscode";
 import { ExecuteCommandRequest, LanguageClient } from "vscode-languageclient/node";
-import { getConfiguration } from "./vscodeapi";
-import { ISettings } from "./settings";
 
 const ISSUE_TRACKER = "https://github.com/astral-sh/ruff/issues";
 
@@ -49,15 +47,6 @@ export function createDebugInformationProvider(
   serverId: string,
   context: vscode.ExtensionContext,
 ) {
-  const configuration = getConfiguration(serverId) as unknown as ISettings;
-  if (configuration.nativeServer === false || configuration.nativeServer === "off") {
-    return async () => {
-      vscode.window.showInformationMessage(
-        "Debug information is only available when using the native server",
-      );
-    };
-  }
-
   const contentProvider = new (class implements vscode.TextDocumentContentProvider {
     readonly uri = vscode.Uri.parse("ruff-server-debug://debug");
     readonly eventEmitter = new vscode.EventEmitter<vscode.Uri>();
