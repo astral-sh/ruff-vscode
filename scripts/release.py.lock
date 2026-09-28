@@ -8,7 +8,6 @@ exclude-newer-span = "P7D"
 
 [options.exclude-newer-package]
 ruff = false
-ruff-lsp = false
 
 [manifest]
 requirements = [
