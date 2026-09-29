@@ -95,11 +95,13 @@ _New in v2024.32.0_
 
 The extension supports loading in an [untrusted workspace](https://code.visualstudio.com/docs/editor/workspace-trust).
 In an untrusted workspace, it always uses the bundled Ruff executable, regardless of any executable or
-Python environment settings.
+Python environment settings. With Ruff 0.17.0 or later, formatting always uses Ruff's built-in
+formatter rather than the `uv` backend.
 
 The following settings are not supported in an untrusted workspace:
 
 - [`ruff.configuration`](https://docs.astral.sh/ruff/editors/settings/#configuration)
+- [`ruff.format.backend`](https://docs.astral.sh/ruff/editors/settings/#format_backend)
 - [`ruff.importStrategy`](https://docs.astral.sh/ruff/editors/settings/#importstrategy)
 - [`ruff.interpreter`](https://docs.astral.sh/ruff/editors/settings/#interpreter)
 - [`ruff.path`](https://docs.astral.sh/ruff/editors/settings/#path)

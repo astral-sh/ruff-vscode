@@ -45,7 +45,8 @@
         "ruff.path",
         "ruff.importStrategy",
         "ruff.interpreter",
-        "ruff.configuration"
+        "ruff.configuration",
+        "ruff.format.backend"
       ]
     },
     "virtualWorkspaces": {

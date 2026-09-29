@@ -36,6 +36,7 @@ import {
   VersionInfo,
   MINIMUM_NATIVE_SERVER_VERSION,
   supportsStableNativeServer,
+  supportsUntrustedWorkspace,
 } from "./version";
 import { updateDocumentSelector, updateStatus } from "./status";
 import { getDocumentSelector } from "./utilities";
@@ -278,6 +279,9 @@ function createServer(
     ruffServerArgs = [RUFF_SERVER_SUBCOMMAND];
   } else {
     ruffServerArgs = [RUFF_SERVER_SUBCOMMAND, ...RUFF_SERVER_PREVIEW_ARGS];
+  }
+  if (!vscode.workspace.isTrusted && supportsUntrustedWorkspace(ruffVersion)) {
+    ruffServerArgs.push("--untrusted-workspace");
   }
   logger.info(`Server run command: ${[ruffBinaryPath, ...ruffServerArgs].join(" ")}`);
 
