@@ -29,21 +29,6 @@ export const BUNDLED_RUFF_EXECUTABLE = path.join(
 );
 
 /**
- * Path to the Python script that starts the `ruff-lsp` language server.
- */
-export const RUFF_LSP_SERVER_SCRIPT_PATH = path.join(
-  BUNDLED_PYTHON_SCRIPTS_DIR,
-  "tool",
-  `server.py`,
-);
-
-export const DEBUG_SERVER_SCRIPT_PATH = path.join(
-  BUNDLED_PYTHON_SCRIPTS_DIR,
-  "tool",
-  `_debug_server.py`,
-);
-
-/**
  * Path to the Python script that tries to find the Ruff binary path.
  *
  * This should only be used as a fallback if there is no valid `ruff` binary in

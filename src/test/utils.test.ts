@@ -5,14 +5,20 @@ import type { EnvironmentProvider, PythonEnvironmentDetails } from "../common/py
 import {
   execFileShellModeRequired,
   findRuffBinaryPath,
-  resolveServer,
   resolvePythonEnvironment,
 } from "../common/server";
 import type { ISettings } from "../common/settings";
 import { getDocumentSelector } from "../common/utilities";
+import { supportsUntrustedWorkspace } from "../common/version";
 import { getDocumentUri, isWindows } from "./helper";
 
 suite("Utils tests", () => {
+  test("The untrusted-workspace flag requires Ruff 0.17.0", () => {
+    assert.strictEqual(supportsUntrustedWorkspace({ major: 0, minor: 16, patch: 9 }), false);
+    assert.strictEqual(supportsUntrustedWorkspace({ major: 0, minor: 17, patch: 0 }), true);
+    assert.strictEqual(supportsUntrustedWorkspace({ major: 0, minor: 17, patch: 1 }), true);
+  });
+
   test("TOML documents are excluded before Ruff 0.16.2", async () => {
     const document = await vscode.workspace.openTextDocument(getDocumentUri("pyproject.toml"));
     const selector = getDocumentSelector({ major: 0, minor: 16, patch: 1 });
@@ -107,27 +113,6 @@ suite("Utils tests", () => {
       command: { executable: "/configured/python", args: ["-X", "utf8", "-I"] },
       dependsOnActiveInterpreter: false,
     });
-  });
-
-  test("Explicit legacy server without a Python provider falls back to the native server", async () => {
-    const workspace = vscode.workspace.workspaceFolders?.[0];
-    assert.ok(workspace, "A test workspace is required");
-
-    const resolution = await resolveServer(
-      {
-        nativeServer: "off",
-        path: [BUNDLED_RUFF_EXECUTABLE],
-        importStrategy: "useBundled",
-      } as ISettings,
-      workspace,
-      "ruff",
-      null,
-      null,
-      false,
-    );
-
-    assert.strictEqual(resolution?.kind, "native");
-    assert.strictEqual(resolution?.executable.path, BUNDLED_RUFF_EXECUTABLE);
   });
 
   test("path and useBundled do not resolve a Python environment", async () => {

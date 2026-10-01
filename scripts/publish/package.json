@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "@vscode/vsce": "3.9.2",
-    "ovsx": "1.1.0"
+    "ovsx": "1.1.1"
   }
 }

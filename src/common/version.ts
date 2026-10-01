@@ -82,3 +82,15 @@ export const TOML_SUPPORT_VERSION: VersionInfo = { major: 0, minor: 16, patch: 2
 export function supportsToml(version: VersionInfo): boolean {
   return versionGte(version, TOML_SUPPORT_VERSION);
 }
+
+/**
+ * The minimum Ruff version that supports the untrusted-workspace server flag.
+ */
+export const UNTRUSTED_WORKSPACE_VERSION: VersionInfo = { major: 0, minor: 17, patch: 0 };
+
+/**
+ * Check if the given Ruff version supports the untrusted-workspace server flag.
+ */
+export function supportsUntrustedWorkspace(version: VersionInfo): boolean {
+  return versionGte(version, UNTRUSTED_WORKSPACE_VERSION);
+}
