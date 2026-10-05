@@ -7,7 +7,7 @@
   schedule: ["before 4am on Monday"],
   semanticCommits: "disabled",
   separateMajorMinor: false,
-  enabledManagers: ["github-actions", "npm"],
+  enabledManagers: ["github-actions", "npm", "custom.regex"],
   packageRules: [
     // Pin GitHub Actions to immutable SHAs.
     {
