@@ -21,6 +21,13 @@
       versioning: "regex:^v?(?<major>\\d+)(\\.(?<minor>\\d+)\\.(?<patch>\\d+))?$",
     },
     {
+      // Astral's shared actions use YYYY.MM.DD.N tags.
+      matchManagers: ["github-actions"],
+      matchPackageNames: ["astral-sh/github-actions"],
+      extractVersion: "^(?<version>\\d+\\.\\d+\\.\\d+\\.\\d+)$",
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)$",
+    },
+    {
       // This package rule disables updates for GitHub runners:
       // we'd only pin them to a specific version
       // if there was a deliberate reason to do so
