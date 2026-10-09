@@ -14,12 +14,6 @@
       matchDepTypes: ["action"],
       pinDigests: true,
     },
-    // Annotate GitHub Actions SHAs with a SemVer version.
-    {
-      extends: ["helpers:pinGitHubActionDigests"],
-      extractVersion: "^(?<version>v?\\d+\\.\\d+\\.\\d+)$",
-      versioning: "regex:^v?(?<major>\\d+)(\\.(?<minor>\\d+)\\.(?<patch>\\d+))?$",
-    },
     {
       // This package rule disables updates for GitHub runners:
       // we'd only pin them to a specific version
