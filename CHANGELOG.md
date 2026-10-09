@@ -4,7 +4,16 @@ See [here](https://github.com/astral-sh/ruff/releases) for the Ruff release note
 
 ## 2026.86.0
 
-This release upgrades the bundled Ruff version to `v0.17.0`.
+This release upgrades the bundled Ruff version to `v0.17.0` and includes a couple of additional changes:
+
+- Remove support for `ruff-lsp` ([#1170](https://github.com/astral-sh/ruff-vscode/pull/1170))
+
+  Support for `ruff-lsp`, the legacy Python language server [deprecated in Ruff
+  v0.9.5](https://github.com/astral-sh/ruff/releases/tag/0.9.5), has been removed. The Ruff VS Code
+  extension now always uses the native language server; `ruff.nativeServer` is deprecated and
+  ignored. See the [migration guide](https://docs.astral.sh/ruff/editors/migration/).
+
+- Remove deprecated experimental formatter setting ([#1188](https://github.com/astral-sh/ruff-vscode/pull/1188))
 
 **Full Changelog**: https://github.com/astral-sh/ruff-vscode/compare/2026.84.0...2026.86.0
 
