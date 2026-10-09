@@ -41,11 +41,6 @@ jobs:
           node-version: "24.20.0"
           package-manager-cache: false
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
       - name: Bump version
         shell: bash
         run: |
@@ -74,30 +69,6 @@ jobs:
           RUFF_VERSION: ${{ inputs.ruff-version }}
 
       - name: Create or update pull request
-        run: |
-          branch="release/${VERSION}"
-          git switch -c "$branch"
-          git add package.json package-lock.json pyproject.toml uv.lock requirements.txt README.md CHANGELOG.md
-          git commit -m "Release ${VERSION}"
-          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${branch}"
-
-          pull_request="$(
-            gh pr list \
-              --base "$DEFAULT_BRANCH" \
-              --head "$branch" \
-              --state open \
-              --json url \
-              --jq '.[0].url'
-          )"
-          if [ -n "$pull_request" ]; then
-            printf '%s\n' "$pull_request"
-          else
-            gh pr create \
-              --base "$DEFAULT_BRANCH" \
-              --head "$branch" \
-              --fill-first
-          fi
-        env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ inputs.version }}
+        uses: astral-sh/github-actions/create-release-pr@b18ab2e0c11d16711c1818c8774babfa0203b909 # 2026.10.08.0
+        with:
+          version: ${{ inputs.version }}
