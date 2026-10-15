@@ -8,6 +8,8 @@ dependencies = ["ruff==0.17.1"]
 exclude-newer = "P7D"
 # Release automation intentionally tracks the latest Ruff.
 exclude-newer-package = { ruff = false }
+require-build-hashes = true
+preview-features = ["build-dependency-hashes"]
 
 [tool.ruff]
 line-length = 88
