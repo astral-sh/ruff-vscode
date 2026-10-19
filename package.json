@@ -405,7 +405,7 @@
     "@vscode/python-environments": "^1.0.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
-    "@vscode/vsce": "^3.4.2",
+    "@vscode/vsce": "^4.0.0",
     "eslint": "^10.0.0",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import-x": "^4.16.2",
