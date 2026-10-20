@@ -14,7 +14,7 @@ exclude-newer-span = "P7D"
 
 [options.exclude-newer-package]
 ruff = false
-uv = "2026-10-20T15:12:07Z"
+uv = false
 
 [[package]]
 name = "ruff"

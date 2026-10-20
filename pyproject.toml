@@ -7,12 +7,7 @@ dependencies = ["ruff==0.17.1"]
 [tool.uv]
 exclude-newer = "P7D"
 # Release automation intentionally tracks the latest Ruff.
-#
-# Allow uv 0.13.4 before the seven-day wait: its bundled trust store removes
-# the eMudhra root that anchors the compromised intermediate certificates.
-# Remove the uv cutoff once 0.13.4 is seven days old, so later uv releases
-# can be selected after the seven-day wait.
-exclude-newer-package = { ruff = false, uv = "2026-10-20T15:12:07Z" }
+exclude-newer-package = { ruff = false, uv = false }
 
 [tool.ruff]
 line-length = 88
