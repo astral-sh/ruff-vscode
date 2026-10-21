@@ -1,4 +1,5 @@
 import * as assert from "assert";
+import * as path from "path";
 import * as vscode from "vscode";
 import { BUNDLED_RUFF_EXECUTABLE } from "../common/constants";
 import type { EnvironmentProvider, PythonEnvironmentDetails } from "../common/python";
@@ -62,23 +63,33 @@ suite("Utils tests", () => {
     );
   });
 
-  test("Configured interpreter finds Ruff without a Python provider", async () => {
-    const ruffPath = "/configured/ruff";
-    const resolution = await findRuffBinaryPath(
-      {
-        path: [],
-        importStrategy: "fromEnvironment",
-        interpreter: [process.execPath, "-e", `console.log(${JSON.stringify(ruffPath)})`, "--"],
-        workspace: "file:///workspace",
-      } as unknown as ISettings,
-      null,
-      null,
-    );
+  test("Configured interpreter looks for Ruff in the workspace", async () => {
+    const cwd = getDocumentUri(".").fsPath;
+    const ruffPath = path.join(cwd, "ruff");
 
-    assert.deepStrictEqual(resolution, {
-      path: ruffPath,
-      dependsOnActiveInterpreter: false,
-    });
+    for (const provider of [null, environmentProvider(environment(process.execPath), null)]) {
+      const resolution = await findRuffBinaryPath(
+        {
+          path: [],
+          importStrategy: "fromEnvironment",
+          interpreter: [
+            process.execPath,
+            "-e",
+            "console.log(require('path').join(process.cwd(), 'ruff'))",
+            "--",
+          ],
+          cwd,
+          workspace: vscode.Uri.file(cwd).toString(),
+        } as unknown as ISettings,
+        provider,
+        null,
+      );
+
+      assert.deepStrictEqual(resolution, {
+        path: ruffPath,
+        dependsOnActiveInterpreter: false,
+      });
+    }
   });
 
   test("Invalid configured interpreter falls back to the active environment", async () => {
