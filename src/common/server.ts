@@ -1,6 +1,7 @@
 import * as fsapi from "fs-extra";
 import * as vscode from "vscode";
 import { platform } from "os";
+import { join } from "path";
 import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { Disposable, l10n, LanguageStatusSeverity, LogOutputChannel } from "vscode";
@@ -62,12 +63,13 @@ export function execFileShellModeRequired(file: string) {
 }
 
 /**
- * Function to execute a command and return the stdout.
+ * Run commands in the server's working directory so directory-sensitive shims
+ * select the same environment during discovery, version checks, and startup.
  */
-function executeFile(file: string, args: string[] = []): Promise<string> {
+function executeFile(file: string, args: string[], cwd: string): Promise<string> {
   const shell = execFileShellModeRequired(file);
   return new Promise((resolve, reject) => {
-    execFile(shell ? `"${file}"` : file, args, { shell }, (error, stdout, stderr) => {
+    execFile(shell ? `"${file}"` : file, args, { shell, cwd }, (error, stdout, stderr) => {
       if (error) {
         reject(new Error(stderr || error.message));
       } else {
@@ -80,13 +82,63 @@ function executeFile(file: string, args: string[] = []): Promise<string> {
 /**
  * Get the version of the Ruff executable at the given path.
  */
-async function getRuffVersion(executable: string): Promise<VersionInfo> {
-  const stdout = await executeFile(executable, ["--version"]);
+async function getRuffVersion(executable: string, cwd: string): Promise<VersionInfo> {
+  const stdout = await executeFile(executable, ["--version"], cwd);
   const version = stdout.trim().split(" ")[1];
   const [major, minor, patch] = version.split(".").map((x) => parseInt(x, 10));
   return { major, minor, patch };
 }
 
+async function resolvePythonExecutable(interpreterPath: string): Promise<string> {
+  const stats = await fsapi.stat(interpreterPath).catch(() => undefined);
+  if (stats?.isFile()) {
+    return interpreterPath;
+  }
+  if (!stats?.isDirectory()) {
+    throw new Error(`'${interpreterPath}' is not a file or directory.`);
+  }
+
+  // Match the Python extensions' native resolver, including MSYS2's bin layout on Windows.
+  // https://github.com/microsoft/python-environment-tools/blob/4b7a780391ec7d447689a740be5073fbd8968a3d/crates/pet-python-utils/src/executable.rs#L49-L75
+  const candidates =
+    platform() === "win32"
+      ? [
+          "Scripts/python.exe",
+          "Scripts/python3.exe",
+          "bin/python.exe",
+          "bin/python3.exe",
+          "python.exe",
+          "python3.exe",
+        ]
+      : ["bin/python", "bin/python3", "python", "python3"];
+
+  for (const candidate of candidates) {
+    const executable = join(interpreterPath, candidate);
+    const stats = await fsapi.stat(executable).catch(() => undefined);
+    if (stats?.isFile()) {
+      return executable;
+    }
+  }
+
+  throw new Error(`No Python executable found in '${interpreterPath}'.`);
+}
+
+/**
+ * Finds the Ruff binary path and returns it.
+ *
+ * The strategy is as follows:
+ * 1. If the 'path' setting is set, check each path in order. The first valid
+ *    path is returned.
+ * 2. If the 'importStrategy' setting is 'useBundled', return the bundled
+ *    executable path.
+ * 3. Execute a Python script that tries to locate the binary. This uses either
+ *    the user-provided interpreter or the interpreter provided by the Python
+ *    extension. If no Python environment extension is available, the configured
+ *    interpreter is used directly.
+ * 4. If the Python script doesn't return a path, check the global environment
+ *    which checks the PATH environment variable.
+ * 5. If all else fails, return the bundled executable path.
+ */
 export type BinaryResolution = {
   path: string;
   dependsOnActiveInterpreter: boolean;
@@ -179,6 +231,27 @@ export async function findRuffBinaryPath(
   }
 
   // Otherwise, we'll call a Python script that tries to locate a binary.
+  const [configuredPath, ...configuredArgs] = settings.interpreter;
+  if (environmentProvider == null && configuredPath != null) {
+    logger.info(`Looking for Ruff using 'ruff.interpreter': '${configuredPath}'`);
+    try {
+      const executable = await resolvePythonExecutable(configuredPath);
+      logger.info(`Resolved Python executable for Ruff lookup: '${executable}'`);
+      const stdout = await executeFile(
+        executable,
+        [...configuredArgs, FIND_RUFF_BINARY_SCRIPT_PATH],
+        settings.cwd,
+      );
+      const ruffBinaryPath = stdout.trim();
+      if (ruffBinaryPath.length > 0) {
+        logger.info(`Using the Ruff binary: ${ruffBinaryPath}`);
+        return { path: ruffBinaryPath, dependsOnActiveInterpreter: false };
+      }
+    } catch (err) {
+      logger.warn(`Could not find Ruff using 'ruff.interpreter': ${err}`);
+    }
+  }
+
   let ruffBinaryPath: string | undefined;
   const { environment, command, dependsOnActiveInterpreter } = await resolvePythonEnvironment(
     settings.interpreter,
@@ -193,10 +266,11 @@ export async function findRuffBinaryPath(
     } else if (checkInterpreterVersion(environment)) {
       logger.info(`Resolved Python executable for Ruff lookup: '${command.executable}'`);
       try {
-        const stdout = await executeFile(command.executable, [
-          ...command.args,
-          FIND_RUFF_BINARY_SCRIPT_PATH,
-        ]);
+        const stdout = await executeFile(
+          command.executable,
+          [...command.args, FIND_RUFF_BINARY_SCRIPT_PATH],
+          settings.cwd,
+        );
         ruffBinaryPath = stdout.trim();
       } catch (err) {
         vscode.window
@@ -365,7 +439,7 @@ export async function resolveServer(
   return {
     executable: {
       path: resolution.path,
-      version: await getRuffVersion(resolution.path),
+      version: await getRuffVersion(resolution.path, settings.cwd),
     },
     dependsOnActiveInterpreter: resolution.dependsOnActiveInterpreter,
   };
