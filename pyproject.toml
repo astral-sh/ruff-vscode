@@ -1,8 +1,8 @@
 [project]
 name = "ruff-vscode"
-version = "2026.88.0"
+version = "2026.90.0"
 requires-python = ">=3.8"
-dependencies = ["ruff==0.17.1"]
+dependencies = ["ruff==0.17.2"]
 
 [tool.uv]
 exclude-newer = "P7D"
