@@ -103,14 +103,14 @@ async function resolvePythonExecutable(interpreterPath: string): Promise<string>
   const candidates =
     platform() === "win32"
       ? [
-          "Scripts/python.exe",
-          "Scripts/python3.exe",
-          "bin/python.exe",
-          "bin/python3.exe",
+          join("Scripts", "python.exe"),
+          join("Scripts", "python3.exe"),
+          join("bin", "python.exe"),
+          join("bin", "python3.exe"),
           "python.exe",
           "python3.exe",
         ]
-      : ["bin/python", "bin/python3", "python", "python3"];
+      : [join("bin", "python"), join("bin", "python3"), "python", "python3"];
 
   for (const candidate of candidates) {
     const executable = join(interpreterPath, candidate);
