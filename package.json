@@ -59,7 +59,6 @@
     "onLanguage:markdown",
     "workspaceContains:*.py",
     "workspaceContains:*.ipynb",
-    "workspaceContains:*.md",
     "workspaceContains:**/pyproject.toml",
     "workspaceContains:**/ruff.toml",
     "workspaceContains:**/.ruff.toml"
