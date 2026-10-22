@@ -245,7 +245,7 @@ class PythonEnvironmentExtension implements EnvironmentProvider {
   }
 
   private static parseVersion(version: string): PythonEnvironmentDetails["version"] {
-    const match = /^(\d+)\.(\d+)(?:\.(\d+))?/.exec(version);
+    const match = /^(\d+)\.(\d+)(?:\.(\d+))?(?:[.-].*)?/.exec(version);
     if (match == null) {
       return null;
     }
