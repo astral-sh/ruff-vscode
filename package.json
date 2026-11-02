@@ -398,7 +398,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.0.0",
     "@types/vscode": "1.91.0",
     "@types/which": "^3.0.4",
     "@typescript/native": "npm:typescript@^7.0.2",
