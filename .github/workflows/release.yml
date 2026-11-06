@@ -228,6 +228,7 @@ jobs:
       name: release
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Install Nodejs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -287,14 +288,10 @@ jobs:
       # Publish to the Code Marketplace.
       - name: Publish Extension (Code Marketplace, release)
         if: needs.validate-release.outputs.prerelease == 'false'
-        run: ./scripts/publish/node_modules/.bin/vsce publish --packagePath ./dist/ruff-*.vsix --skip-duplicate
-        env:
-          VSCE_PAT: ${{ secrets.MARKETPLACE_TOKEN }}
+        run: ./scripts/publish/node_modules/.bin/vsce publish --oidc --packagePath ./dist/ruff-*.vsix --skip-duplicate
       - name: Publish Extension (Code Marketplace, nightly)
         if: needs.validate-release.outputs.prerelease == 'true'
-        run: ./scripts/publish/node_modules/.bin/vsce publish --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
-        env:
-          VSCE_PAT: ${{ secrets.MARKETPLACE_TOKEN }}
+        run: ./scripts/publish/node_modules/.bin/vsce publish --oidc --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
 
   publish-openvsx:
     name: "Publish (OpenVSX)"
@@ -304,6 +301,7 @@ jobs:
       name: release
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Install Nodejs
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -363,15 +361,11 @@ jobs:
       # Publish to OpenVSX.
       - name: Publish Extension (OpenVSX, release)
         if: needs.validate-release.outputs.prerelease == 'false'
-        run: ./scripts/publish/node_modules/.bin/ovsx publish --packagePath ./dist/ruff-*.vsix --skip-duplicate
-        env:
-          OVSX_PAT: ${{ secrets.OPENVSX_TOKEN }}
+        run: ./scripts/publish/node_modules/.bin/ovsx publish --trusted-publishing --packagePath ./dist/ruff-*.vsix --skip-duplicate
         timeout-minutes: 2
       - name: Publish Extension (OpenVSX, nightly)
         if: needs.validate-release.outputs.prerelease == 'true'
-        run: ./scripts/publish/node_modules/.bin/ovsx publish --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
-        env:
-          OVSX_PAT: ${{ secrets.OPENVSX_TOKEN }}
+        run: ./scripts/publish/node_modules/.bin/ovsx publish --trusted-publishing --packagePath ./dist/ruff-*.vsix --pre-release --skip-duplicate
         timeout-minutes: 2
 
   # Phase 5: Create the tag and GitHub release after both publications succeed.
