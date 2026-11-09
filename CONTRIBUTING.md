@@ -51,7 +51,7 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 
 Odd minor versions are pre-releases and retain timestamped nightly build IDs; even minor versions are stable releases.
 
-Publishing uses the `release` environment and the `MARKETPLACE_TOKEN` and `OPENVSX_TOKEN` secrets.
+The publish jobs run in the `release` environment and authenticate to VS Code Marketplace and Open VSX with GitHub Actions OIDC tokens.
 The repository must have protection rules configured for the `release-gate` environment to require approval.
 
 After both publications succeed, the workflow creates the `<version>` tag and GitHub release, automatically marking odd
