@@ -49,8 +49,8 @@ jobs:
       pull-requests: read
       statuses: read
     outputs:
-      version: ${{ steps.bump-files.outputs.version || steps.bump.outputs.version }}
-      merge-sha: ${{ steps.merge.outputs.sha || steps.bump.outputs.sha }}
+      merge-sha: ${{ steps.merge.outputs.sha }}
+      version: ${{ steps.bump-files.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -182,11 +182,12 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Start the release workflow
+      - name: Dispatch the publisher for the squash commit
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ needs.prepare.outputs.version }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           MERGE_SHA: ${{ needs.prepare.outputs.merge-sha }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" \
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$DEFAULT_BRANCH" \
             -f version="$VERSION" -f expected-sha="$MERGE_SHA"
