@@ -40,8 +40,22 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 
 ## Release
 
-1. Run the [Prepare release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
-   from `main` with the exact extension version, without a leading `v`. The workflow runs `scripts/release.py` to update
+For a stable upstream Ruff release, dispatch the [Release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
+on `main` with only `ruff-version`. For example:
+
+```sh
+gh workflow run release.yml --repo astral-sh/ruff-vscode --ref main -f ruff-version=0.17.6
+```
+
+The first run prepares the next even-minor extension release, opens a PR, waits for CI and zizmor, and
+squash-merges the tested commit. It dispatches the same workflow again with the extension version
+and expected merge SHA. Approve `release-gate` in the second run after the builds finish. If another
+commit reaches `main` before that dispatch, the run stops before building. Review the intervening
+changes before manually dispatching publication for the extension version on the new commit.
+
+For an extension-only release, a pre-release, or a release that needs changelog edits:
+
+1. Run the Release workflow from `main` with `prepare-only` selected and the exact extension version, without a leading `v`. The workflow runs `scripts/release.py` to update
    the extension version, bundled Ruff version, README, changelog, and lockfiles.
    Optionally specify the bundled Ruff version; it defaults to the latest version on PyPI.
 2. Review the generated release PR, copy-edit the changelog, and merge it.
