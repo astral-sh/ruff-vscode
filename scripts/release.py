@@ -110,7 +110,7 @@ def get_ruff_versions(
 
 
 def plan_upstream_release(ruff_version: str) -> None:
-    """Select a stable extension release or resume publication after a merge."""
+    """Select the next stable extension release for a new upstream version."""
     if not re.fullmatch(r"(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){2}", ruff_version):
         raise SystemExit(f"Expected a stable Ruff version, got {ruff_version!r}")
 
@@ -122,27 +122,6 @@ def plan_upstream_release(ruff_version: str) -> None:
 
     current = versions.existing_vscode_version
     if versions.latest_ruff == versions.existing_ruff_pin and current.minor % 2 == 0:
-        if subprocess.check_output(["git", "tag", "--list", str(current)]).strip():
-            return
-        # A retry after merge must still publish the commit that set this version.
-        sha = subprocess.check_output(
-            [
-                "git",
-                "log",
-                "--first-parent",
-                "-1",
-                "--format=%H",
-                "-G",
-                rf'^version = "{re.escape(str(current))}"$',
-                "--",
-                str(PYPROJECT_TOML_PATH),
-            ],
-            text=True,
-        ).strip()
-        if not sha:
-            raise SystemExit(f"Cannot find the release commit for {current}")
-        print(f"version={current}")
-        print(f"sha={sha}")
         return
 
     # Stable VS Code releases use even minor versions.
