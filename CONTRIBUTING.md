@@ -41,7 +41,7 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 ## Release
 
 The [Release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
-defaults to `prepare-only`. Dispatch it on `main` to open a PR for review. With no inputs, it uses
+opens a PR for review when **Publish extensions** is unchecked (the default). Run it on `main`. With no inputs, it uses
 the release script's default extension version and the latest Ruff on PyPI. To prepare a specific
 upstream release, pass its exact version:
 
@@ -49,7 +49,7 @@ upstream release, pass its exact version:
 gh workflow run release.yml --repo astral-sh/ruff-vscode --ref main -f ruff-version=0.17.6
 ```
 
-To automate the merge and start publishing, pass both `ruff-version` and `prepare-only=false`.
+To automate the merge and start publishing, pass both `ruff-version` and `publish-extensions=true`.
 That run prepares the next even-minor extension release, waits for CI and zizmor on the PR, and
 squash-merges the tested commit. It dispatches the same workflow again with the extension version
 and expected merge SHA. Approve `release-gate` in the second run after the builds finish. If another
@@ -63,7 +63,7 @@ For an extension-only release, a pre-release, or a release that needs changelog 
    Optionally specify the bundled Ruff version; it defaults to the latest version on PyPI.
 2. Review the generated release PR, copy-edit the changelog, and merge it.
 3. Run the [Release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
-   from `main` with the same extension version and `prepare-only=false`.
+   from `main` with the same extension version and **Publish extensions** checked.
 4. Approve the protected `release-gate` deployment after all platform builds succeed.
 
 Odd minor versions are pre-releases and retain timestamped nightly build IDs; even minor versions are stable releases.
