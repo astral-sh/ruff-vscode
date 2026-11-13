@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       version:
-        description: Exact extension version to release, without a leading v
+        description: Extension version without a leading v (defaults to package.json when publishing)
         required: false
         type: string
       publish-extensions:
@@ -182,6 +182,7 @@ jobs:
     permissions:
       contents: read
     outputs:
+      version: ${{ steps.metadata.outputs.version }}
       prerelease: ${{ steps.metadata.outputs.prerelease }}
       release-build-id: ${{ steps.release-build-id-generator.outputs.release-build-id }}
       nightly-build-id: ${{ steps.nightly-build-id-generator.outputs.nightly-build-id }}
@@ -210,7 +211,11 @@ jobs:
       - name: Validate release metadata
         id: metadata
         run: |
+          if [[ -z "$VERSION" ]]; then
+            VERSION="$(python -c 'import json; from pathlib import Path; print(json.loads(Path("package.json").read_text())["version"])')"
+          fi
           uv run --locked scripts/release.py --validate "$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Preparing ${VERSION} from ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
         env:
           VERSION: ${{ inputs.version }}
@@ -550,4 +555,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE: ${{ needs.validate-release.outputs.prerelease }}
           RELEASE_COMMIT: ${{ github.sha }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate-release.outputs.version }}

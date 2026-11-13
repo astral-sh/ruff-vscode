@@ -88,6 +88,13 @@ def get_ruff_versions(
         minor = existing_ruff_vscode_version.minor + 2
         new_ruff_vscode_version = Version(f"{major}.{minor}.0")
 
+    if new_ruff_vscode_version <= existing_ruff_vscode_version:
+        raise SystemExit(
+            f"Requested version {new_ruff_vscode_version} must be greater than "
+            f"current version {existing_ruff_vscode_version}"
+        )
+    validate_version_increase(new_ruff_vscode_version)
+
     dependencies = {
         requirement.name: requirement.specifier
         for requirement in map(Requirement, pyproject_toml["project"]["dependencies"])
@@ -113,7 +120,7 @@ def plan_upstream_release(ruff_version: str) -> None:
         return
 
     current = versions.existing_vscode_version
-    if versions.latest_ruff == versions.existing_ruff_pin:
+    if versions.latest_ruff == versions.existing_ruff_pin and current.minor % 2 == 0:
         if subprocess.check_output(["git", "tag", "--list", str(current)]).strip():
             return
         # A retry after merge must still publish the commit that set this version.
@@ -307,9 +314,28 @@ def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
         commit_changes(versions)
 
 
+VERSION_REGEX = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
+
+
+def validate_version_increase(version: Version) -> None:
+    """Require a version greater than every existing release tag."""
+    tags = subprocess.run(
+        ["git", "tag", "--list"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    versions = [Version(tag) for tag in tags if VERSION_REGEX.fullmatch(tag)]
+    if versions and version <= (latest_version := max(versions)):
+        raise SystemExit(
+            f"Requested version {version} must be greater than "
+            f"latest release {latest_version}"
+        )
+
+
 def validate_release(version: str) -> bool:
     """Validate release metadata and return whether this is a pre-release."""
-    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+    if not VERSION_REGEX.fullmatch(version):
         raise SystemExit(f"Invalid extension version: {version!r}")
 
     parsed_version = Version(version)
@@ -332,14 +358,7 @@ def validate_release(version: str) -> bool:
                 f"{path} version {metadata['version']}"
             )
 
-    tag = subprocess.run(
-        ["git", "tag", "--list", version],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    if tag:
-        raise SystemExit(f"Tag {version} already exists")
+    validate_version_increase(parsed_version)
 
     return parsed_version.minor % 2 != 0
 
