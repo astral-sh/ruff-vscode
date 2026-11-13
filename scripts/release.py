@@ -24,7 +24,9 @@ import argparse
 import datetime as dt
 import json
 import re
+import shutil
 import subprocess
+import tempfile
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,6 +42,7 @@ from rich_argparse import RawDescriptionRichHelpFormatter
 
 PYPROJECT_TOML_PATH = Path("pyproject.toml")
 PACKAGE_JSON_PATH = Path("package.json")
+PACKAGE_LOCK_JSON_PATH = Path("package-lock.json")
 README_PATH = Path("README.md")
 CHANGELOG_PATH = Path("CHANGELOG.md")
 
@@ -175,13 +178,13 @@ def update_pyproject_toml(versions: RuffVersions) -> None:
 
 
 def bump_package_json_version(new_version: Version) -> None:
-    """Update the version of this package in `package.json`."""
-    with PACKAGE_JSON_PATH.open("rb") as package_json_file:
-        package_json = json.load(package_json_file)
-    package_json["version"] = str(new_version)
-    with PACKAGE_JSON_PATH.open("w") as package_json_file:
-        json.dump(package_json, package_json_file, indent=2)
-        package_json_file.write("\n")
+    """Update the extension version in the npm manifest and lockfile."""
+    for path in (PACKAGE_JSON_PATH, PACKAGE_LOCK_JSON_PATH):
+        package = json.loads(path.read_bytes())
+        package["version"] = str(new_version)
+        if path == PACKAGE_LOCK_JSON_PATH:
+            package["packages"][""]["version"] = str(new_version)
+        path.write_text(json.dumps(package, indent=2, ensure_ascii=False) + "\n")
 
 
 README_DESCRIPTION_REGEX = re.compile(
@@ -248,32 +251,49 @@ def update_changelog(versions: RuffVersions) -> None:
     CHANGELOG_PATH.write_text("".join(changelog_lines))
 
 
-def lock_requirements() -> None:
-    """Update this package's lockfiles."""
-    Path("requirements.txt").unlink()
-    subprocess.run(
-        ["uv", "lock", "--default-index", "https://pypi.org/simple"], check=True
-    )
-    subprocess.run(
-        [
-            "uv",
-            "export",
-            "--default-index",
-            "https://pypi.org/simple",
-            "--format",
-            "requirements-txt",
-            "--no-dev",
-            "--no-emit-project",
-            "--locked",
-            "--output-file",
-            "./requirements.txt",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        ["npm", "install", "--package-lock-only", "--ignore-scripts"],
-        check=True,
-    )
+def locked_dependencies(lockfile: Path) -> list[dict[str, object]]:
+    """Read the dependency records a Ruff version bump must preserve."""
+    with lockfile.open("rb") as file:
+        packages = tomli.load(file)["package"]
+    dependencies = []
+    for package in packages:
+        if package["source"] == {"virtual": "."}:
+            continue
+        if package["name"] == "ruff":
+            for key in ("version", "sdist", "wheels"):
+                package.pop(key, None)
+        dependencies.append(package)
+    return dependencies
+
+
+def update_ruff_requirements() -> None:
+    """Refresh Ruff's lock entry and export its distribution hashes for the build."""
+    lockfile = Path("uv.lock")
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp)
+        shutil.copyfile(PYPROJECT_TOML_PATH, project / PYPROJECT_TOML_PATH)
+        shutil.copyfile(lockfile, project / lockfile)
+        subprocess.run(
+            [
+                "uv",
+                "export",
+                "--no-build",
+                "--default-index",
+                "https://pypi.org/simple",
+                "--format",
+                "requirements-txt",
+                "--no-dev",
+                "--no-emit-project",
+                "--output-file",
+                "./requirements.txt",
+            ],
+            cwd=project,
+            check=True,
+        )
+        if locked_dependencies(project / lockfile) != locked_dependencies(lockfile):
+            raise SystemExit("The Ruff release would change other locked dependencies")
+        shutil.copyfile(project / lockfile, lockfile)
+        shutil.copyfile(project / "requirements.txt", "requirements.txt")
 
 
 def commit_changes(versions: RuffVersions) -> None:
@@ -309,7 +329,7 @@ def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
     bump_package_json_version(versions.new_vscode_version)
     update_readme(versions.latest_ruff)
     update_changelog(versions)
-    lock_requirements()
+    update_ruff_requirements()
     if prepare_pr:
         commit_changes(versions)
 

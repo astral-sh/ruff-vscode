@@ -55,11 +55,6 @@ jobs:
           checksum: "c5221ff41b7892bfc223543883600125f6a47fe845093e0f5bdff4f359196d83"
           python-version: "3.13"
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "26.11.1"
-          package-manager-cache: false
-
       - name: Select extension version
         id: bump
         env:
@@ -92,7 +87,7 @@ jobs:
             args+=(--new-ruff "$RUFF_VERSION")
           fi
           uv run --locked scripts/release.py "${args[@]}"
-          version=$(node -p 'require("./package.json").version')
+          version=$(jq -er '.version' package.json)
           uv run --locked scripts/release.py --validate "${VERSION:-$version}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
