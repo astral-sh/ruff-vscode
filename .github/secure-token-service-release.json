@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "repositories": {
+    "ruff": {
+      "name": "astral-sh/ruff",
+      "id": 523043277,
+      "oidc_subject": "legacy"
+    },
+    "ruff-vscode": {
+      "name": "astral-sh/ruff-vscode",
+      "id": 563172090,
+      "oidc_subject": "legacy"
+    }
+  },
+  "rules": [
+    {
+      "caller": "ruff",
+      "environment": "release",
+      "caller_workflow": "release.yml",
+      "reusable_workflow": "notify-dependents.yml",
+      "on": ["workflow_dispatch"],
+      "permissions": { "actions": "write" },
+      "target": "ruff-vscode"
+    },
+    {
+      "caller": "ruff-vscode",
+      "caller_workflow": "release.yml",
+      "on": ["workflow_dispatch"],
+      "permissions": { "contents": "write", "pull_requests": "write" },
+      "target": "ruff-vscode"
+    }
+  ]
+}

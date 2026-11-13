@@ -101,6 +101,48 @@ def get_ruff_versions(
     )
 
 
+def plan_upstream_release(ruff_version: str) -> None:
+    """Select a stable extension release or resume publication after a merge."""
+    if not re.fullmatch(r"(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){2}", ruff_version):
+        raise SystemExit(f"Expected a stable Ruff version, got {ruff_version!r}")
+
+    versions = get_ruff_versions(
+        new_ruff_vscode_version=None, new_ruff_version=Version(ruff_version)
+    )
+    if versions.latest_ruff < versions.existing_ruff_pin:
+        return
+
+    current = versions.existing_vscode_version
+    if versions.latest_ruff == versions.existing_ruff_pin:
+        if subprocess.check_output(["git", "tag", "--list", str(current)]).strip():
+            return
+        # A retry after merge must still publish the commit that set this version.
+        sha = subprocess.check_output(
+            [
+                "git",
+                "log",
+                "--first-parent",
+                "-1",
+                "--format=%H",
+                "-G",
+                rf'^version = "{re.escape(str(current))}"$',
+                "--",
+                str(PYPROJECT_TOML_PATH),
+            ],
+            text=True,
+        ).strip()
+        if not sha:
+            raise SystemExit(f"Cannot find the release commit for {current}")
+        print(f"version={current}")
+        print(f"sha={sha}")
+        return
+
+    # Stable VS Code releases use even minor versions.
+    next_stable_minor = current.minor + 2 - current.minor % 2
+    print(f"version={versions.new_vscode_version.major}.{next_stable_minor}.0")
+    print("prepare=true")
+
+
 def update_pyproject_toml(versions: RuffVersions) -> None:
     """Update metadata in `pyproject.toml`.
 
@@ -335,7 +377,22 @@ def main() -> None:
             "Defaults to the latest version available on PyPI."
         ),
     )
+    parser.add_argument(
+        "--plan-upstream",
+        metavar="RUFF_VERSION",
+        help="Print the release workflow outputs for an upstream Ruff release.",
+    )
     args = parser.parse_args()
+    if args.plan_upstream is not None:
+        if (
+            args.validate is not None
+            or args.prepare_pr
+            or args.new_version is not None
+            or args.new_ruff is not None
+        ):
+            parser.error("--plan-upstream must be used on its own")
+        plan_upstream_release(args.plan_upstream)
+        return
     if args.validate is not None:
         if args.prepare_pr or args.new_version is not None or args.new_ruff is not None:
             parser.error(
