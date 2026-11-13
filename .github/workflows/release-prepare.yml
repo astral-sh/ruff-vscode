@@ -42,9 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
+      actions: read
+      checks: read
       contents: read
-      actions: read # Read CI results.
       id-token: write # Exchange for the release PR token.
+      pull-requests: read
+      statuses: read
     outputs:
       version: ${{ steps.bump-files.outputs.version || steps.bump.outputs.version }}
       merge-sha: ${{ steps.merge.outputs.sha || steps.bump.outputs.sha }}
@@ -118,37 +121,57 @@ jobs:
           version: ${{ steps.bump-files.outputs.version }}
           token: ${{ steps.token.outputs.token }}
 
-      - name: Wait for CI on the prepared commit
+      - name: Watch required checks on the prepared PR
+        id: checks
         if: steps.bump.outputs.prepare == 'true' && inputs.auto-promote
         timeout-minutes: 30
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ steps.pr.outputs.pull-request-url }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          head_sha=$(git rev-parse HEAD)
-          for workflow in ci.yml zizmor.yml; do
-            endpoint="repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs"
-            while true; do
-              state=$(gh api "$endpoint?head_sha=$head_sha&event=pull_request&per_page=1" \
-                --jq '.workflow_runs[0] | .conclusion // .status // "waiting"')
-              case "$state" in
-                success) break ;;
-                waiting|requested|queued|in_progress|pending) sleep 10 ;;
-                *) echo "::error::$workflow finished with $state"; exit 1 ;;
-              esac
-            done
+          prepared_sha=$(git rev-parse HEAD)
+          verify_pr() {
+            local pr state base head
+            pr=$(gh pr view "$PR_URL" --json state,baseRefName,headRefOid \
+              --jq '[.state, .baseRefName, .headRefOid] | @tsv')
+            IFS=$'\t' read -r state base head <<< "$pr"
+            if [[ "$state" != OPEN || "$base" != "$DEFAULT_BRANCH" || "$head" != "$prepared_sha" ]]; then
+              echo "::error::Expected an open PR into $DEFAULT_BRANCH at $prepared_sha, found $state into $base at $head."
+              exit 1
+            fi
+          }
+          verify_pr
+          # gh exits before watching if GitHub hasn't reported any required checks yet.
+          errors="$RUNNER_TEMP/pr-checks.err"
+          for attempt in {1..12}; do
+            if gh pr checks "$PR_URL" --watch --required 2>"$errors"; then
+              break
+            fi
+            cat "$errors" >&2
+            if [[ "$attempt" == 12 ]] || ! grep -Eq '^no (required )?checks reported on ' "$errors"; then
+              exit 1
+            fi
+            sleep 5
           done
+          verify_pr
+          echo "head-sha=$prepared_sha" >> "$GITHUB_OUTPUT"
 
-      - name: Merge the tested commit
+      - name: Squash-merge the prepared commit
         id: merge
         if: steps.bump.outputs.prepare == 'true' && inputs.auto-promote
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           PR_URL: ${{ steps.pr.outputs.pull-request-url }}
+          PREPARED_SHA: ${{ steps.checks.outputs.head-sha }}
         run: |
-          pr_number=${PR_URL##*/}
-          sha=$(gh api --method PUT "repos/$GITHUB_REPOSITORY/pulls/$pr_number/merge" \
-            -f merge_method=squash -f sha="$(git rev-parse HEAD)" --jq 'select(.merged) | .sha')
-          test -n "$sha"
+          endpoint="repos/$GITHUB_REPOSITORY/pulls/${PR_URL##*/}"
+          sha=$(gh api --method PUT "$endpoint/merge" -f merge_method=squash -f sha="${PREPARED_SHA:?Missing prepared head SHA}" \
+            --jq 'select(.merged) | .sha // empty')
+          if [[ -z "$sha" ]]; then
+            echo "::error::GitHub did not return a merge commit SHA."
+            exit 1
+          fi
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
   dispatch-release:
