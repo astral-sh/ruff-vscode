@@ -63,10 +63,12 @@ For an extension-only release, a pre-release, or a release that needs changelog 
    Optionally specify the bundled Ruff version; it defaults to the latest version on PyPI.
 2. Review the generated release PR, copy-edit the changelog, and merge it.
 3. Run the [Release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
-   from `main` with the same extension version and **Publish extensions** checked.
+   from `main` with **Publish extensions** checked and the bundled Ruff version blank. The extension version defaults to the one in `package.json`.
 4. Approve the protected `release-gate` deployment after all platform builds succeed.
 
 Odd minor versions are pre-releases and retain timestamped nightly build IDs; even minor versions are stable releases.
+
+When preparing a release, choose an extension version greater than the checked-in version. Both preparation and publication require a version greater than every existing release tag.
 
 The publish jobs run in the `release` environment and authenticate to VS Code Marketplace and Open VSX with GitHub Actions OIDC tokens.
 The repository must have protection rules configured for the `release-gate` environment to require approval.
