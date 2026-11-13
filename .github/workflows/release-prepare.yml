@@ -34,11 +34,11 @@ jobs:
   prepare:
     name: Prepare release PR
     environment: prepare
-    # Only astral-releases-bot[bot] can initiate or retry an auto-promotion.
+    # On reruns, actor_id still identifies the original dispatcher (astral-releases-bot[bot] for auto-promotion).
     if: >-
       github.repository == 'astral-sh/ruff-vscode' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
-      (!inputs.auto-promote || (github.actor_id == '328004183' && github.triggering_actor == github.actor))
+      (!inputs.auto-promote || github.actor_id == '328004183')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -154,8 +154,7 @@ jobs:
   dispatch-release:
     name: Dispatch release
     needs: prepare
-    # Check the actor again because this job can be rerun on its own.
-    if: inputs.auto-promote && needs.prepare.outputs.merge-sha != '' && github.triggering_actor == github.actor
+    if: inputs.auto-promote && needs.prepare.outputs.merge-sha != ''
     runs-on: ubuntu-latest
     permissions:
       actions: write
