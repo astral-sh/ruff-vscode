@@ -23,6 +23,9 @@ concurrency:
 
 permissions: {}
 
+env:
+  UV_NO_BUILD: "1"
+
 defaults:
   run:
     shell: bash

@@ -24,9 +24,7 @@ import argparse
 import datetime as dt
 import json
 import re
-import shutil
 import subprocess
-import tempfile
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
@@ -251,12 +249,10 @@ def update_changelog(versions: RuffVersions) -> None:
     CHANGELOG_PATH.write_text("".join(changelog_lines))
 
 
-def locked_dependencies(lockfile: Path) -> list[dict[str, object]]:
-    """Read the dependency records a Ruff version bump must preserve."""
-    with lockfile.open("rb") as file:
-        packages = tomli.load(file)["package"]
+def locked_dependencies(lock: bytes) -> list[dict[str, object]]:
+    """Return the dependency records a Ruff version bump must preserve."""
     dependencies = []
-    for package in packages:
+    for package in tomli.loads(lock.decode("utf-8"))["package"]:
         if package["source"] == {"virtual": "."}:
             continue
         if package["name"] == "ruff":
@@ -269,31 +265,25 @@ def locked_dependencies(lockfile: Path) -> list[dict[str, object]]:
 def update_ruff_requirements() -> None:
     """Refresh Ruff's lock entry and export its distribution hashes for the build."""
     lockfile = Path("uv.lock")
-    with tempfile.TemporaryDirectory() as tmp:
-        project = Path(tmp)
-        shutil.copyfile(PYPROJECT_TOML_PATH, project / PYPROJECT_TOML_PATH)
-        shutil.copyfile(lockfile, project / lockfile)
-        subprocess.run(
+    original = lockfile.read_bytes()
+    try:
+        requirements = subprocess.check_output(
             [
                 "uv",
                 "export",
                 "--no-build",
                 "--default-index",
                 "https://pypi.org/simple",
-                "--format",
-                "requirements-txt",
                 "--no-dev",
                 "--no-emit-project",
-                "--output-file",
-                "./requirements.txt",
-            ],
-            cwd=project,
-            check=True,
+            ]
         )
-        if locked_dependencies(project / lockfile) != locked_dependencies(lockfile):
+        if locked_dependencies(lockfile.read_bytes()) != locked_dependencies(original):
             raise SystemExit("The Ruff release would change other locked dependencies")
-        shutil.copyfile(project / lockfile, lockfile)
-        shutil.copyfile(project / "requirements.txt", "requirements.txt")
+        Path("requirements.txt").write_bytes(requirements)
+    except BaseException:
+        lockfile.write_bytes(original)
+        raise
 
 
 def commit_changes(versions: RuffVersions) -> None:
