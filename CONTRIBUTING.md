@@ -41,22 +41,22 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 ## Release
 
 Stable Ruff releases start [Prepare release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
-on `main` with the upstream version and `auto-promote=true`. It opens a PR for the next even-minor
+on the default branch with the upstream version and `auto-promote=true`. It opens a PR for the next even-minor
 extension version, waits for CI and zizmor, then squash-merges the tested PR and starts
 [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml) with the merge SHA.
-Approve `release-gate` after the builds finish. If `main` advances before Release starts, review
+Approve `release-gate` after the builds finish. If the default branch advances before Release starts, review
 the intervening changes before running Release manually on the new commit.
 
-For a manual release, run Prepare release on `main`. **Auto-promote** defaults to off, so the workflow
+For a manual release, run Prepare release on the default branch. **Auto-promote** defaults to off, so the workflow
 stops after opening the PR. With no inputs, the release script uses its default extension version
 and the latest Ruff on PyPI. To prepare a specific upstream version, run
 
 ```sh
-gh workflow run release-prepare.yml --repo astral-sh/ruff-vscode --ref main -f ruff-version=0.17.6
+gh workflow run release-prepare.yml --repo astral-sh/ruff-vscode -f ruff-version=0.17.6
 ```
 
 For an extension-only release or a pre-release, set the `version` input when preparing the PR.
-Review the PR and edit the changelog if needed, merge it, then run Release on `main`. The extension version
+Review the PR and edit the changelog if needed, merge it, then run Release on the default branch. The extension version
 defaults to the one in `package.json`. Approve `release-gate` after the builds finish.
 
 Odd minor versions are pre-releases and retain timestamped nightly build IDs; even minor versions are stable releases.
