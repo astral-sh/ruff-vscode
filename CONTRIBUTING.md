@@ -42,7 +42,8 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 
 Stable Ruff releases start [Prepare release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
 on the default branch with the upstream version and `auto-promote=true`. It opens a PR for the next even-minor
-extension version, waits for CI and zizmor, then squash-merges the tested PR and starts
+extension version and watches its required checks for up to 30 minutes. Once they pass, the release bot
+squash-merges the prepared commit into the default branch and dispatches
 [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml) with the merge SHA.
 Approve `release-gate` after the builds finish. If the default branch advances before Release starts, review
 the intervening changes before running Release manually on the new commit.
