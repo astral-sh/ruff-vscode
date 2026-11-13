@@ -1,28 +1,19 @@
-# Prepare the release PR, then publish from its merged commit in a second dispatch.
+# Validate and publish a release, then create its tag and GitHub release.
 name: Release
-run-name: ${{ inputs.publish-extensions && 'Release' || 'Prepare' }} ${{ inputs.ruff-version && format('bundled Ruff {0}', inputs.ruff-version) || format('ruff-vscode {0}', inputs.version) }}
 on:
   workflow_dispatch:
     inputs:
-      ruff-version:
-        description: Upstream Ruff version to bundle
-        required: false
-        type: string
       version:
-        description: Extension version without a leading v (defaults to package.json when publishing)
+        description: Extension version without a leading v (defaults to package.json)
         required: false
         type: string
-      publish-extensions:
-        description: Publish extensions
-        type: boolean
-        default: false
       expected-sha:
         description: Expected main commit for publishing
         required: false
         type: string
 
 concurrency:
-  group: ${{ (inputs.publish-extensions && !inputs.ruff-version) && 'release' || 'release-prepare' }}
+  group: release
   queue: max
   cancel-in-progress: false
 
@@ -36,149 +27,12 @@ defaults:
     shell: bash
 
 jobs:
-  prepare:
-    name: Prepare release PR
-    environment: prepare
-    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main' && (!inputs.publish-extensions || inputs.ruff-version != '')
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    permissions:
-      contents: read
-      actions: write # Read CI results and dispatch the publisher.
-      id-token: write # Exchange for the release PR token.
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: main
-          fetch-depth: 0
-          persist-credentials: false
-
-      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with:
-          # renovate: datasource=github-release-attachments depName=astral-sh/uv
-          version: "0.13.7"
-          checksum: "c5221ff41b7892bfc223543883600125f6a47fe845093e0f5bdff4f359196d83"
-          python-version: "3.13"
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "26.11.1"
-          package-manager-cache: false
-
-      - name: Select extension version
-        id: bump
-        env:
-          RUFF_VERSION: ${{ inputs.ruff-version }}
-          VERSION: ${{ inputs.version }}
-          EXPECTED_SHA: ${{ inputs.expected-sha }}
-          PUBLISH_EXTENSIONS: ${{ inputs.publish-extensions }}
-        run: |
-          if [[ -n "$EXPECTED_SHA" ]]; then
-            echo "::error::expected-sha is a publish input."
-            exit 1
-          fi
-          if [[ "$PUBLISH_EXTENSIONS" != true && ( -n "$VERSION" || -z "$RUFF_VERSION" ) ]]; then
-            if [[ -n "$VERSION" && ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::Enter an exact extension version to prepare a release PR."
-              exit 1
-            fi
-            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "prepare=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [[ -n "$VERSION" ]]; then
-            echo "::error::Pass ruff-version alone to prepare an upstream release."
-            exit 1
-          fi
-          uv run --locked scripts/release.py --plan-upstream "$RUFF_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Bump version and refresh lockfiles
-        id: bump-files
-        if: steps.bump.outputs.prepare == 'true'
-        env:
-          VERSION: ${{ steps.bump.outputs.version }}
-          RUFF_VERSION: ${{ inputs.ruff-version }}
-        run: |
-          args=()
-          if [[ -n "$VERSION" ]]; then
-            args+=(--new-version "$VERSION")
-          fi
-          if [[ -n "$RUFF_VERSION" ]]; then
-            args+=(--new-ruff "$RUFF_VERSION")
-          fi
-          uv run --locked scripts/release.py "${args[@]}"
-          version=$(node -p 'require("./package.json").version')
-          uv run --locked scripts/release.py --validate "${VERSION:-$version}"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Get release PR token
-        id: token
-        if: steps.bump.outputs.prepare == 'true'
-        uses: astral-sh/github-actions/simple-token-service@eb81cf4d13127c3f9539f621c17e4c65327636c8
-        with:
-          exchange-url: ${{ secrets.RELEASES_STS_API_URL }}/exchange
-          audience: ${{ secrets.RELEASES_STS_API_URL }}
-          repository: astral-sh/ruff-vscode
-          permissions: |
-            contents: write
-            pull_requests: write
-
-      - name: Create release PR
-        id: pr
-        if: steps.bump.outputs.prepare == 'true'
-        uses: astral-sh/github-actions/create-release-pr@b18ab2e0c11d16711c1818c8774babfa0203b909 # 2026.10.08.0
-        with:
-          version: ${{ steps.bump-files.outputs.version }}
-          token: ${{ steps.token.outputs.token }}
-
-      - name: Wait for CI on the prepared commit
-        if: steps.bump.outputs.prepare == 'true' && inputs.publish-extensions
-        timeout-minutes: 30
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          head_sha=$(git rev-parse HEAD)
-          for workflow in ci.yml zizmor.yml; do
-            endpoint="repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs"
-            while true; do
-              state=$(gh api "$endpoint?head_sha=$head_sha&event=pull_request&per_page=1" \
-                --jq '.workflow_runs[0] | .conclusion // .status // "waiting"')
-              case "$state" in
-                success) break ;;
-                waiting|requested|queued|in_progress|pending) sleep 10 ;;
-                *) echo "::error::$workflow finished with $state"; exit 1 ;;
-              esac
-            done
-          done
-
-      - name: Merge the tested commit
-        id: merge
-        if: steps.bump.outputs.prepare == 'true' && inputs.publish-extensions
-        env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          PR_URL: ${{ steps.pr.outputs.pull-request-url }}
-        run: |
-          pr_number=${PR_URL##*/}
-          sha=$(gh api --method PUT "repos/$GITHUB_REPOSITORY/pulls/$pr_number/merge" \
-            -f merge_method=squash -f sha="$(git rev-parse HEAD)" --jq 'select(.merged) | .sha')
-          test -n "$sha"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-
-      - name: Dispatch publication from main
-        if: steps.bump.outputs.version != '' && inputs.publish-extensions
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.bump.outputs.version }}
-          MERGE_SHA: ${{ steps.merge.outputs.sha || steps.bump.outputs.sha }}
-        run: |
-          gh workflow run release.yml --ref main -f publish-extensions=true -f version="$VERSION" -f expected-sha="$MERGE_SHA"
-
   # Phase 1: Validate the release and generate the Build ID.
   # We have to do this ahead-of-time, and store it as a job output,
   # to ensure that we use the same Build ID across all build jobs.
   validate-release:
     name: Validate release
-    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main' && inputs.publish-extensions && inputs.ruff-version == ''
+    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read

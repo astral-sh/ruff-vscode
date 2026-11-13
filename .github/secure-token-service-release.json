@@ -25,7 +25,7 @@
     {
       "caller": "ruff-vscode",
       "environment": "prepare",
-      "caller_workflow": "release.yml",
+      "caller_workflow": "release-prepare.yml",
       "on": ["workflow_dispatch"],
       "permissions": { "contents": "write", "pull_requests": "write" },
       "target": "ruff-vscode"
