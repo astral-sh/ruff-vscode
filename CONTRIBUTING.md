@@ -47,8 +47,8 @@ extension version, waits for CI and zizmor, then squash-merges the tested PR and
 Approve `release-gate` after the builds finish. If the default branch advances before Release starts, review
 the intervening changes before running Release manually on the new commit.
 
-For a manual release, run Prepare release on the default branch. **Auto-promote** defaults to off, so the workflow
-stops after opening the PR. With no inputs, the release script uses its default extension version
+Only the upstream releases bot can auto-promote. For a manual release, run Prepare release on the
+default branch with **Auto-promote** off (the default). With no inputs, the release script uses its default extension version
 and the latest Ruff on PyPI. To prepare a specific upstream version, run
 
 ```sh

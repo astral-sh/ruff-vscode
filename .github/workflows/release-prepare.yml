@@ -12,7 +12,7 @@ on:
         required: false
         type: string
       auto-promote:
-        description: Auto-promote (merge after CI and start Release)
+        description: Auto-promote (upstream releases bot only)
         type: boolean
         default: false
 
@@ -34,7 +34,11 @@ jobs:
   prepare:
     name: Prepare release PR
     environment: prepare
-    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    # Only astral-releases-bot[bot] can initiate or retry an auto-promotion.
+    if: >-
+      github.repository == 'astral-sh/ruff-vscode' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      (!inputs.auto-promote || (github.actor_id == '328004183' && github.triggering_actor == github.actor))
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -150,7 +154,8 @@ jobs:
   dispatch-release:
     name: Dispatch release
     needs: prepare
-    if: inputs.auto-promote && needs.prepare.outputs.merge-sha != ''
+    # Check the actor again because this job can be rerun on its own.
+    if: inputs.auto-promote && needs.prepare.outputs.merge-sha != '' && github.triggering_actor == github.actor
     runs-on: ubuntu-latest
     permissions:
       actions: write
