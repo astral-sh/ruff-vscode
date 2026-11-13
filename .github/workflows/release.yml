@@ -38,6 +38,7 @@ defaults:
 jobs:
   prepare:
     name: Prepare release PR
+    environment: prepare
     if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main' && (!inputs.publish-extensions || inputs.ruff-version != '')
     runs-on: ubuntu-latest
     timeout-minutes: 45
