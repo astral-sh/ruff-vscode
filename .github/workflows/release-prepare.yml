@@ -36,8 +36,11 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
-      actions: write # Read CI results and dispatch the publisher.
+      actions: read # Read CI results.
       id-token: write # Exchange for the release PR token.
+    outputs:
+      version: ${{ steps.bump-files.outputs.version || steps.bump.outputs.version }}
+      merge-sha: ${{ steps.merge.outputs.sha || steps.bump.outputs.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -146,11 +149,19 @@ jobs:
           test -n "$sha"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch publication from main
-        if: inputs.auto-promote && (steps.merge.outputs.sha != '' || steps.bump.outputs.sha != '')
+  dispatch-release:
+    name: Dispatch release
+    needs: prepare
+    if: inputs.auto-promote && needs.prepare.outputs.merge-sha != ''
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Start the release workflow
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.bump-files.outputs.version || steps.bump.outputs.version }}
-          MERGE_SHA: ${{ steps.merge.outputs.sha || steps.bump.outputs.sha }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          MERGE_SHA: ${{ needs.prepare.outputs.merge-sha }}
         run: |
-          gh workflow run release.yml --ref main -f version="$VERSION" -f expected-sha="$MERGE_SHA"
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main \
+            -f version="$VERSION" -f expected-sha="$MERGE_SHA"
