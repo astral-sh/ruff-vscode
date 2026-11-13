@@ -90,7 +90,7 @@ jobs:
             args+=(--new-ruff "$RUFF_VERSION")
           fi
           uv run --locked scripts/release.py "${args[@]}"
-          version=$(jq -er '.version' package.json)
+          version=$(uv run --locked --only-group jaq jaq -er '.version' package.json)
           uv run --locked scripts/release.py --validate "${VERSION:-$version}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
