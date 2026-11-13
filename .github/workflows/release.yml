@@ -67,7 +67,7 @@ jobs:
         id: metadata
         run: |
           if [[ -z "$VERSION" ]]; then
-            VERSION="$(python -c 'import json; from pathlib import Path; print(json.loads(Path("package.json").read_text())["version"])')"
+            VERSION="$(uv run --locked --only-group jaq jaq -er '.version' package.json)"
           fi
           uv run --locked scripts/release.py --validate "$VERSION" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
