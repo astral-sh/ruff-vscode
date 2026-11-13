@@ -1,6 +1,6 @@
 # Prepare the release PR, then publish from its merged commit in a second dispatch.
 name: Release
-run-name: ${{ inputs.prepare-only && 'Prepare' || 'Release' }} ${{ inputs.ruff-version && format('bundled Ruff {0}', inputs.ruff-version) || format('ruff-vscode {0}', inputs.version) }}
+run-name: ${{ inputs.publish-extensions && 'Release' || 'Prepare' }} ${{ inputs.ruff-version && format('bundled Ruff {0}', inputs.ruff-version) || format('ruff-vscode {0}', inputs.version) }}
 on:
   workflow_dispatch:
     inputs:
@@ -12,17 +12,17 @@ on:
         description: Exact extension version to release, without a leading v
         required: false
         type: string
-      prepare-only:
-        description: Stop after opening the release PR
+      publish-extensions:
+        description: Publish extensions
         type: boolean
-        default: true
+        default: false
       expected-sha:
         description: Expected main commit for publishing
         required: false
         type: string
 
 concurrency:
-  group: ${{ (inputs.prepare-only || inputs.ruff-version) && 'release-prepare' || 'release' }}
+  group: ${{ (inputs.publish-extensions && !inputs.ruff-version) && 'release' || 'release-prepare' }}
   queue: max
   cancel-in-progress: false
 
@@ -38,7 +38,7 @@ defaults:
 jobs:
   prepare:
     name: Prepare release PR
-    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main' && (inputs.prepare-only || inputs.ruff-version != '')
+    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main' && (!inputs.publish-extensions || inputs.ruff-version != '')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -70,13 +70,13 @@ jobs:
           RUFF_VERSION: ${{ inputs.ruff-version }}
           VERSION: ${{ inputs.version }}
           EXPECTED_SHA: ${{ inputs.expected-sha }}
-          PREPARE_ONLY: ${{ inputs.prepare-only }}
+          PUBLISH_EXTENSIONS: ${{ inputs.publish-extensions }}
         run: |
           if [[ -n "$EXPECTED_SHA" ]]; then
             echo "::error::expected-sha is a publish input."
             exit 1
           fi
-          if [[ "$PREPARE_ONLY" == true && ( -n "$VERSION" || -z "$RUFF_VERSION" ) ]]; then
+          if [[ "$PUBLISH_EXTENSIONS" != true && ( -n "$VERSION" || -z "$RUFF_VERSION" ) ]]; then
             if [[ -n "$VERSION" && ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               echo "::error::Enter an exact extension version to prepare a release PR."
               exit 1
@@ -131,7 +131,7 @@ jobs:
           token: ${{ steps.token.outputs.token }}
 
       - name: Wait for CI on the prepared commit
-        if: steps.bump.outputs.prepare == 'true' && !inputs.prepare-only
+        if: steps.bump.outputs.prepare == 'true' && inputs.publish-extensions
         timeout-minutes: 30
         env:
           GH_TOKEN: ${{ github.token }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Merge the tested commit
         id: merge
-        if: steps.bump.outputs.prepare == 'true' && !inputs.prepare-only
+        if: steps.bump.outputs.prepare == 'true' && inputs.publish-extensions
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           PR_URL: ${{ steps.pr.outputs.pull-request-url }}
@@ -164,20 +164,20 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch publication from main
-        if: steps.bump.outputs.version != '' && !inputs.prepare-only
+        if: steps.bump.outputs.version != '' && inputs.publish-extensions
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.bump.outputs.version }}
           MERGE_SHA: ${{ steps.merge.outputs.sha || steps.bump.outputs.sha }}
         run: |
-          gh workflow run release.yml --ref main -f prepare-only=false -f version="$VERSION" -f expected-sha="$MERGE_SHA"
+          gh workflow run release.yml --ref main -f publish-extensions=true -f version="$VERSION" -f expected-sha="$MERGE_SHA"
 
   # Phase 1: Validate the release and generate the Build ID.
   # We have to do this ahead-of-time, and store it as a job output,
   # to ensure that we use the same Build ID across all build jobs.
   validate-release:
     name: Validate release
-    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main' && !inputs.prepare-only && inputs.ruff-version == ''
+    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == 'refs/heads/main' && inputs.publish-extensions && inputs.ruff-version == ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
