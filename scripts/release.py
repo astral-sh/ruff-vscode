@@ -40,6 +40,7 @@ from rich_argparse import RawDescriptionRichHelpFormatter
 
 PYPROJECT_TOML_PATH = Path("pyproject.toml")
 PACKAGE_JSON_PATH = Path("package.json")
+PACKAGE_LOCK_JSON_PATH = Path("package-lock.json")
 README_PATH = Path("README.md")
 CHANGELOG_PATH = Path("CHANGELOG.md")
 
@@ -88,6 +89,13 @@ def get_ruff_versions(
         minor = existing_ruff_vscode_version.minor + 2
         new_ruff_vscode_version = Version(f"{major}.{minor}.0")
 
+    if new_ruff_vscode_version <= existing_ruff_vscode_version:
+        raise SystemExit(
+            f"Requested version {new_ruff_vscode_version} must be greater than "
+            f"current version {existing_ruff_vscode_version}"
+        )
+    validate_version_increase(new_ruff_vscode_version)
+
     dependencies = {
         requirement.name: requirement.specifier
         for requirement in map(Requirement, pyproject_toml["project"]["dependencies"])
@@ -99,6 +107,27 @@ def get_ruff_versions(
         existing_ruff_pin=existing_dependency_pin(dependencies, "ruff"),
         latest_ruff=(new_ruff_version or latest_pypi_version("ruff")),
     )
+
+
+def plan_upstream_release(ruff_version: str) -> None:
+    """Select the next stable extension release for a new upstream version."""
+    if not re.fullmatch(r"(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){2}", ruff_version):
+        raise SystemExit(f"Expected a stable Ruff version, got {ruff_version!r}")
+
+    versions = get_ruff_versions(
+        new_ruff_vscode_version=None, new_ruff_version=Version(ruff_version)
+    )
+    if versions.latest_ruff < versions.existing_ruff_pin:
+        return
+
+    current = versions.existing_vscode_version
+    if versions.latest_ruff == versions.existing_ruff_pin and current.minor % 2 == 0:
+        return
+
+    # Stable VS Code releases use even minor versions.
+    next_stable_minor = current.minor + 2 - current.minor % 2
+    print(f"version={versions.new_vscode_version.major}.{next_stable_minor}.0")
+    print("prepare=true")
 
 
 def update_pyproject_toml(versions: RuffVersions) -> None:
@@ -126,13 +155,13 @@ def update_pyproject_toml(versions: RuffVersions) -> None:
 
 
 def bump_package_json_version(new_version: Version) -> None:
-    """Update the version of this package in `package.json`."""
-    with PACKAGE_JSON_PATH.open("rb") as package_json_file:
-        package_json = json.load(package_json_file)
-    package_json["version"] = str(new_version)
-    with PACKAGE_JSON_PATH.open("w") as package_json_file:
-        json.dump(package_json, package_json_file, indent=2)
-        package_json_file.write("\n")
+    """Update the extension version in the npm manifest and lockfile."""
+    for path in (PACKAGE_JSON_PATH, PACKAGE_LOCK_JSON_PATH):
+        package = json.loads(path.read_bytes())
+        package["version"] = str(new_version)
+        if path == PACKAGE_LOCK_JSON_PATH:
+            package["packages"][""]["version"] = str(new_version)
+        path.write_text(json.dumps(package, indent=2, ensure_ascii=False) + "\n")
 
 
 README_DESCRIPTION_REGEX = re.compile(
@@ -199,32 +228,41 @@ def update_changelog(versions: RuffVersions) -> None:
     CHANGELOG_PATH.write_text("".join(changelog_lines))
 
 
-def lock_requirements() -> None:
-    """Update this package's lockfiles."""
-    Path("requirements.txt").unlink()
-    subprocess.run(
-        ["uv", "lock", "--default-index", "https://pypi.org/simple"], check=True
-    )
-    subprocess.run(
-        [
-            "uv",
-            "export",
-            "--default-index",
-            "https://pypi.org/simple",
-            "--format",
-            "requirements-txt",
-            "--no-dev",
-            "--no-emit-project",
-            "--locked",
-            "--output-file",
-            "./requirements.txt",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        ["npm", "install", "--package-lock-only", "--ignore-scripts"],
-        check=True,
-    )
+def locked_dependencies(lock: bytes) -> list[dict[str, object]]:
+    """Return the dependency records a Ruff version bump must preserve."""
+    dependencies = []
+    for package in tomli.loads(lock.decode("utf-8"))["package"]:
+        if package["source"] == {"virtual": "."}:
+            continue
+        if package["name"] == "ruff":
+            for key in ("version", "sdist", "wheels"):
+                package.pop(key, None)
+        dependencies.append(package)
+    return dependencies
+
+
+def update_ruff_requirements() -> None:
+    """Refresh Ruff's lock entry and export its distribution hashes for the build."""
+    lockfile = Path("uv.lock")
+    original = lockfile.read_bytes()
+    try:
+        requirements = subprocess.check_output(
+            [
+                "uv",
+                "export",
+                "--no-build",
+                "--default-index",
+                "https://pypi.org/simple",
+                "--no-dev",
+                "--no-emit-project",
+            ]
+        )
+        if locked_dependencies(lockfile.read_bytes()) != locked_dependencies(original):
+            raise SystemExit("The Ruff release would change other locked dependencies")
+        Path("requirements.txt").write_bytes(requirements)
+    except BaseException:
+        lockfile.write_bytes(original)
+        raise
 
 
 def commit_changes(versions: RuffVersions) -> None:
@@ -260,14 +298,33 @@ def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
     bump_package_json_version(versions.new_vscode_version)
     update_readme(versions.latest_ruff)
     update_changelog(versions)
-    lock_requirements()
+    update_ruff_requirements()
     if prepare_pr:
         commit_changes(versions)
 
 
+VERSION_REGEX = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
+
+
+def validate_version_increase(version: Version) -> None:
+    """Require a version greater than every existing release tag."""
+    tags = subprocess.run(
+        ["git", "tag", "--list"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    versions = [Version(tag) for tag in tags if VERSION_REGEX.fullmatch(tag)]
+    if versions and version <= (latest_version := max(versions)):
+        raise SystemExit(
+            f"Requested version {version} must be greater than "
+            f"latest release {latest_version}"
+        )
+
+
 def validate_release(version: str) -> bool:
     """Validate release metadata and return whether this is a pre-release."""
-    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+    if not VERSION_REGEX.fullmatch(version):
         raise SystemExit(f"Invalid extension version: {version!r}")
 
     parsed_version = Version(version)
@@ -290,14 +347,7 @@ def validate_release(version: str) -> bool:
                 f"{path} version {metadata['version']}"
             )
 
-    tag = subprocess.run(
-        ["git", "tag", "--list", version],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    if tag:
-        raise SystemExit(f"Tag {version} already exists")
+    validate_version_increase(parsed_version)
 
     return parsed_version.minor % 2 != 0
 
@@ -335,7 +385,22 @@ def main() -> None:
             "Defaults to the latest version available on PyPI."
         ),
     )
+    parser.add_argument(
+        "--plan-upstream",
+        metavar="RUFF_VERSION",
+        help="Print the release workflow outputs for an upstream Ruff release.",
+    )
     args = parser.parse_args()
+    if args.plan_upstream is not None:
+        if (
+            args.validate is not None
+            or args.prepare_pr
+            or args.new_version is not None
+            or args.new_ruff is not None
+        ):
+            parser.error("--plan-upstream must be used on its own")
+        plan_upstream_release(args.plan_upstream)
+        return
     if args.validate is not None:
         if args.prepare_pr or args.new_version is not None or args.new_ruff is not None:
             parser.error(

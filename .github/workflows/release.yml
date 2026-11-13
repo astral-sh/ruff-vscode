@@ -4,12 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Exact extension version to release, without a leading v
-        required: true
+        description: Extension version without a leading v (defaults to package.json)
+        required: false
+        type: string
+      expected-sha:
+        description: Expected default branch commit for publishing
+        required: false
         type: string
 
 concurrency:
   group: release
+  queue: max
   cancel-in-progress: false
 
 env:
@@ -27,15 +32,24 @@ jobs:
   # to ensure that we use the same Build ID across all build jobs.
   validate-release:
     name: Validate release
-    if: github.repository == 'astral-sh/ruff-vscode' && github.ref_name == github.event.repository.default_branch
+    if: github.repository == 'astral-sh/ruff-vscode' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
+      version: ${{ steps.metadata.outputs.version }}
       prerelease: ${{ steps.metadata.outputs.prerelease }}
       release-build-id: ${{ steps.release-build-id-generator.outputs.release-build-id }}
       nightly-build-id: ${{ steps.nightly-build-id-generator.outputs.nightly-build-id }}
     steps:
+      - name: Verify the requested release commit
+        env:
+          EXPECTED_SHA: ${{ inputs.expected-sha }}
+        run: |
+          if [[ -n "$EXPECTED_SHA" && "$GITHUB_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "::error::Expected $EXPECTED_SHA, but $GITHUB_REF was at $GITHUB_SHA when dispatched."
+            exit 1
+          fi
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -52,7 +66,11 @@ jobs:
       - name: Validate release metadata
         id: metadata
         run: |
+          if [[ -z "$VERSION" ]]; then
+            VERSION="$(uv run --locked --only-group jaq jaq -er '.version' package.json)"
+          fi
           uv run --locked scripts/release.py --validate "$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Preparing ${VERSION} from ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
         env:
           VERSION: ${{ inputs.version }}
@@ -392,4 +410,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE: ${{ needs.validate-release.outputs.prerelease }}
           RELEASE_COMMIT: ${{ github.sha }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate-release.outputs.version }}

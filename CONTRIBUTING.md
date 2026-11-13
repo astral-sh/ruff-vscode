@@ -40,16 +40,30 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 
 ## Release
 
-1. Run the [Prepare release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
-   from `main` with the exact extension version, without a leading `v`. The workflow runs `scripts/release.py` to update
-   the extension version, bundled Ruff version, README, changelog, and lockfiles.
-   Optionally specify the bundled Ruff version; it defaults to the latest version on PyPI.
-2. Review the generated release PR, copy-edit the changelog, and merge it.
-3. Run the [Release workflow](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
-   from `main` with the same extension version.
-4. Approve the protected `release-gate` deployment after all platform builds succeed.
+Stable Ruff releases start [Prepare release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
+on the default branch with the upstream version and `auto-promote=true`. It opens a PR for the next even-minor
+extension version and watches its required checks for up to 30 minutes. Once they pass, the release bot
+squash-merges the prepared commit into the default branch and dispatches
+[Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml) with the squash commit SHA.
+If the default branch has advanced by dispatch time, Release stops before building. Otherwise, approve `release-gate` after the builds finish.
+
+Only the upstream releases bot can start an auto-promotion. Maintainers can rerun a failed preparation.
+If dispatch fails after the merge, rerun the failed dispatch job. If publication fails, rerun Release.
+For a manual release, run Prepare release on the default branch with **Auto-promote** off (the default).
+With no inputs, the release script uses its default extension version and the latest Ruff on PyPI.
+To prepare a specific upstream version, run
+
+```sh
+gh workflow run release-prepare.yml --repo astral-sh/ruff-vscode -f ruff-version=0.17.6
+```
+
+For an extension-only release or a pre-release, set the `version` input when preparing the PR.
+Review the PR and edit the changelog if needed, merge it, then run Release on the default branch. The extension version
+defaults to the one in `package.json`. Approve `release-gate` after the builds finish.
 
 Odd minor versions are pre-releases and retain timestamped nightly build IDs; even minor versions are stable releases.
+
+When preparing a release, choose an extension version greater than the checked-in version. Both preparation and publication require a version greater than every existing release tag.
 
 The publish jobs run in the `release` environment and authenticate to VS Code Marketplace and Open VSX with GitHub Actions OIDC tokens.
 The repository must have protection rules configured for the `release-gate` environment to require approval.
