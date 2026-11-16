@@ -1,6 +1,8 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  dependencyDashboard: true,
+  dependencyDashboard: {
+    enabled: true,
+  },
   suppressNotifications: ["prEditedNotification"],
   extends: ["github>astral-sh/renovate-config"],
   labels: ["internal"],
@@ -9,15 +11,11 @@
   separateMajorMinor: false,
   enabledManagers: ["github-actions", "npm", "custom.regex"],
   packageRules: [
-    // Pin GitHub Actions to immutable SHAs.
     {
       matchDepTypes: ["action"],
       pinDigests: true,
     },
     {
-      // This package rule disables updates for GitHub runners:
-      // we'd only pin them to a specific version
-      // if there was a deliberate reason to do so
       groupName: "GitHub runners",
       matchManagers: ["github-actions"],
       matchDatasources: ["github-runners"],
@@ -25,7 +23,6 @@
       enabled: false,
     },
     {
-      // Disable updates of `@types/vscode`; intentionally pinned because it expresses the minimal supported VS Code version
       matchPackageNames: ["@types/vscode"],
       matchManagers: ["npm"],
       enabled: false,
