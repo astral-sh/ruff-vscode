@@ -51,10 +51,10 @@ Only the upstream releases bot can start an auto-promotion. Maintainers can reru
 If dispatch fails after the merge, rerun the failed dispatch job. If publication fails, rerun Release.
 For a manual release, run Prepare release on the default branch with **Auto-promote** off (the default).
 With no inputs, the release script uses its default extension version and the latest Ruff on PyPI.
-To prepare a specific upstream version, run
+To prepare a specific upstream release, replace `<upstream-version>` with its version number.
 
 ```sh
-gh workflow run release-prepare.yml --repo astral-sh/ruff-vscode -f ruff-version=0.17.6
+gh workflow run release-prepare.yml --repo astral-sh/ruff-vscode -f ruff-version='<upstream-version>'
 ```
 
 For an extension-only release or a pre-release, set the `version` input when preparing the PR.
