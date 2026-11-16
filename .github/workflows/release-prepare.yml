@@ -178,7 +178,7 @@ jobs:
     name: Dispatch release
     needs: prepare
     if: inputs.auto-promote && needs.prepare.outputs.merge-sha != ''
-    environment: prepare
+    environment: release-dispatch
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Exchange for the release dispatch token.
