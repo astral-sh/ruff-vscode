@@ -178,13 +178,24 @@ jobs:
     name: Dispatch release
     needs: prepare
     if: inputs.auto-promote && needs.prepare.outputs.merge-sha != ''
+    environment: prepare
     runs-on: ubuntu-latest
     permissions:
-      actions: write
+      id-token: write # Exchange for the release dispatch token.
     steps:
+      - name: Get release dispatch token
+        id: token
+        uses: astral-sh/github-actions/simple-token-service@eb81cf4d13127c3f9539f621c17e4c65327636c8
+        with:
+          exchange-url: ${{ secrets.RELEASES_STS_API_URL }}/exchange
+          audience: ${{ secrets.RELEASES_STS_API_URL }}
+          repository: astral-sh/ruff-vscode
+          permissions: |
+            actions: write
+
       - name: Dispatch the publisher for the squash commit
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           MERGE_SHA: ${{ needs.prepare.outputs.merge-sha }}
           VERSION: ${{ needs.prepare.outputs.version }}

@@ -47,7 +47,8 @@ squash-merges the prepared commit into the default branch and dispatches
 [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml) with the squash commit SHA.
 If the default branch has advanced by dispatch time, Release stops before building. Otherwise, approve `release-gate` after the builds finish.
 
-Only the upstream releases bot can start an auto-promotion. Maintainers can rerun a failed preparation.
+Only the upstream releases bot can start an auto-promotion. Release accepts dispatches from that bot or a personal GitHub account.
+Maintainers can rerun a failed preparation.
 If dispatch fails after the merge, rerun the failed dispatch job. If publication fails, rerun Release.
 For a manual release, run Prepare release on the default branch with **Auto-promote** off (the default).
 With no inputs, the release script uses its default extension version and the latest Ruff on PyPI.
