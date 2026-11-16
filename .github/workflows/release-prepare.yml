@@ -69,6 +69,6 @@ jobs:
           RUFF_VERSION: ${{ inputs.ruff-version }}
 
       - name: Create or update pull request
-        uses: astral-sh/github-actions/create-release-pr@b18ab2e0c11d16711c1818c8774babfa0203b909 # 2026.10.08.0
+        uses: astral-sh/github-actions/create-release-pr@67dc9ee1ddc113eccd8116e7b949fb6cdcd89889 # 2026.11.16.0
         with:
           version: ${{ inputs.version }}
