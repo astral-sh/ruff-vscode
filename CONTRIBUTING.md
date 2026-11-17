@@ -41,17 +41,16 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 ## Release
 
 Stable Ruff releases start [Prepare release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
-on the default branch with the upstream version and `auto-promote=true`. It opens a PR for the next even-minor
-extension version and watches its required checks for up to 30 minutes. Once they pass, the release bot
-squash-merges the prepared commit into the default branch and dispatches
-[Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml) with the squash commit SHA.
-If the default branch has advanced by dispatch time, Release stops before building. Otherwise, approve `release-gate` after the builds finish.
+on the default branch with `auto-promote=true`. Only the upstream releases bot can start an auto-promotion.
+Prepare skips older upstream versions and versions already pinned in a stable extension. Otherwise it opens a PR
+for the next even minor version. Once the required checks pass on the prepared commit, the bot squash-merges it.
+A separate job in the `release-dispatch` environment starts [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
+with the squash commit SHA. After the builds finish, approve `release-gate` to publish.
 
-Only the upstream releases bot can start an auto-promotion. Release accepts dispatches from that bot or a personal GitHub account.
-Maintainers can rerun a failed preparation.
-If dispatch fails after the merge, rerun the failed dispatch job. If publication fails, rerun Release.
-For a manual release, run Prepare release on the default branch with **Auto-promote** off (the default).
-With no inputs, the release script uses its default extension version and the latest Ruff on PyPI.
+### Manual releases
+
+Run Prepare release on the default branch with `auto-promote` off (the default). With no inputs, it bundles
+the latest Ruff on PyPI and sets the extension version to `<UTC year>.<current minor + 2>.0`.
 To prepare a specific upstream release, replace `<upstream-version>` with its version number.
 
 ```sh
@@ -59,8 +58,8 @@ gh workflow run release-prepare.yml --repo astral-sh/ruff-vscode -f ruff-version
 ```
 
 For an extension-only release or a pre-release, set the `version` input when preparing the PR.
-Review the PR and edit the changelog if needed, merge it, then run Release on the default branch. The extension version
-defaults to the one in `package.json`. Approve `release-gate` after the builds finish.
+Review the PR, edit the changelog if needed, and merge it. Start Release on the default branch from your personal GitHub account.
+The extension version defaults to the one in `package.json`. Approve `release-gate` after the builds finish.
 
 Odd minor versions are pre-releases and retain timestamped nightly build IDs; even minor versions are stable releases.
 
@@ -73,3 +72,11 @@ After both publications succeed, the workflow creates the `<version>` tag and Gi
 minor versions as pre-releases. Review and curate the generated GitHub release notes as needed.
 
 It may take a few minutes after the workflow completes for the extension to be available.
+
+### Retrying a release
+
+- If preparation fails before merge, a maintainer can rerun the failed job in Prepare release.
+- If dispatch fails after merge, rerun **Dispatch release** in the original Prepare release run to reuse the squash SHA.
+- If Release reports that the default branch advanced before dispatch, rerunning it checks the same SHA again.
+  Review the intervening commits, then start a new Release with the intended `version` and the reviewed commit as `expected-sha`.
+- If a build or publish job fails, rerun the failed jobs in the original Release run.
