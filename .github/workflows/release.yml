@@ -27,6 +27,7 @@ concurrency:
 
 env:
   FETCH_DEPTH: 0
+  RELEASE_COMMIT: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.pull_request.merge_commit_sha }}
 
 permissions: {}
 
@@ -55,32 +56,24 @@ jobs:
     permissions:
       contents: read
     outputs:
-      commit: ${{ steps.source.outputs.commit }}
       version: ${{ steps.metadata.outputs.version }}
       prerelease: ${{ steps.metadata.outputs.prerelease }}
       release-build-id: ${{ steps.release-build-id-generator.outputs.release-build-id }}
       nightly-build-id: ${{ steps.nightly-build-id-generator.outputs.nightly-build-id }}
     steps:
-      - name: Select the release commit
-        id: source
+      - name: Verify the requested release commit
         env:
           EXPECTED_SHA: ${{ inputs.expected-sha }}
-          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
-            commit="${MERGE_SHA:?Missing squash commit SHA}"
-          else
-            if [[ -n "$EXPECTED_SHA" && "$GITHUB_SHA" != "$EXPECTED_SHA" ]]; then
-              echo "::error::Expected $EXPECTED_SHA, but $GITHUB_REF was at $GITHUB_SHA when dispatched."
-              exit 1
-            fi
-            commit="$GITHUB_SHA"
+          : "${RELEASE_COMMIT:?Missing release commit SHA}"
+          if [[ -n "$EXPECTED_SHA" && "$RELEASE_COMMIT" != "$EXPECTED_SHA" ]]; then
+            echo "::error::Expected $EXPECTED_SHA, but $GITHUB_REF was at $RELEASE_COMMIT when dispatched."
+            exit 1
           fi
-          echo "commit=$commit" >> "$GITHUB_OUTPUT"
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ steps.source.outputs.commit }}
+          ref: ${{ env.RELEASE_COMMIT }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -101,7 +94,6 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Preparing ${VERSION} from ${RELEASE_COMMIT}" >> "$GITHUB_STEP_SUMMARY"
         env:
-          RELEASE_COMMIT: ${{ steps.source.outputs.commit }}
           VERSION: ${{ inputs.version }}
       - name: Generate Build ID (release)
         if: steps.metadata.outputs.prerelease == 'false'
@@ -167,7 +159,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.validate-release.outputs.commit }}
+          ref: ${{ env.RELEASE_COMMIT }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -287,7 +279,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.validate-release.outputs.commit }}
+          ref: ${{ env.RELEASE_COMMIT }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -361,7 +353,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.validate-release.outputs.commit }}
+          ref: ${{ env.RELEASE_COMMIT }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -441,5 +433,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE: ${{ needs.validate-release.outputs.prerelease }}
-          RELEASE_COMMIT: ${{ needs.validate-release.outputs.commit }}
           VERSION: ${{ needs.validate-release.outputs.version }}

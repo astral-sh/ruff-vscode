@@ -40,7 +40,7 @@ jobs:
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
       (!inputs.auto-promote || github.actor_id == '328004183')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     permissions:
       contents: read
       id-token: write # Exchange for the release PR token.
@@ -135,8 +135,7 @@ jobs:
           version: ${{ steps.plan.outputs.version }}
           token: ${{ steps.token.outputs.token }}
 
-      - name: Open automated release PR
-        id: auto-pr
+      - name: Open automated release PR and enable auto-merge
         if: steps.auto-branch.outputs.name != ''
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
@@ -158,13 +157,5 @@ jobs:
           pr_url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$DEFAULT_BRANCH" \
             --head "$BRANCH" --title "Release $VERSION" \
             --body "Prepared by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.")
-          printf 'url=%s\nsha=%s\n' "$pr_url" "$prepared_sha" >> "$GITHUB_OUTPUT"
           printf 'Automated release PR %s\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Enable auto-merge
-        if: steps.auto-pr.outputs.url != ''
-        env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          PR_URL: ${{ steps.auto-pr.outputs.url }}
-          PREPARED_SHA: ${{ steps.auto-pr.outputs.sha }}
-        run: gh pr merge "$PR_URL" --squash --auto --match-head-commit "${PREPARED_SHA:?Missing prepared head SHA}"
+          gh pr merge "$pr_url" --squash --auto --match-head-commit "$prepared_sha"
