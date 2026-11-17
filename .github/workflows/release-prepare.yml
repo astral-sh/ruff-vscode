@@ -50,7 +50,7 @@ jobs:
       statuses: read
     outputs:
       merge-sha: ${{ steps.merge.outputs.sha }}
-      version: ${{ steps.bump-files.outputs.version }}
+      version: ${{ steps.plan.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -66,44 +66,29 @@ jobs:
           python-version: "3.13"
 
       - name: Select extension version
-        id: bump
+        id: plan
         env:
           RUFF_VERSION: ${{ inputs.ruff-version }}
           VERSION: ${{ inputs.version }}
         run: |
-          if [[ -n "$RUFF_VERSION" && -z "$VERSION" ]]; then
-            uv run --locked scripts/release.py --plan-upstream "$RUFF_VERSION" >> "$GITHUB_OUTPUT"
-          else
-            if [[ -n "$VERSION" && ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::Enter an exact extension version to prepare a release PR."
-              exit 1
-            fi
-            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "prepare=true" >> "$GITHUB_OUTPUT"
-          fi
+          uv run --locked scripts/release.py --plan-version "$VERSION" "$RUFF_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Bump version and refresh lockfiles
-        id: bump-files
-        if: steps.bump.outputs.prepare == 'true'
+        if: steps.plan.outputs.version != ''
         env:
-          VERSION: ${{ steps.bump.outputs.version }}
+          VERSION: ${{ steps.plan.outputs.version }}
           RUFF_VERSION: ${{ inputs.ruff-version }}
         run: |
-          args=()
-          if [[ -n "$VERSION" ]]; then
-            args+=(--new-version "$VERSION")
-          fi
+          args=(--new-version "$VERSION")
           if [[ -n "$RUFF_VERSION" ]]; then
             args+=(--new-ruff "$RUFF_VERSION")
           fi
           uv run --locked scripts/release.py "${args[@]}"
-          version=$(uv run --locked --only-group jaq jaq -er '.version' package.json)
-          uv run --locked scripts/release.py --validate "${VERSION:-$version}"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          uv run --locked scripts/release.py --validate "$VERSION"
 
       - name: Get release PR token
         id: token
-        if: steps.bump.outputs.prepare == 'true'
+        if: steps.plan.outputs.version != ''
         uses: astral-sh/github-actions/simple-token-service@eb81cf4d13127c3f9539f621c17e4c65327636c8
         with:
           exchange-url: ${{ secrets.RELEASES_STS_API_URL }}/exchange
@@ -115,15 +100,15 @@ jobs:
 
       - name: Create release PR
         id: pr
-        if: steps.bump.outputs.prepare == 'true'
+        if: steps.plan.outputs.version != ''
         uses: astral-sh/github-actions/create-release-pr@b18ab2e0c11d16711c1818c8774babfa0203b909 # 2026.10.08.0
         with:
-          version: ${{ steps.bump-files.outputs.version }}
+          version: ${{ steps.plan.outputs.version }}
           token: ${{ steps.token.outputs.token }}
 
       - name: Watch required checks on the prepared PR
         id: checks
-        if: steps.bump.outputs.prepare == 'true' && inputs.auto-promote
+        if: steps.plan.outputs.version != '' && inputs.auto-promote
         timeout-minutes: 30
         env:
           GH_TOKEN: ${{ github.token }}
@@ -160,7 +145,7 @@ jobs:
 
       - name: Squash-merge the prepared commit
         id: merge
-        if: steps.bump.outputs.prepare == 'true' && inputs.auto-promote
+        if: steps.plan.outputs.version != '' && inputs.auto-promote
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           PR_URL: ${{ steps.pr.outputs.pull-request-url }}
@@ -178,7 +163,7 @@ jobs:
   dispatch-release:
     name: Dispatch release
     needs: prepare
-    if: inputs.auto-promote && needs.prepare.outputs.merge-sha != ''
+    if: needs.prepare.outputs.merge-sha != ''
     environment: release-dispatch
     runs-on: ubuntu-latest
     permissions:
