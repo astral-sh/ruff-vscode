@@ -86,6 +86,23 @@ jobs:
             fi
           done <<< "$prs"
 
+      - name: Verify protection for the automated release branch
+        id: auto-branch
+        if: steps.plan.outputs.version != '' && inputs.auto-promote
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          branch="release/auto/$VERSION-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          # Auto-merge can survive an update by someone with write access.
+          locked=$(gh api "repos/$GITHUB_REPOSITORY/rules/branches/${branch//\//%2F}" \
+            --jq 'any(.[]; .type == "update" and (.parameters.update_allows_fetch_and_merge != true))')
+          if [[ "$locked" != true ]]; then
+            echo "::error::Configure the Restrict updates ruleset for release/auto/* before enabling auto-promotion."
+            exit 1
+          fi
+          echo "name=$branch" >> "$GITHUB_OUTPUT"
+
       - name: Bump version and refresh lockfiles
         if: steps.plan.outputs.version != ''
         env:
@@ -118,34 +135,36 @@ jobs:
           version: ${{ steps.plan.outputs.version }}
           token: ${{ steps.token.outputs.token }}
 
-      - name: Create and enable auto-merge on the release PR
-        if: steps.plan.outputs.version != '' && inputs.auto-promote
+      - name: Open automated release PR
+        id: auto-pr
+        if: steps.auto-branch.outputs.name != ''
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
+          BRANCH: ${{ steps.auto-branch.outputs.name }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           VERSION: ${{ steps.plan.outputs.version }}
         run: |
-          branch="release/auto/$VERSION-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          # Auto-merge can survive an update by someone with write access.
-          locked=$(gh api "repos/$GITHUB_REPOSITORY/rules/branches/${branch//\//%2F}" \
-            --jq 'any(.[]; .type == "update" and (.parameters.update_allows_fetch_and_merge != true))')
-          if [[ "$locked" != true ]]; then
-            echo "::error::Configure the Restrict updates ruleset for release/auto/* before enabling auto-promotion."
-            exit 1
-          fi
-
-          git add --update
-          git diff --cached --check
+          git diff --check HEAD
           git -c user.name="github-actions[bot]" \
             -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -m "Release $VERSION"
-          prepared_sha=$(git rev-parse HEAD)
+            commit --all --message "Release $VERSION"
 
+          gh auth setup-git --hostname github.com
+          ref="refs/heads/$BRANCH"
+          prepared_sha=$(git rev-parse HEAD)
           # An empty lease requires the branch to be new.
-          git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push \
-            --force-with-lease="refs/heads/$branch:" \
-            "https://github.com/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$branch"
+          git push --force-with-lease="$ref:" origin "$prepared_sha:$ref"
+
           pr_url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$DEFAULT_BRANCH" \
-            --head "$branch" --title "Release $VERSION" --body "Prepared by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.")
+            --head "$BRANCH" --title "Release $VERSION" \
+            --body "Prepared by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.")
+          printf 'url=%s\nsha=%s\n' "$pr_url" "$prepared_sha" >> "$GITHUB_OUTPUT"
           printf 'Automated release PR %s\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
-          gh pr merge "$pr_url" --squash --auto --match-head-commit "$prepared_sha"
+
+      - name: Enable auto-merge
+        if: steps.auto-pr.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          PR_URL: ${{ steps.auto-pr.outputs.url }}
+          PREPARED_SHA: ${{ steps.auto-pr.outputs.sha }}
+        run: gh pr merge "$PR_URL" --squash --auto --match-head-commit "${PREPARED_SHA:?Missing prepared head SHA}"
