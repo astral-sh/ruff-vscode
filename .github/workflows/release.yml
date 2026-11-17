@@ -88,11 +88,11 @@ jobs:
               echo "::error::PR #$RELEASE_PR must be an automated release merged into $DEFAULT_BRANCH."
               exit 1
             fi
-            if ! git merge-base --is-ancestor "$commit" "$GITHUB_SHA"; then
-              echo "::error::Release commit $commit is outside the history of $GITHUB_REF at dispatch."
+            # The tag requires a successful release deployment for this exact commit.
+            if [[ "$commit" != "$GITHUB_SHA" ]]; then
+              echo "::error::PR #$RELEASE_PR merged at $commit, but $GITHUB_REF was at $GITHUB_SHA when Release was dispatched."
               exit 1
             fi
-            git switch --detach "$commit"
           fi
           printf 'commit=%s\n' "$commit" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

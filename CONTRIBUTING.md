@@ -86,4 +86,7 @@ It may take a few minutes after the workflow completes for the extension to be a
 - If Prepare reports a conflicting release PR for the same version, resolve that PR before rerunning.
 - If the merge listener fails to dispatch Release, rerun it or start Release from your personal GitHub
   account with the merged PR number as `release-pr`.
+- If the default branch advances between merge and dispatch, review the intervening changes and start
+  Release manually without `release-pr`. Set `version` to the intended extension version and `expected-sha`
+  to the default branch commit you reviewed.
 - If a build or publish job fails, rerun the failed jobs in the original Release run.
