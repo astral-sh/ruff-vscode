@@ -43,9 +43,13 @@ View client logs in the "Ruff" output channel and server logs in "Ruff Language 
 Stable Ruff releases start [Prepare release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release-prepare.yml)
 on the default branch with `auto-promote=true`. Only the upstream releases bot can start an auto-promotion.
 Prepare skips older upstream versions and versions already pinned in a stable extension. Otherwise it opens a PR
-for the next even minor version. Once the required checks pass on the prepared commit, the bot squash-merges it.
-A separate job in the `release-dispatch` environment starts [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
-with the squash commit SHA. After the builds finish, approve `release-gate` to publish.
+for the next even minor version and enables GitHub auto-merge. GitHub squash-merges it when the branch protection
+requirements are met. The merge starts [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
+at the squash commit. After the builds finish, approve `release-gate` to publish.
+
+Before enabling auto-promotion, create an active branch ruleset for `release/auto/*` with **Restrict updates**,
+no bypass actors, and branch creation and deletion allowed. This keeps the prepared head fixed while GitHub waits
+to merge. The Prepare workflow checks for the update restriction before pushing the release branch.
 
 ### Manual releases
 
@@ -75,8 +79,8 @@ It may take a few minutes after the workflow completes for the extension to be a
 
 ### Retrying a release
 
-- If preparation fails before merge, a maintainer can rerun the failed job in Prepare release.
-- If dispatch fails after merge, rerun **Dispatch release** in the original Prepare release run to reuse the squash SHA.
-- If Release reports that the default branch advanced before dispatch, rerunning it checks the same SHA again.
-  Review the intervening commits, then start a new Release with the intended `version` and the reviewed commit as `expected-sha`.
+- If preparation fails before opening a PR, rerun the failed job in Prepare release.
+- If an automated release PR is behind the default branch or preparation failed while enabling auto-merge, close
+  the PR and rerun Prepare release to create a fresh branch from the current default branch.
+- If Prepare reports another release PR is open, resolve that PR before rerunning.
 - If a build or publish job fails, rerun the failed jobs in the original Release run.

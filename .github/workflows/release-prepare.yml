@@ -40,17 +40,11 @@ jobs:
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
       (!inputs.auto-promote || github.actor_id == '328004183')
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     permissions:
-      actions: read
-      checks: read
       contents: read
       id-token: write # Exchange for the release PR token.
       pull-requests: read
-      statuses: read
-    outputs:
-      merge-sha: ${{ steps.merge.outputs.sha }}
-      version: ${{ steps.plan.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -72,6 +66,25 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           uv run --locked scripts/release.py --plan-version "$VERSION" "$RUFF_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check for an existing release PR
+        if: steps.plan.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          AUTO_PROMOTE: ${{ inputs.auto-promote }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          prs=$(gh api --method GET "repos/$GITHUB_REPOSITORY/pulls" --paginate \
+            -f state=open -f base="$DEFAULT_BRANCH" -F per_page=100 \
+            --jq '.[] | select(.head.repo.id == .base.repo.id) | [.head.ref, .html_url] | @tsv')
+          while IFS=$'\t' read -r head url; do
+            if [[ "$head" == "release/auto/$VERSION-"* ||
+                  ( "$AUTO_PROMOTE" == true && ( "$head" == release/auto/* || "$head" == "release/$VERSION" ) ) ]]; then
+              echo "::error::A release PR is already open: $url"
+              exit 1
+            fi
+          done <<< "$prs"
 
       - name: Bump version and refresh lockfiles
         if: steps.plan.outputs.version != ''
@@ -98,93 +111,41 @@ jobs:
             contents: write
             pull_requests: write
 
-      - name: Create release PR
-        id: pr
-        if: steps.plan.outputs.version != ''
+      - name: Create manual release PR
+        if: steps.plan.outputs.version != '' && inputs.auto-promote == false
         uses: astral-sh/github-actions/create-release-pr@67dc9ee1ddc113eccd8116e7b949fb6cdcd89889 # 2026.11.16.0
         with:
           version: ${{ steps.plan.outputs.version }}
           token: ${{ steps.token.outputs.token }}
 
-      - name: Watch required checks on the prepared PR
-        id: checks
-        if: steps.plan.outputs.version != '' && inputs.auto-promote
-        timeout-minutes: 30
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_URL: ${{ steps.pr.outputs.pull-request-url }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          # create-release-pr leaves HEAD at the release commit it pushed.
-          prepared_sha=$(git rev-parse HEAD)
-          verify_pr() {
-            local pr state base head
-            pr=$(gh pr view "$PR_URL" --json state,baseRefName,headRefOid \
-              --jq '[.state, .baseRefName, .headRefOid] | @tsv')
-            IFS=$'\t' read -r state base head <<< "$pr"
-            if [[ "$state" != OPEN || "$base" != "$DEFAULT_BRANCH" || "$head" != "$prepared_sha" ]]; then
-              echo "::error::Expected an open PR into $DEFAULT_BRANCH at $prepared_sha, found $state into $base at $head."
-              exit 1
-            fi
-          }
-          verify_pr
-          # gh exits before watching if GitHub hasn't reported any required checks yet.
-          errors="$RUNNER_TEMP/pr-checks.err"
-          for attempt in {1..12}; do
-            if gh pr checks "$PR_URL" --watch --required 2>"$errors"; then
-              break
-            fi
-            cat "$errors" >&2
-            if [[ "$attempt" == 12 ]] || ! grep -Eq '^no (required )?checks reported on ' "$errors"; then
-              exit 1
-            fi
-            sleep 5
-          done
-          verify_pr
-          echo "head-sha=$prepared_sha" >> "$GITHUB_OUTPUT"
-
-      - name: Squash-merge the prepared commit
-        id: merge
+      - name: Create and enable auto-merge on the release PR
         if: steps.plan.outputs.version != '' && inputs.auto-promote
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
-          PR_URL: ${{ steps.pr.outputs.pull-request-url }}
-          PREPARED_SHA: ${{ steps.checks.outputs.head-sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          VERSION: ${{ steps.plan.outputs.version }}
         run: |
-          endpoint="repos/$GITHUB_REPOSITORY/pulls/${PR_URL##*/}"
-          sha=$(gh api --method PUT "$endpoint/merge" -f merge_method=squash -f sha="${PREPARED_SHA:?Missing prepared head SHA}" \
-            --jq 'select(.merged) | .sha // empty')
-          if [[ -z "$sha" ]]; then
-            echo "::error::GitHub did not return a merge commit SHA."
+          branch="release/auto/$VERSION-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          # Auto-merge can survive an update by someone with write access.
+          locked=$(gh api "repos/$GITHUB_REPOSITORY/rules/branches/${branch//\//%2F}" \
+            --jq 'any(.[]; .type == "update" and (.parameters.update_allows_fetch_and_merge != true))')
+          if [[ "$locked" != true ]]; then
+            echo "::error::Configure the Restrict updates ruleset for release/auto/* before enabling auto-promotion."
             exit 1
           fi
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
-  dispatch-release:
-    name: Dispatch release
-    needs: prepare
-    if: needs.prepare.outputs.merge-sha != ''
-    environment: release-dispatch
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write # Exchange for the release dispatch token.
-    steps:
-      - name: Get release dispatch token
-        id: token
-        uses: astral-sh/github-actions/simple-token-service@eb81cf4d13127c3f9539f621c17e4c65327636c8
-        with:
-          exchange-url: ${{ secrets.RELEASES_STS_API_URL }}/exchange
-          audience: ${{ secrets.RELEASES_STS_API_URL }}
-          repository: astral-sh/ruff-vscode
-          permissions: |
-            actions: write
+          git add --update
+          git diff --cached --check
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Release $VERSION"
+          prepared_sha=$(git rev-parse HEAD)
 
-      - name: Dispatch the publisher for the squash commit
-        env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          MERGE_SHA: ${{ needs.prepare.outputs.merge-sha }}
-          VERSION: ${{ needs.prepare.outputs.version }}
-        run: |
-          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$DEFAULT_BRANCH" \
-            -f version="$VERSION" -f expected-sha="$MERGE_SHA"
+          # An empty lease requires the branch to be new.
+          git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push \
+            --force-with-lease="refs/heads/$branch:" \
+            "https://github.com/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$branch"
+          pr_url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$DEFAULT_BRANCH" \
+            --head "$branch" --title "Release $VERSION" --body "Prepared by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID.")
+          printf 'Automated release PR %s\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
+          gh pr merge "$pr_url" --squash --auto --match-head-commit "$prepared_sha"

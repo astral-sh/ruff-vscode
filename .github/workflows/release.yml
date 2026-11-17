@@ -1,6 +1,8 @@
 # Validate and publish a release, then create its tag and GitHub release.
 name: Release
 on:
+  pull_request:
+    types: [closed]
   workflow_dispatch:
     inputs:
       version:
@@ -13,7 +15,13 @@ on:
         type: string
 
 concurrency:
-  group: release
+  # Unrelated PR closures never enter the release queue.
+  group: >-
+    ${{ (github.event_name == 'workflow_dispatch' ||
+         (github.event.pull_request.merged &&
+          github.event.pull_request.user.id == 328004183 &&
+          startsWith(github.head_ref, 'release/auto/'))) && 'release' ||
+        format('release-skip-{0}', github.run_id) }}
   queue: max
   cancel-in-progress: false
 
@@ -32,32 +40,46 @@ jobs:
   # to ensure that we use the same Build ID across all build jobs.
   validate-release:
     name: Validate release
-    # On reruns, authorize the original dispatcher (a user or astral-releases-bot[bot]).
     if: >-
       github.repository == 'astral-sh/ruff-vscode' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
-      (github.actor_id == '328004183' ||
-       (github.event.sender.type == 'User' && format('{0}', github.event.sender.id) == github.actor_id))
+      ((github.event_name == 'workflow_dispatch' &&
+        github.event.sender.type == 'User' && format('{0}', github.event.sender.id) == github.actor_id) ||
+       (github.event_name == 'pull_request' &&
+        github.event.pull_request.merged &&
+        github.event.pull_request.head.repo.id == github.event.repository.id &&
+        github.event.pull_request.user.id == 328004183 &&
+        startsWith(github.head_ref, 'release/auto/')))
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
+      commit: ${{ steps.source.outputs.commit }}
       version: ${{ steps.metadata.outputs.version }}
       prerelease: ${{ steps.metadata.outputs.prerelease }}
       release-build-id: ${{ steps.release-build-id-generator.outputs.release-build-id }}
       nightly-build-id: ${{ steps.nightly-build-id-generator.outputs.nightly-build-id }}
     steps:
-      - name: Verify the requested release commit
+      - name: Select the release commit
+        id: source
         env:
           EXPECTED_SHA: ${{ inputs.expected-sha }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         run: |
-          if [[ -n "$EXPECTED_SHA" && "$GITHUB_SHA" != "$EXPECTED_SHA" ]]; then
-            echo "::error::Expected $EXPECTED_SHA, but $GITHUB_REF was at $GITHUB_SHA when dispatched."
-            exit 1
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            commit="${MERGE_SHA:?Missing squash commit SHA}"
+          else
+            if [[ -n "$EXPECTED_SHA" && "$GITHUB_SHA" != "$EXPECTED_SHA" ]]; then
+              echo "::error::Expected $EXPECTED_SHA, but $GITHUB_REF was at $GITHUB_SHA when dispatched."
+              exit 1
+            fi
+            commit="$GITHUB_SHA"
           fi
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ steps.source.outputs.commit }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -76,8 +98,9 @@ jobs:
           fi
           uv run --locked scripts/release.py --validate "$VERSION" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Preparing ${VERSION} from ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preparing ${VERSION} from ${RELEASE_COMMIT}" >> "$GITHUB_STEP_SUMMARY"
         env:
+          RELEASE_COMMIT: ${{ steps.source.outputs.commit }}
           VERSION: ${{ inputs.version }}
       - name: Generate Build ID (release)
         if: steps.metadata.outputs.prerelease == 'false'
@@ -143,6 +166,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.validate-release.outputs.commit }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -262,6 +286,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.validate-release.outputs.commit }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -335,6 +360,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.validate-release.outputs.commit }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -414,5 +440,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE: ${{ needs.validate-release.outputs.prerelease }}
-          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_COMMIT: ${{ needs.validate-release.outputs.commit }}
           VERSION: ${{ needs.validate-release.outputs.version }}
