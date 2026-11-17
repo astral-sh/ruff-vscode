@@ -61,8 +61,8 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           # renovate: datasource=github-release-attachments depName=astral-sh/uv
-          version: "0.13.7"
-          checksum: "c5221ff41b7892bfc223543883600125f6a47fe845093e0f5bdff4f359196d83"
+          version: "0.13.8"
+          checksum: "5acfd9177cfecf0bf87578f059728215ccc884388988f55f7a65041b57387d91"
           python-version: "3.13"
 
       - name: Select extension version
@@ -101,7 +101,7 @@ jobs:
       - name: Create release PR
         id: pr
         if: steps.plan.outputs.version != ''
-        uses: astral-sh/github-actions/create-release-pr@b18ab2e0c11d16711c1818c8774babfa0203b909 # 2026.10.08.0
+        uses: astral-sh/github-actions/create-release-pr@67dc9ee1ddc113eccd8116e7b949fb6cdcd89889 # 2026.11.16.0
         with:
           version: ${{ steps.plan.outputs.version }}
           token: ${{ steps.token.outputs.token }}

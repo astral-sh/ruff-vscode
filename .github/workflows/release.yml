@@ -66,8 +66,8 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           # renovate: datasource=github-release-attachments depName=astral-sh/uv
-          version: "0.13.7"
-          checksum: "c5221ff41b7892bfc223543883600125f6a47fe845093e0f5bdff4f359196d83"
+          version: "0.13.8"
+          checksum: "5acfd9177cfecf0bf87578f059728215ccc884388988f55f7a65041b57387d91"
       - name: Validate release metadata
         id: metadata
         run: |
@@ -139,7 +139,7 @@ jobs:
 
     steps:
       - if: runner.os == 'macOS'
-        uses: astral-sh/github-actions/demudhra@7aa50a3def9f5428c532b0ae972d1e5b357de5a5 # 2026.11.03.0
+        uses: astral-sh/github-actions/demudhra@67dc9ee1ddc113eccd8116e7b949fb6cdcd89889 # 2026.11.16.0
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -195,7 +195,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "26.11.1"
+          node-version: "26.12.0"
           package-manager-cache: false
 
       # Install Node dependencies.
@@ -256,7 +256,7 @@ jobs:
       - name: Install Nodejs
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "26.11.1"
+          node-version: "26.12.0"
           package-manager-cache: false
 
       - name: Checkout repository
@@ -329,7 +329,7 @@ jobs:
       - name: Install Nodejs
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "26.11.1"
+          node-version: "26.12.0"
           package-manager-cache: false
 
       - name: Checkout repository
