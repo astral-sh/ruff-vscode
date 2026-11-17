@@ -40,6 +40,7 @@ from rich_argparse import RawDescriptionRichHelpFormatter
 
 PYPROJECT_TOML_PATH = Path("pyproject.toml")
 PACKAGE_JSON_PATH = Path("package.json")
+PACKAGE_LOCK_JSON_PATH = Path("package-lock.json")
 README_PATH = Path("README.md")
 CHANGELOG_PATH = Path("CHANGELOG.md")
 
@@ -70,33 +71,59 @@ def latest_pypi_version(project_name: str) -> Version:
     return Version(pypi_json.json()["info"]["version"])
 
 
+def current_versions() -> tuple[Version, Version]:
+    """Read the checked-in extension version and bundled Ruff pin."""
+    with PYPROJECT_TOML_PATH.open("rb") as pyproject_file:
+        project = tomli.load(pyproject_file)["project"]
+
+    dependencies = {
+        requirement.name: requirement.specifier
+        for requirement in map(Requirement, project["dependencies"])
+    }
+    return Version(project["version"]), existing_dependency_pin(dependencies, "ruff")
+
+
+def next_extension_version(current: Version, *, stable: bool = False) -> Version:
+    minor = current.minor + 2
+    if stable:
+        minor -= minor % 2
+    return Version(f"{dt.datetime.now(dt.timezone.utc).year}.{minor}.0")
+
+
+def plan_release(version: str, upstream: str) -> Version | None:
+    """Select the extension version for these dispatch inputs, or skip the release."""
+    if version:
+        return parse_exact_version(version, "extension")
+
+    current, pin = current_versions()
+    if upstream:
+        requested = parse_exact_version(upstream, "Ruff")
+        if requested < pin or (requested == pin and current.minor % 2 == 0):
+            return None
+    return next_extension_version(current, stable=bool(upstream))
+
+
 def get_ruff_versions(
     *,
     new_ruff_vscode_version: Version | None,
     new_ruff_version: Version | None,
 ) -> RuffVersions:
-    """
-    Obtain metadata about the project; figure out what the new metadata should be.
-    """
-    with PYPROJECT_TOML_PATH.open("rb") as pyproject_file:
-        pyproject_toml = tomli.load(pyproject_file)
-
-    existing_ruff_vscode_version = Version(pyproject_toml["project"]["version"])
+    existing_ruff_vscode_version, pin = current_versions()
 
     if new_ruff_vscode_version is None:
-        major = dt.datetime.now(dt.timezone.utc).year
-        minor = existing_ruff_vscode_version.minor + 2
-        new_ruff_vscode_version = Version(f"{major}.{minor}.0")
+        new_ruff_vscode_version = next_extension_version(existing_ruff_vscode_version)
 
-    dependencies = {
-        requirement.name: requirement.specifier
-        for requirement in map(Requirement, pyproject_toml["project"]["dependencies"])
-    }
+    if new_ruff_vscode_version <= existing_ruff_vscode_version:
+        raise SystemExit(
+            f"Requested version {new_ruff_vscode_version} must be greater than "
+            f"current version {existing_ruff_vscode_version}"
+        )
+    validate_version_increase(new_ruff_vscode_version)
 
     return RuffVersions(
         existing_vscode_version=existing_ruff_vscode_version,
         new_vscode_version=new_ruff_vscode_version,
-        existing_ruff_pin=existing_dependency_pin(dependencies, "ruff"),
+        existing_ruff_pin=pin,
         latest_ruff=(new_ruff_version or latest_pypi_version("ruff")),
     )
 
@@ -126,13 +153,13 @@ def update_pyproject_toml(versions: RuffVersions) -> None:
 
 
 def bump_package_json_version(new_version: Version) -> None:
-    """Update the version of this package in `package.json`."""
-    with PACKAGE_JSON_PATH.open("rb") as package_json_file:
-        package_json = json.load(package_json_file)
-    package_json["version"] = str(new_version)
-    with PACKAGE_JSON_PATH.open("w") as package_json_file:
-        json.dump(package_json, package_json_file, indent=2)
-        package_json_file.write("\n")
+    """Update the extension version in the npm manifest and lockfile."""
+    for path in (PACKAGE_JSON_PATH, PACKAGE_LOCK_JSON_PATH):
+        package = json.loads(path.read_bytes())
+        package["version"] = str(new_version)
+        if path == PACKAGE_LOCK_JSON_PATH:
+            package["packages"][""]["version"] = str(new_version)
+        path.write_text(json.dumps(package, indent=2, ensure_ascii=False) + "\n")
 
 
 README_DESCRIPTION_REGEX = re.compile(
@@ -199,32 +226,41 @@ def update_changelog(versions: RuffVersions) -> None:
     CHANGELOG_PATH.write_text("".join(changelog_lines))
 
 
-def lock_requirements() -> None:
-    """Update this package's lockfiles."""
-    Path("requirements.txt").unlink()
-    subprocess.run(
-        ["uv", "lock", "--default-index", "https://pypi.org/simple"], check=True
-    )
-    subprocess.run(
-        [
-            "uv",
-            "export",
-            "--default-index",
-            "https://pypi.org/simple",
-            "--format",
-            "requirements-txt",
-            "--no-dev",
-            "--no-emit-project",
-            "--locked",
-            "--output-file",
-            "./requirements.txt",
-        ],
-        check=True,
-    )
-    subprocess.run(
-        ["npm", "install", "--package-lock-only", "--ignore-scripts"],
-        check=True,
-    )
+def locked_dependencies(lock: bytes) -> list[dict[str, object]]:
+    """Return the dependency records a Ruff version bump must preserve."""
+    dependencies = []
+    for package in tomli.loads(lock.decode("utf-8"))["package"]:
+        if package["source"] == {"virtual": "."}:
+            continue
+        if package["name"] == "ruff":
+            for key in ("version", "sdist", "wheels"):
+                package.pop(key, None)
+        dependencies.append(package)
+    return dependencies
+
+
+def update_ruff_requirements() -> None:
+    """Refresh Ruff's lock entry and export its distribution hashes for the build."""
+    lockfile = Path("uv.lock")
+    original = lockfile.read_bytes()
+    try:
+        requirements = subprocess.check_output(
+            [
+                "uv",
+                "export",
+                "--no-build",
+                "--default-index",
+                "https://pypi.org/simple",
+                "--no-dev",
+                "--no-emit-project",
+            ]
+        )
+        if locked_dependencies(lockfile.read_bytes()) != locked_dependencies(original):
+            raise SystemExit("The Ruff release would change other locked dependencies")
+        Path("requirements.txt").write_bytes(requirements)
+    except BaseException:
+        lockfile.write_bytes(original)
+        raise
 
 
 def commit_changes(versions: RuffVersions) -> None:
@@ -260,21 +296,45 @@ def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
     bump_package_json_version(versions.new_vscode_version)
     update_readme(versions.latest_ruff)
     update_changelog(versions)
-    lock_requirements()
+    update_ruff_requirements()
     if prepare_pr:
         commit_changes(versions)
 
 
-def validate_release(version: str) -> bool:
-    """Validate release metadata and return whether this is a pre-release."""
-    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
-        raise SystemExit(f"Invalid extension version: {version!r}")
+VERSION_REGEX = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
+
+
+def validate_version_increase(version: Version) -> None:
+    """Require a version greater than every existing release tag."""
+    tags = subprocess.run(
+        ["git", "tag", "--list"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    versions = [Version(tag) for tag in tags if VERSION_REGEX.fullmatch(tag)]
+    if versions and version <= (latest_version := max(versions)):
+        raise SystemExit(
+            f"Requested version {version} must be greater than "
+            f"latest release {latest_version}"
+        )
+
+
+def parse_exact_version(version: str, project: str) -> Version:
+    if not VERSION_REGEX.fullmatch(version):
+        raise SystemExit(f"Invalid {project} version: {version!r}")
 
     parsed_version = Version(version)
     if str(parsed_version) != version:
         raise SystemExit(
-            f"Requested version {version} was normalized to {parsed_version}"
+            f"Requested {project} version {version} was normalized to {parsed_version}"
         )
+    return parsed_version
+
+
+def validate_release(version: str) -> bool:
+    """Validate release metadata and return whether this is a pre-release."""
+    parsed_version = parse_exact_version(version, "extension")
 
     with PACKAGE_JSON_PATH.open("rb") as package_file:
         package = json.load(package_file)
@@ -290,14 +350,7 @@ def validate_release(version: str) -> bool:
                 f"{path} version {metadata['version']}"
             )
 
-    tag = subprocess.run(
-        ["git", "tag", "--list", version],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    if tag:
-        raise SystemExit(f"Tag {version} already exists")
+    validate_version_increase(parsed_version)
 
     return parsed_version.minor % 2 != 0
 
@@ -324,7 +377,8 @@ def main() -> None:
         type=Version,
         help=(
             "The version to set for this release. "
-            "Defaults to `${CURRENT_MAJOR}.${CURRENT_MINOR + 2}.0`"
+            "Defaults to the current UTC year, the checked-in minor plus two, "
+            "and patch zero."
         ),
     )
     parser.add_argument(
@@ -335,7 +389,28 @@ def main() -> None:
             "Defaults to the latest version available on PyPI."
         ),
     )
+    parser.add_argument(
+        "--plan-version",
+        nargs=2,
+        metavar=("EXTENSION_VERSION", "RUFF_VERSION"),
+        help=(
+            "Select an extension version from the two workflow inputs. "
+            "Pass an empty string for each unspecified input."
+        ),
+    )
     args = parser.parse_args()
+    if args.plan_version is not None:
+        if (
+            args.validate is not None
+            or args.prepare_pr
+            or args.new_version is not None
+            or args.new_ruff is not None
+        ):
+            parser.error("--plan-version must be used on its own")
+        version = plan_release(*args.plan_version)
+        if version is not None:
+            print(f"version={version}")
+        return
     if args.validate is not None:
         if args.prepare_pr or args.new_version is not None or args.new_ruff is not None:
             parser.error(

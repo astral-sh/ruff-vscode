@@ -1,0 +1,30 @@
+name: Dispatch Release after an automated release merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  dispatch:
+    if: >-
+      github.repository == 'astral-sh/ruff-vscode' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      github.event.pull_request.merged &&
+      github.event.pull_request.head.repo.id == github.event.repository.id &&
+      github.event.pull_request.user.login == 'astral-releases-bot[bot]' &&
+      startsWith(github.head_ref, 'release/auto/')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch Release for the merged PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" \
+            --ref "$DEFAULT_BRANCH" -f release-pr="$PR_NUMBER"
