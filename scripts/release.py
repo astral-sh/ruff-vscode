@@ -374,7 +374,8 @@ def main() -> None:
         type=Version,
         help=(
             "The version to set for this release. "
-            "Defaults to `${CURRENT_MAJOR}.${CURRENT_MINOR + 2}.0`"
+            "Defaults to the current UTC year, the checked-in minor plus two, "
+            "and patch zero."
         ),
     )
     parser.add_argument(

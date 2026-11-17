@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       expected-sha:
-        description: Expected default branch commit for publishing
+        description: Require the default branch to point to this commit at dispatch (optional)
         required: false
         type: string
 
@@ -232,7 +232,7 @@ jobs:
 
   # Phase 3: Approve the release after all platform builds succeed.
   release-gate:
-    # N.B. This name should not change; the release environment gate relies on it.
+    # The release environment protection rule looks up this job by name.
     name: release-gate
     needs: build
     runs-on: ubuntu-latest
