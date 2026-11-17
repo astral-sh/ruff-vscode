@@ -44,8 +44,9 @@ Stable Ruff releases start [Prepare release](https://github.com/astral-sh/ruff-v
 on the default branch with `auto-promote=true`. Only the upstream releases bot can start an auto-promotion.
 Prepare skips older upstream versions and versions already pinned in a stable extension. Otherwise it opens a PR
 for the next even minor version and enables GitHub auto-merge. GitHub squash-merges it when the branch protection
-requirements are met. The merge starts [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
-at the squash commit. After the builds finish, approve `release-gate` to publish.
+requirements are met. The merge listener dispatches [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
+with the PR number. Release verifies the merged PR and builds from its squash commit. After the builds finish,
+approve `release-gate` to publish.
 
 Before enabling auto-promotion, apply the organization rulesets for `release/auto/*`. They reserve branch creation
 for the releases bot and block updates, keeping the prepared commit fixed while GitHub waits to merge. GitHub
@@ -83,4 +84,6 @@ It may take a few minutes after the workflow completes for the extension to be a
 - If an automated release PR is behind the default branch or preparation fails after pushing
   `release/auto/<version>`, close the PR if it exists and delete that branch before rerunning Prepare release.
 - If Prepare reports a conflicting release PR for the same version, resolve that PR before rerunning.
+- If the merge listener fails to dispatch Release, rerun it or start Release from your personal GitHub
+  account with the merged PR number as `release-pr`.
 - If a build or publish job fails, rerun the failed jobs in the original Release run.
