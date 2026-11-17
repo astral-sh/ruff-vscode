@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      release-pr:
+        description: Merged automated release PR to publish (optional)
+        required: false
+        type: string
       version:
         description: Extension version without a leading v (defaults to package.json)
         required: false
@@ -32,16 +36,18 @@ jobs:
   # to ensure that we use the same Build ID across all build jobs.
   validate-release:
     name: Validate release
-    # On reruns, authorize the original dispatcher (a user or astral-releases-bot[bot]).
+    # The merge listener dispatches as github-actions[bot] (account ID 41898282).
     if: >-
       github.repository == 'astral-sh/ruff-vscode' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
-      (github.actor_id == '328004183' ||
-       (github.event.sender.type == 'User' && format('{0}', github.event.sender.id) == github.actor_id))
+      ((github.event.sender.type == 'User' && format('{0}', github.event.sender.id) == github.actor_id) ||
+       (github.actor_id == '41898282' && inputs.release-pr != ''))
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: read
     outputs:
+      commit: ${{ steps.source.outputs.commit }}
       version: ${{ steps.metadata.outputs.version }}
       prerelease: ${{ steps.metadata.outputs.prerelease }}
       release-build-id: ${{ steps.release-build-id-generator.outputs.release-build-id }}
@@ -60,6 +66,35 @@ jobs:
         with:
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
+      - name: Select the release commit
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_PR: ${{ inputs.release-pr }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          commit="$GITHUB_SHA"
+          if [[ -n "$RELEASE_PR" ]]; then
+            if [[ ! "$RELEASE_PR" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::Invalid release PR number: $RELEASE_PR"
+              exit 1
+            fi
+            pr=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$RELEASE_PR" --jq '
+              select(.merged and .head.repo.id == .base.repo.id and
+                .user.login == "astral-releases-bot[bot]" and (.head.ref | startswith("release/auto/"))) |
+              [.base.ref, .merge_commit_sha] | @tsv')
+            IFS=$'\t' read -r base commit <<< "$pr"
+            if [[ "$base" != "$DEFAULT_BRANCH" || -z "$commit" ]]; then
+              echo "::error::PR #$RELEASE_PR must be an automated release merged into $DEFAULT_BRANCH."
+              exit 1
+            fi
+            if ! git merge-base --is-ancestor "$commit" "$GITHUB_SHA"; then
+              echo "::error::Release commit $commit is outside the history of $GITHUB_REF at dispatch."
+              exit 1
+            fi
+            git switch --detach "$commit"
+          fi
+          printf 'commit=%s\n' "$commit" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
@@ -76,8 +111,9 @@ jobs:
           fi
           uv run --locked scripts/release.py --validate "$VERSION" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Preparing ${VERSION} from ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preparing ${VERSION} from ${RELEASE_COMMIT}" >> "$GITHUB_STEP_SUMMARY"
         env:
+          RELEASE_COMMIT: ${{ steps.source.outputs.commit }}
           VERSION: ${{ inputs.version }}
       - name: Generate Build ID (release)
         if: steps.metadata.outputs.prerelease == 'false'
@@ -143,6 +179,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.validate-release.outputs.commit }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -262,6 +299,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.validate-release.outputs.commit }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -335,6 +373,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.validate-release.outputs.commit }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
           persist-credentials: false
 
@@ -396,9 +435,22 @@ jobs:
     name: Create GitHub release
     needs: ["validate-release", "publish-code-marketplace", "publish-openvsx"]
     runs-on: ubuntu-latest
+    environment: release
     permissions:
-      contents: write
+      id-token: write
     steps:
+      - name: Get release tag token
+        id: tag-token
+        uses: astral-sh/github-actions/simple-token-service@eb81cf4d13127c3f9539f621c17e4c65327636c8
+        with:
+          exchange-url: ${{ secrets.RELEASES_STS_API_URL }}/exchange
+          audience: ${{ secrets.RELEASES_STS_API_URL }}
+          repository: astral-sh/ruff-vscode
+          # GitHub requires workflow permission when tagging a commit whose workflow files differ from main.
+          permissions: |
+            contents: write
+            workflows: write
+
       - name: Create GitHub release and tag
         run: |
           prerelease=()
@@ -412,7 +464,7 @@ jobs:
             --generate-notes \
             "${prerelease[@]}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.tag-token.outputs.token }}
+          RELEASE_COMMIT: ${{ needs.validate-release.outputs.commit }}
           PRERELEASE: ${{ needs.validate-release.outputs.prerelease }}
-          RELEASE_COMMIT: ${{ github.sha }}
           VERSION: ${{ needs.validate-release.outputs.version }}
