@@ -67,7 +67,7 @@ jobs:
         run: |
           uv run --locked scripts/release.py --plan-version "$VERSION" "$RUFF_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Check for an existing release PR
+      - name: Check for a conflicting release PR
         if: steps.plan.outputs.version != ''
         env:
           GH_TOKEN: ${{ github.token }}
@@ -75,23 +75,17 @@ jobs:
           AUTO_PROMOTE: ${{ inputs.auto-promote }}
           VERSION: ${{ steps.plan.outputs.version }}
         run: |
-          patterns=("refs/heads/release/auto/$VERSION-*")
+          other_branch="release/auto/$VERSION"
           if [[ "$AUTO_PROMOTE" == true ]]; then
-            patterns=("refs/heads/release/$VERSION" "refs/heads/release/auto/*")
+            other_branch="release/$VERSION"
           fi
-
-          refs=$(git ls-remote --refs origin "${patterns[@]}")
-          while read -r _ ref && [[ -n "$ref" ]]; do
-            # A branch left by a closed PR or a failed run is safe to skip.
-            head="$GITHUB_REPOSITORY_OWNER:${ref#refs/heads/}"
-            pr_url=$(gh api --method GET "repos/$GITHUB_REPOSITORY/pulls" \
-              -f state=open -f base="$DEFAULT_BRANCH" -f head="$head" \
-              --jq 'map(select(.head.repo.id == .base.repo.id))[0].html_url // empty')
-            if [[ -n "$pr_url" ]]; then
-              echo "::error::A release PR is already open: $pr_url"
-              exit 1
-            fi
-          done <<< "$refs"
+          pr_url=$(gh api --method GET "repos/$GITHUB_REPOSITORY/pulls" \
+            -f state=open -f base="$DEFAULT_BRANCH" -f head="$GITHUB_REPOSITORY_OWNER:$other_branch" \
+            --jq 'map(select(.head.repo.id == .base.repo.id))[0].html_url // empty')
+          if [[ -n "$pr_url" ]]; then
+            echo "::error::A release PR is already open: $pr_url"
+            exit 1
+          fi
 
       - name: Verify protection for the automated release branch
         id: auto-branch
@@ -100,7 +94,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.plan.outputs.version }}
         run: |
-          branch="release/auto/$VERSION-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          branch="release/auto/$VERSION"
           # Auto-merge can survive an update by someone with write access.
           locked=$(gh api "repos/$GITHUB_REPOSITORY/rules/branches/${branch//\//%2F}" \
             --jq 'any(.[]; .type == "update" and (.parameters.update_allows_fetch_and_merge != true))')
@@ -158,7 +152,7 @@ jobs:
           gh auth setup-git --hostname github.com
           ref="refs/heads/$BRANCH"
           prepared_sha=$(git rev-parse HEAD)
-          # An empty lease requires the branch to be new.
+          # The create-only push reserves this version for the automated PR.
           git push --force-with-lease="$ref:" origin "$prepared_sha:$ref"
 
           pr_url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$DEFAULT_BRANCH" \

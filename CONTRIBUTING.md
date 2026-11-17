@@ -79,8 +79,8 @@ It may take a few minutes after the workflow completes for the extension to be a
 
 ### Retrying a release
 
-- If preparation fails before opening a PR, rerun the failed job in Prepare release.
-- If an automated release PR is behind the default branch or preparation failed while enabling auto-merge, close
-  the PR and rerun Prepare release to create a fresh branch from the current default branch.
-- If Prepare reports another release PR is open, resolve that PR before rerunning.
+- If preparation fails before pushing the branch, rerun the failed job in Prepare release.
+- If an automated release PR is behind the default branch or preparation fails after pushing
+  `release/auto/<version>`, close the PR if it exists and delete that branch before rerunning Prepare release.
+- If Prepare reports a conflicting release PR for the same version, resolve that PR before rerunning.
 - If a build or publish job fails, rerun the failed jobs in the original Release run.
