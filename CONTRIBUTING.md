@@ -47,9 +47,9 @@ for the next even minor version and enables GitHub auto-merge. GitHub squash-mer
 requirements are met. The merge starts [Release](https://github.com/astral-sh/ruff-vscode/actions/workflows/release.yml)
 at the squash commit. After the builds finish, approve `release-gate` to publish.
 
-Before enabling auto-promotion, create an active branch ruleset for `release/auto/*` with **Restrict updates**,
-no bypass actors, and branch creation and deletion allowed. This keeps the prepared head fixed while GitHub waits
-to merge. The Prepare workflow checks for the update restriction before pushing the release branch.
+Before enabling auto-promotion, apply the organization rulesets for `release/auto/*`. They reserve branch creation
+for the releases bot and block updates, keeping the prepared commit fixed while GitHub waits to merge. GitHub
+can still delete the branch after merge. The Prepare workflow checks for the update restriction before pushing.
 
 ### Manual releases
 
