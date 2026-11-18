@@ -1,0 +1,49 @@
+name: Tag release
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      prerelease:
+        required: true
+        type: boolean
+
+permissions: {}
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - name: Get release tag token
+        id: tag-token
+        uses: astral-sh/github-actions/simple-token-service@67dc9ee1ddc113eccd8116e7b949fb6cdcd89889 # 2026.11.16.0
+        with:
+          exchange-url: ${{ secrets.RELEASES_STS_API_URL }}/exchange
+          audience: ${{ secrets.RELEASES_STS_API_URL }}
+          repository: astral-sh/ruff-vscode
+          # GitHub requires workflow permission when tagging a commit whose workflow files differ from main.
+          permissions: |
+            contents: write
+            workflows: write
+
+      - name: Create GitHub release and tag
+        shell: bash
+        run: |
+          prerelease=()
+          if [[ "$PRERELEASE" == "true" ]]; then
+            prerelease+=(--prerelease)
+          fi
+          gh release create "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION" \
+            --generate-notes \
+            "${prerelease[@]}"
+        env:
+          GH_TOKEN: ${{ steps.tag-token.outputs.token }}
+          PRERELEASE: ${{ inputs.prerelease }}
+          VERSION: ${{ inputs.version }}

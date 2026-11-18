@@ -434,37 +434,9 @@ jobs:
   publish-github:
     name: Create GitHub release
     needs: ["validate-release", "publish-code-marketplace", "publish-openvsx"]
-    runs-on: ubuntu-latest
-    environment: release
     permissions:
       id-token: write
-    steps:
-      - name: Get release tag token
-        id: tag-token
-        uses: astral-sh/github-actions/simple-token-service@eb81cf4d13127c3f9539f621c17e4c65327636c8
-        with:
-          exchange-url: ${{ secrets.RELEASES_STS_API_URL }}/exchange
-          audience: ${{ secrets.RELEASES_STS_API_URL }}
-          repository: astral-sh/ruff-vscode
-          # GitHub requires workflow permission when tagging a commit whose workflow files differ from main.
-          permissions: |
-            contents: write
-            workflows: write
-
-      - name: Create GitHub release and tag
-        run: |
-          prerelease=()
-          if [[ "$PRERELEASE" == "true" ]]; then
-            prerelease+=(--prerelease)
-          fi
-          gh release create "$VERSION" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$RELEASE_COMMIT" \
-            --title "$VERSION" \
-            --generate-notes \
-            "${prerelease[@]}"
-        env:
-          GH_TOKEN: ${{ steps.tag-token.outputs.token }}
-          RELEASE_COMMIT: ${{ needs.validate-release.outputs.commit }}
-          PRERELEASE: ${{ needs.validate-release.outputs.prerelease }}
-          VERSION: ${{ needs.validate-release.outputs.version }}
+    uses: $/.github/workflows/release-tag.yml
+    with:
+      version: ${{ needs.validate-release.outputs.version }}
+      prerelease: ${{ needs.validate-release.outputs.prerelease == 'true' }}
