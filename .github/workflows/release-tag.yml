@@ -8,6 +8,9 @@ on:
       prerelease:
         required: true
         type: boolean
+    secrets:
+      RELEASES_STS_API_URL:
+        required: true
 
 permissions: {}
 

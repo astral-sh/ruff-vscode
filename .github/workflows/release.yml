@@ -440,3 +440,5 @@ jobs:
     with:
       version: ${{ needs.validate-release.outputs.version }}
       prerelease: ${{ needs.validate-release.outputs.prerelease == 'true' }}
+    secrets:
+      RELEASES_STS_API_URL: ${{ secrets.RELEASES_STS_API_URL }}
