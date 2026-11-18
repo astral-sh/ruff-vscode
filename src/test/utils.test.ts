@@ -8,7 +8,7 @@ import {
   findRuffBinaryPath,
   resolvePythonEnvironment,
 } from "../common/server";
-import type { ISettings } from "../common/settings";
+import { getEnabledNotebookCodeActionsOnSave, type ISettings } from "../common/settings";
 import { getDocumentSelector } from "../common/utilities";
 import { supportsUntrustedWorkspace } from "../common/version";
 import { getDocumentUri, isWindows } from "./helper";
@@ -146,6 +146,38 @@ suite("Utils tests", () => {
         path: BUNDLED_RUFF_EXECUTABLE,
         dependsOnActiveInterpreter: false,
       });
+    }
+  });
+
+  test("getEnabledNotebookCodeActionsOnSave extracts string entries from arrays", () => {
+    assert.deepStrictEqual(
+      getEnabledNotebookCodeActionsOnSave(["source.organizeImports", "source.fixAll.ruff"]),
+      ["source.organizeImports", "source.fixAll.ruff"],
+    );
+    assert.deepStrictEqual(
+      getEnabledNotebookCodeActionsOnSave(["source.organizeImports", 123, null, true]),
+      ["source.organizeImports"],
+    );
+  });
+
+  test("getEnabledNotebookCodeActionsOnSave filters object entries by enabled mode", () => {
+    assert.deepStrictEqual(
+      getEnabledNotebookCodeActionsOnSave({
+        "source.organizeImports": "explicit",
+        "source.fixAll.ruff": "always",
+        "notebook.source.fixAll.ruff": true,
+        "source.fixAll": "never",
+        "source.unused": false,
+        "source.unset": undefined,
+        "source.invalid": "invalid",
+      }),
+      ["source.organizeImports", "source.fixAll.ruff", "notebook.source.fixAll.ruff"],
+    );
+  });
+
+  test("getEnabledNotebookCodeActionsOnSave returns [] for unset or invalid shapes", () => {
+    for (const value of [null, undefined, {}, [], "source.fixAll.ruff", false]) {
+      assert.deepStrictEqual(getEnabledNotebookCodeActionsOnSave(value), []);
     }
   });
 });
