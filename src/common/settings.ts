@@ -351,20 +351,28 @@ export function checkInlineConfigSupport(ruffVersion: VersionInfo, serverId: str
 }
 
 /**
+ * Return the enabled code action names from a `notebook.codeActionsOnSave` setting value.
+ */
+export function getEnabledNotebookCodeActionsOnSave(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((action): action is string => typeof action === "string");
+  }
+  if (value != null && typeof value === "object") {
+    return Object.entries(value)
+      .filter(([, mode]) => mode === true || mode === "explicit" || mode === "always")
+      .map(([action]) => action);
+  }
+  return [];
+}
+
+/**
  * Check if the user have configured `notebook.codeActionsOnSave` with non-notebook prefixed code actions.
  */
 export function checkNotebookCodeActionsOnSave(serverId: string) {
   getWorkspaceFolders().forEach((workspace) => {
-    const codeActionsOnSave: string[] = (() => {
-      const value = getConfiguration("notebook", workspace.uri).get<string[] | object>(
-        "codeActionsOnSave",
-        [],
-      );
-      if (typeof value === "object") {
-        return Object.keys(value);
-      }
-      return value;
-    })();
+    const codeActionsOnSave = getEnabledNotebookCodeActionsOnSave(
+      getConfiguration("notebook", workspace.uri).get<unknown>("codeActionsOnSave"),
+    );
 
     const genericCodeActions = codeActionsOnSave.filter(
       (action) => action === "source.organizeImports" || action === "source.fixAll",
