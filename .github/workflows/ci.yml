@@ -32,11 +32,30 @@ jobs:
         with:
           node-version: "26.12.1"
           package-manager-cache: false
-      - name: Install dependencies
+      - name: Install development dependencies
+        run: uv sync --dev
+      - name: Install bundled Ruff
+        env:
+          PR_REPOSITORY_ID: ${{ github.event.pull_request.head.repo.id }}
         run: |
-          uv sync --dev
-          uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs
-          npm ci --ignore-scripts
+          sync=(uv pip sync --require-hashes ./requirements.txt --target ./bundled/libs)
+          "${sync[@]}" && exit 0
+
+          # Match branches created by Prepare release or release.py --prepare-pr.
+          release_branch='^release(/auto/|/|-)[0-9]+\.[0-9]+\.[0-9]+$'
+          if [[ "$PR_REPOSITORY_ID" != "$GITHUB_REPOSITORY_ID" || ! "$GITHUB_HEAD_REF" =~ $release_branch ]]; then
+            exit 1
+          fi
+
+          # This runner may see a cached PyPI listing for ten minutes after a release.
+          for delay in 10 20 40 60 90 120 120 180; do
+            echo "uv pip sync failed. Retrying in $delay seconds."
+            sleep "$delay"
+            "${sync[@]}" --refresh-package ruff && exit 0
+          done
+          exit 1
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
       - name: Run checks
         run: npm run check
 

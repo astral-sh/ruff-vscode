@@ -26,8 +26,10 @@ import json
 import re
 import subprocess
 import textwrap
+import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Final
 
 import requests
 import tomli
@@ -43,6 +45,7 @@ PACKAGE_JSON_PATH = Path("package.json")
 PACKAGE_LOCK_JSON_PATH = Path("package-lock.json")
 README_PATH = Path("README.md")
 CHANGELOG_PATH = Path("CHANGELOG.md")
+PYPI_INDEX: Final = "https://pypi.org/simple"
 
 
 @dataclass(frozen=True)
@@ -243,18 +246,40 @@ def update_ruff_requirements() -> None:
     """Refresh Ruff's lock entry and export its distribution hashes for the build."""
     lockfile = Path("uv.lock")
     original = lockfile.read_bytes()
+    # A PyPI index response cached before the upload can stay fresh for ten minutes.
+    retry_delays = (10, 20, 40, 60, 90, 120, 120, 180)
+    max_attempts = len(retry_delays) + 1
     try:
-        requirements = subprocess.check_output(
-            [
-                "uv",
-                "export",
-                "--no-build",
-                "--default-index",
-                "https://pypi.org/simple",
-                "--no-dev",
-                "--no-emit-project",
-            ]
-        )
+        for attempt in range(1, max_attempts + 1):
+            try:
+                requirements = subprocess.check_output(
+                    [
+                        "uv",
+                        "export",
+                        "--no-build",
+                        "--default-index",
+                        PYPI_INDEX,
+                        "--no-dev",
+                        "--no-emit-project",
+                        "--refresh-package",
+                        "ruff",
+                    ]
+                )
+                break
+            except subprocess.CalledProcessError as error:
+                if attempt == max_attempts:
+                    raise SystemExit(
+                        f"uv export failed after {max_attempts} attempts."
+                    ) from error
+                lockfile.write_bytes(original)
+                retry_delay = retry_delays[attempt - 1]
+                print(
+                    f"uv export failed. Retrying in {retry_delay} seconds "
+                    f"(attempt {attempt + 1}/{max_attempts}).",
+                    flush=True,
+                )
+                time.sleep(retry_delay)
+
         if locked_dependencies(lockfile.read_bytes()) != locked_dependencies(original):
             raise SystemExit("The Ruff release would change other locked dependencies")
         Path("requirements.txt").write_bytes(requirements)
@@ -292,11 +317,16 @@ def commit_changes(versions: RuffVersions) -> None:
 
 def prepare_release(versions: RuffVersions, *, prepare_pr: bool) -> None:
     """Make all necessary changes for a new `ruff-vscode` release."""
-    update_pyproject_toml(versions)
+    original_pyproject = PYPROJECT_TOML_PATH.read_bytes()
+    try:
+        update_pyproject_toml(versions)
+        update_ruff_requirements()
+    except BaseException:
+        PYPROJECT_TOML_PATH.write_bytes(original_pyproject)
+        raise
     bump_package_json_version(versions.new_vscode_version)
     update_readme(versions.latest_ruff)
     update_changelog(versions)
-    update_ruff_requirements()
     if prepare_pr:
         commit_changes(versions)
 
