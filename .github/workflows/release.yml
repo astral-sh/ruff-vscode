@@ -101,8 +101,8 @@ jobs:
       - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           # renovate: datasource=github-release-attachments depName=astral-sh/uv
-          version: "0.13.8"
-          checksum: "5acfd9177cfecf0bf87578f059728215ccc884388988f55f7a65041b57387d91"
+          version: "0.13.9"
+          checksum: "a7fbaff2b9a271d85c1bdb540941090fd1ce011797b4abeb48e4dcd39c2471d5"
       - name: Validate release metadata
         id: metadata
         run: |
