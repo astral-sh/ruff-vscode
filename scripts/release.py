@@ -40,11 +40,11 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from rich_argparse import RawDescriptionRichHelpFormatter
 
-PYPROJECT_TOML_PATH = Path("pyproject.toml")
-PACKAGE_JSON_PATH = Path("package.json")
-PACKAGE_LOCK_JSON_PATH = Path("package-lock.json")
-README_PATH = Path("README.md")
-CHANGELOG_PATH = Path("CHANGELOG.md")
+PYPROJECT_TOML_PATH: Final = Path("pyproject.toml")
+PACKAGE_JSON_PATH: Final = Path("package.json")
+PACKAGE_LOCK_JSON_PATH: Final = Path("package-lock.json")
+README_PATH: Final = Path("README.md")
+CHANGELOG_PATH: Final = Path("CHANGELOG.md")
 PYPI_INDEX: Final = "https://pypi.org/simple"
 
 
